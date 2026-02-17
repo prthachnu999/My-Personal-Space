@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Link Start! - Dark Repulser System [Kirito V1.6 Speed Master]</title>
+    <meta name="theme-color" content="#000000">
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <link rel="apple-touch-icon" href="คิริโตะ.jpg">
+    <link rel="icon" type="image/png" href="คิริโตะ.jpg">
+
+    <!-- 1. Critical CSS: ใส่ Style ไว้บนสุดเพื่อให้ Browser วาดพื้นหลังได้ทันที (ลด FCP) -->
+    <style>
+        :root {
+            --electric-blue: #00f2ff;
+            --deep-cosmos: #050a14;
+            --lightning-white: #e0faff;
+            --plasma-blue: #0077ff;
+            --panel-bg: rgba(5, 12, 25, 0.92);
+        }
+
+        body {
+            background-color: #000;
+            color: #e0faff;
+            font-family: 'Sarabun', sans-serif;
+            /* ย้าย Background Image มาไว้ตรงนี้เพื่อให้โหลดทันที */
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(0, 119, 255, 0.15) 0%, transparent 60%),
+                radial-gradient(circle at 20% 80%, rgba(0, 242, 255, 0.1) 0%, transparent 40%),
+                linear-gradient(0deg, transparent 24%, rgba(0, 242, 255, 0.03) 25%, rgba(0, 242, 255, 0.03) 26%, transparent 27%, transparent 74%, rgba(0, 242, 255, 0.03) 75%, rgba(0, 242, 255, 0.03) 76%, transparent 77%, transparent),
+                linear-gradient(90deg, transparent 24%, rgba(0, 242, 255, 0.03) 25%, rgba(0, 242, 255, 0.03) 26%, transparent 27%, transparent 74%, rgba(0, 242, 255, 0.03) 75%, rgba(0, 242, 255, 0.03) 76%, transparent 77%, transparent);
+            background-size: 100% 100%, 100% 100%, 60px 60px, 60px 60px;
+            background-attachment: fixed;
+            overflow-x: hidden;
+            margin: 0;
+        }
+
+        .font-tech { font-family: 'Orbitron', sans-serif; letter-spacing: 1px; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #020408; }
+        ::-webkit-scrollbar-thumb { 
+            background: linear-gradient(to bottom, var(--plasma-blue), var(--electric-blue)); 
+            border-radius: 4px; 
+        }
+
+        /* SAO Panel Style */
+        .sao-panel {
+            background: var(--panel-bg);
+            border: 1px solid rgba(0, 242, 255, 0.3);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 0 30px rgba(0, 119, 255, 0.1), inset 0 0 15px rgba(0, 242, 255, 0.05);
+            clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .sao-panel::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 242, 255, 0.15), transparent);
+            transform: skewX(-25deg);
+            animation: shine 6s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes shine {
+            0% { left: -150%; }
+            30% { left: 250%; }
+            100% { left: 250%; }
+        }
+
+        .sao-header-line {
+            height: 2px;
+            background: linear-gradient(90deg, var(--electric-blue), var(--plasma-blue), transparent);
+            box-shadow: 0 0 10px var(--electric-blue);
+            margin-bottom: 1rem;
+        }
+
+        .btn-sao {
+            background: rgba(0, 242, 255, 0.05);
+            border: 1px solid var(--electric-blue);
+            color: var(--electric-blue);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            font-weight: bold;
+            font-family: 'Sarabun', sans-serif;
+            position: relative;
+            overflow: hidden;
+            text-shadow: 0 0 5px rgba(0, 242, 255, 0.5);
+            cursor: pointer;
+        }
+        .btn-sao:hover:not(:disabled) {
+            background: rgba(0, 242, 255, 0.2);
+            color: #fff;
+            box-shadow: 0 0 20px var(--electric-blue), inset 0 0 10px var(--electric-blue);
+            border-color: #fff;
+        }
+
+        .btn-mini {
+            padding: 2px 6px;
+            font-size: 9px;
+            background: rgba(0, 119, 255, 0.1);
+            border: 1px solid rgba(0, 242, 255, 0.3);
+            color: var(--electric-blue);
+            border-radius: 2px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .btn-mini:hover { background: var(--electric-blue); color: #000; box-shadow: 0 0 8px var(--electric-blue); }
+
+        .btn-sort {
+            font-size: 10px;
+            padding: 3px 8px;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(0, 242, 255, 0.2);
+            color: #8daab9;
+            border-radius: 2px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .btn-sort:hover { border-color: var(--electric-blue); color: var(--electric-blue); }
+        .btn-sort.active { background: rgba(0, 242, 255, 0.2); border-color: var(--electric-blue); color: #fff; }
+
+        input[type="text"], input[type="number"], select {
+            background: rgba(0, 10, 20, 0.85);
+            border: 1px solid rgba(0, 119, 255, 0.4);
+            color: var(--electric-blue);
+            font-family: 'Sarabun', monospace;
+            padding: 6px 10px;
+            font-size: 0.9rem;
+            width: 100%;
+            transition: all 0.3s;
+        }
+        input:focus, select:focus {
+            border-color: var(--electric-blue);
+            outline: none;
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
+        }
+
+        .table-row-sao {
+            border-bottom: 1px solid rgba(0, 242, 255, 0.08);
+            transition: all 0.2s;
+        }
+        .table-row-sao:hover { background: rgba(0, 242, 255, 0.05); transform: translateX(5px); }
+        
+        .changed-name { color: var(--electric-blue); font-weight: bold; text-shadow: 0 0 8px rgba(0, 242, 255, 0.6); }
+        .original-name { color: #6a7d91; }
+
+        .disabled-panel { opacity: 0.25; pointer-events: none; filter: blur(1px) grayscale(1); }
+
+        @keyframes bolt { 0%, 100% { opacity: 0.8; } 50% { opacity: 1; filter: brightness(1.5); } }
+        .lightning-text { animation: bolt 2s infinite ease-in-out; }
+
+        /* Portal Back Button */
+        .portal-back-btn {
+            position: fixed; bottom: 20px; left: 20px; z-index: 1000;
+            background: rgba(0, 0, 0, 0.8); color: #fff; padding: 8px 20px;
+            border: 1px solid var(--electric-blue); border-radius: 4px;
+            text-decoration: none; font-size: 11px; font-weight: bold; font-family: 'Orbitron';
+            transition: all 0.3s;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+        .portal-back-btn:hover {
+            background: rgba(0, 242, 255, 0.2);
+            box-shadow: 0 0 15px var(--electric-blue);
+        }
+    </style>
+
+    <!-- 2. Performance Hints: บอก Browser ให้เตรียมเชื่อมต่อ -->
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+
+    <!-- 3. Scripts: โหลดหลังจาก CSS หลักถูก Parse แล้ว -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Logic Core (Deferred: โหลดทีหลังสุดไม่ให้ขวางหน้าเว็บ) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" defer></script>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="w-full bg-black/90 border-b border-cyan-800 sticky top-0 z-50 backdrop-blur-md shadow-[0_5px_30px_rgba(0,242,255,0.15)]">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 border-2 border-cyan-400 rotate-45 flex items-center justify-center relative group" style="box-shadow: 0 0 15px var(--electric-blue);">
+                    <div class="absolute inset-0 bg-cyan-500/20 blur-md animate-pulse"></div>
+                    <div class="-rotate-45 relative z-10"><i class="fas fa-bolt text-cyan-100 text-lg drop-shadow-[0_0_8px_cyan]"></i></div>
+                </div>
+                <div>
+                    <h1 class="font-tech text-xl md:text-2xl font-bold italic tracking-tighter text-white drop-shadow-[0_0_12px_rgba(0,242,255,1)]">
+                        DARK REPULSER <span class="text-cyan-400 text-xs align-top opacity-60">V1.6</span>
+                    </h1>
+                    <div class="flex items-center gap-2">
+                        <p class="text-[9px] text-cyan-500 font-tech tracking-[0.3em] uppercase lightning-text">Speed Master</p>
+                    </div>
+                </div>
+            </div>
+            <div class="text-right hidden sm:block">
+                <div class="text-[9px] text-cyan-700 font-tech mb-1">SYSTEM SYNC: 100%</div>
+                <div class="w-40 h-[3px] bg-gray-900 rounded-full overflow-hidden">
+                    <div class="h-full bg-cyan-400 w-full shadow-[0_0_10px_cyan]"></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow p-4 md:p-6 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 relative z-10">
+        
+        <!-- Sidebar Controls -->
+        <aside class="lg:col-span-4 space-y-5">
+            
+            <!-- Upload Panel -->
+            <div class="sao-panel p-5">
+                <h3 class="font-tech text-xs text-cyan-200 mb-2 uppercase flex items-center gap-2">
+                    <i class="fas fa-cloud-upload-alt text-cyan-400"></i> Data Input (นำเข้า)
+                </h3>
+                <div class="sao-header-line"></div>
+                
+                <div onclick="document.getElementById('file-input').click()" class="border-2 border-dashed border-cyan-900 hover:border-cyan-400 bg-black/50 p-6 text-center cursor-pointer transition-all group relative overflow-hidden mb-3">
+                    <input type="file" id="file-input" multiple class="hidden" onchange="handleFiles(this.files)">
+                    <div class="absolute inset-0 bg-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <i class="fas fa-layer-group text-3xl text-cyan-950 group-hover:text-cyan-400 mb-2 transition-colors drop-shadow-[0_0_10px_rgba(0,242,255,0.4)]"></i>
+                    <p class="text-xs text-gray-500 group-hover:text-white font-thai">คลิกหรือลากไฟล์มาวางที่นี่</p>
+                </div>
+
+                <!-- Sorting Tools -->
+                <div class="bg-black/40 border border-cyan-900/50 p-2 rounded mb-3">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-[9px] text-cyan-600 font-bold uppercase">SORT ORDER (จัดเรียง)</span>
+                    </div>
+                    <div class="grid grid-cols-4 gap-1">
+                        <button onclick="sortFiles('name_asc')" class="btn-sort" title="ชื่อ A-Z">A-Z</button>
+                        <button onclick="sortFiles('name_desc')" class="btn-sort" title="ชื่อ Z-A">Z-A</button>
+                        <button onclick="sortFiles('date_old')" class="btn-sort" title="วันที่ เก่า-ใหม่">Old</button>
+                        <button onclick="sortFiles('date_new')" class="btn-sort" title="วันที่ ใหม่-เก่า">New</button>
+                    </div>
+                </div>
+
+                <div class="flex justify-between px-1">
+                    <button onclick="clearAll()" class="text-[10px] text-red-500 hover:text-red-300 transition-colors">
+                        <i class="fas fa-undo"></i> CLEAR ALL
+                    </button>
+                    <span id="file-count" class="text-[10px] text-cyan-600 font-mono">0 OBJECTS</span>
+                </div>
+            </div>
+
+            <!-- Rules Panel -->
+            <div class="sao-panel p-5 border-l-2 border-cyan-500">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-tech text-xs text-white uppercase flex items-center gap-2">
+                        <i class="fas fa-cog text-cyan-400"></i> CONFIGURATION
+                    </h3>
+                    <button onclick="resetRules()" class="btn-mini">RESET</button>
+                </div>
+                <div class="sao-header-line"></div>
+                
+                <div class="space-y-4 font-thai text-sm" id="rules-container">
+                    
+                    <!-- Rule 0: Rename All -->
+                    <div class="bg-black/60 p-3 border border-cyan-600/50 rounded relative group shadow-[0_0_10px_rgba(0,242,255,0.05)]">
+                        <div class="flex items-center gap-2 mb-2 text-cyan-300 text-[11px] font-bold uppercase">
+                            <i class="fas fa-i-cursor"></i> ตั้งชื่อใหม่ทั้งหมด
+                        </div>
+                        <input type="text" id="rule-newname" placeholder="ชื่อหลักใหม่ (ไม่ต้องใส่นามสกุล)..." oninput="previewChanges()" class="placeholder-cyan-900 border-cyan-800">
+                    </div>
+
+                    <!-- Rule 1: Replace -->
+                    <div id="panel-replace" class="bg-black/40 p-3 border border-gray-900 rounded transition-opacity">
+                        <div class="flex items-center gap-2 mb-2 text-cyan-200 text-[11px] font-bold uppercase">
+                            <i class="fas fa-search"></i> ค้นหาและแทนที่
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="rule-find" placeholder="ค้นหา..." oninput="previewChanges()">
+                            <input type="text" id="rule-replace" placeholder="แทนที่ด้วย..." oninput="previewChanges()">
+                        </div>
+                    </div>
+
+                    <!-- Rule 2: Prefix/Suffix -->
+                    <div class="bg-black/40 p-3 border border-gray-900 rounded">
+                        <div class="flex items-center gap-2 mb-2 text-cyan-200 text-[11px] font-bold uppercase">
+                            <i class="fas fa-plus"></i> เติมคำ หน้า-หลัง
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex items-center gap-2">
+                                <span class="text-[9px] w-10 text-cyan-700">หน้า:</span>
+                                <input type="text" id="rule-prefix" placeholder="Prefix_" oninput="previewChanges()">
+                                <button onclick="injectDate('rule-prefix')" class="btn-mini whitespace-nowrap" title="ใส่วันที่ปัจจุบัน">+วันที่</button>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[9px] w-10 text-cyan-700">หลัง:</span>
+                                <input type="text" id="rule-suffix" placeholder="_Suffix" oninput="previewChanges()">
+                                <button onclick="injectDate('rule-suffix')" class="btn-mini whitespace-nowrap" title="ใส่วันที่ปัจจุบัน">+วันที่</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rule 3: Case Style -->
+                    <div class="bg-black/40 p-3 border border-gray-900 rounded">
+                        <div class="flex items-center gap-2 mb-2 text-cyan-200 text-[11px] font-bold uppercase">
+                            <i class="fas fa-font"></i> รูปแบบตัวอักษรชื่อ
+                        </div>
+                        <select id="rule-case" class="text-xs" onchange="previewChanges()">
+                            <option value="none">คงเดิม (Original Case)</option>
+                            <option value="lower">ตัวเล็กทั้งหมด (lowercase)</option>
+                            <option value="upper">ตัวใหญ่ทั้งหมด (UPPERCASE)</option>
+                            <option value="title">ตัวแรกของคำใหญ่ (Title Case)</option>
+                        </select>
+                    </div>
+
+                    <!-- Rule 4: Numbering -->
+                    <div class="bg-black/40 p-3 border border-gray-900 rounded">
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="text-cyan-200 text-[11px] font-bold uppercase"><i class="fas fa-sort-numeric-down"></i> รันเลขลำดับ</div>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="rule-num-enable" onchange="previewChanges()" class="w-3 h-3">
+                                <span class="text-[10px] text-gray-500">เปิดใช้</span>
+                            </label>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="flex items-center gap-1">
+                                <span class="text-[9px] text-gray-600">เริ่ม:</span>
+                                <input type="number" id="rule-num-start" value="1" min="0" oninput="previewChanges()">
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <span class="text-[9px] text-gray-600">หลัก:</span>
+                                <input type="number" id="rule-num-digits" value="3" min="1" max="6" oninput="previewChanges()">
+                            </div>
+                        </div>
+                        <div class="mt-2 text-[10px] flex justify-end gap-3 text-cyan-800">
+                            <label class="cursor-pointer"><input type="radio" name="num-pos" value="end" checked onchange="previewChanges()"> ต่อท้าย</label>
+                            <label class="cursor-pointer"><input type="radio" name="num-pos" value="start" onchange="previewChanges()"> นำหน้า</label>
+                        </div>
+                    </div>
+
+                    <!-- Rule 5: Extension -->
+                    <div class="bg-black/40 p-3 border border-gray-900 rounded">
+                        <div class="text-cyan-200 text-[11px] font-bold uppercase mb-2"><i class="fas fa-file-code"></i> นามสกุล (Extension)</div>
+                        <div class="flex gap-2">
+                             <select id="rule-ext-mode" class="text-xs" onchange="previewChanges()">
+                                 <option value="keep">คงเดิม</option>
+                                 <option value="lower">ตัวเล็ก (abc)</option>
+                                 <option value="upper">ตัวใหญ่ (ABC)</option>
+                                 <option value="change">เปลี่ยนใหม่</option>
+                             </select>
+                             <input type="text" id="rule-ext-new" class="hidden w-16" placeholder="png" oninput="previewChanges()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <button onclick="processAndDownload()" class="btn-sao w-full py-4 text-sm font-bold flex justify-center items-center gap-2 tracking-widest">
+                        <i class="fas fa-bolt lightning-text"></i> EXECUTE & PACK (ZIP)
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <section class="lg:col-span-8 h-full min-h-[550px] flex flex-col">
+            <div class="sao-panel p-0 flex-grow flex flex-col relative" style="background: rgba(0,0,0,0.7);">
+                <div class="bg-gradient-to-r from-cyan-950/50 to-transparent p-3 border-b border-cyan-900 flex justify-between items-center text-[10px] font-bold text-cyan-400 font-tech uppercase">
+                    <div class="w-5/12 pl-2">Current State</div>
+                    <div class="w-1/12 text-center text-cyan-800"><i class="fas fa-angle-double-right"></i></div>
+                    <div class="w-5/12">Target Result</div>
+                    <div class="w-1/12 text-right pr-2">Rm</div>
+                </div>
+
+                <div id="empty-state" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none opacity-40">
+                    <i class="fas fa-dna text-6xl text-cyan-900 mb-4 animate-pulse"></i>
+                    <p class="font-tech text-lg text-cyan-900 tracking-[0.5em]">SYSTEM STANDBY</p>
+                </div>
+
+                <div id="file-list" class="overflow-y-auto p-2 space-y-1 flex-grow font-mono text-[11px] scroll-smooth"></div>
+            </div>
+            
+            <div class="mt-4 sao-panel p-3 h-28 font-mono text-[10px] overflow-y-auto border-t-2 border-t-cyan-600" id="console-log" style="background: #000;">
+                <div class="text-cyan-700">> LINK START! DARK REPULSER V1.6 SPEED MASTER READY...</div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal Loading -->
+    <div id="loading-modal" class="fixed inset-0 bg-black/95 z-[100] hidden items-center justify-center flex-col">
+        <div class="w-20 h-20 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin shadow-[0_0_20px_cyan] mb-6"></div>
+        <h2 class="font-tech text-2xl text-white font-bold animate-pulse tracking-widest drop-shadow-[0_0_8px_cyan]">CONVERTING...</h2>
+    </div>
+
+    <!-- Back to Home Button -->
+    <a href="index.html" class="portal-back-btn"><span>←</span> HOME_PORTAL</a>
+
+    <script>
+        let fileData = [];
+
+        const log = (msg, type='info') => {
+            const el = document.getElementById('console-log');
+            const div = document.createElement('div');
+            const colors = { success: 'text-green-500', error: 'text-red-500', warn: 'text-yellow-400', info: 'text-cyan-600' };
+            div.className = `${colors[type] || 'text-gray-500'} mb-1`;
+            div.innerHTML = `<span class="opacity-40">[${new Date().toLocaleTimeString('th-TH')}]</span> ${msg}`;
+            el.appendChild(div);
+            el.scrollTop = el.scrollHeight;
+        };
+
+        function handleFiles(files) {
+            if (files.length === 0) return;
+            document.getElementById('empty-state').style.display = 'none';
+            Array.from(files).forEach(f => {
+                // Bug fix: Correctly parse filename and extension
+                const parts = f.name.split('.');
+                const hasExt = parts.length > 1;
+                const ext = hasExt ? parts.pop() : '';
+                const base = hasExt ? parts.join('.') : f.name;
+
+                const exists = fileData.some(od => od.originalName === f.name && od.file.size === f.size);
+                if (!exists) {
+                    fileData.push({
+                        file: f,
+                        originalName: f.name,
+                        newName: f.name,
+                        sizeStr: (f.size / 1024).toFixed(1) + ' KB',
+                        ext: ext,
+                        base: base,
+                        lastModified: f.lastModified
+                    });
+                }
+            });
+            log(`Imported ${files.length} items successfully.`);
+            updateCount(); previewChanges();
+        }
+
+        function sortFiles(mode) {
+            if(fileData.length === 0) return;
+            if (mode === 'name_asc') fileData.sort((a,b) => a.originalName.localeCompare(b.originalName, 'th'));
+            if (mode === 'name_desc') fileData.sort((a,b) => b.originalName.localeCompare(a.originalName, 'th'));
+            if (mode === 'date_old') fileData.sort((a,b) => a.lastModified - b.lastModified);
+            if (mode === 'date_new') fileData.sort((a,b) => b.lastModified - a.lastModified);
+            
+            // Highlight active button
+            document.querySelectorAll('.btn-sort').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+
+            renderList();
+            previewChanges(); // Re-calc numbering based on new order
+            log(`Sorted list by: ${mode}`);
+        }
+
+        function clearAll() {
+            if(fileData.length === 0 || !confirm('Wipe Workspace?')) return;
+            fileData = []; renderList(); updateCount();
+            document.getElementById('empty-state').style.display = 'flex';
+            log('Workspace Wiped.', 'warn');
+        }
+
+        function updateCount() { document.getElementById('file-count').innerText = `${fileData.length} OBJECTS LOADED`; }
+
+        function injectDate(targetId) {
+            const now = new Date();
+            const day = String(now.getDate()).padStart(2, '0');
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const yearBE = now.getFullYear() + 543;
+            const dateStr = `${day}-${month}-${yearBE}`;
+            document.getElementById(targetId).value += dateStr;
+            previewChanges();
+            log(`Injected Date: ${dateStr}`);
+        }
+
+        function resetRules() {
+            ['rule-newname','rule-find','rule-replace','rule-prefix','rule-suffix','rule-ext-new'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('rule-num-enable').checked = false;
+            document.getElementById('rule-num-start').value = 1;
+            document.getElementById('rule-case').value = 'none';
+            document.getElementById('rule-ext-mode').value = 'keep';
+            previewChanges(); log('Configuration Reset.');
+        }
+
+        function toTitleCase(str) {
+            return str.toLowerCase().replace(/\b\w/g, s => s.toUpperCase());
+        }
+
+        function generateName(item, index, rules) {
+            let name = rules.newName && rules.newName.trim() !== '' ? rules.newName : item.base;
+            let ext = item.ext;
+
+            if (!rules.newName || rules.newName.trim() === '') {
+                if (rules.findStr) name = name.split(rules.findStr).join(rules.replaceStr);
+            }
+
+            if (rules.caseStyle === 'lower') name = name.toLowerCase();
+            else if (rules.caseStyle === 'upper') name = name.toUpperCase();
+            else if (rules.caseStyle === 'title') name = toTitleCase(name);
+
+            name = `${rules.prefix}${name}${rules.suffix}`;
+
+            if (rules.numEnable) {
+                const num = (index + parseInt(rules.numStart)).toString().padStart(parseInt(rules.numDigits), '0');
+                name = rules.numPos === 'end' ? `${name}_${num}` : `${num}_${name}`;
+            }
+
+            if (rules.extMode === 'lower') ext = ext.toLowerCase();
+            else if (rules.extMode === 'upper') ext = ext.toUpperCase();
+            else if (rules.extMode === 'change' && rules.extNew) ext = rules.extNew.replace(/^\./, '');
+
+            // Bug fix: handle files with no extension
+            return ext ? `${name}.${ext}` : name;
+        }
+
+        function previewChanges() {
+            const rules = {
+                newName: document.getElementById('rule-newname').value,
+                findStr: document.getElementById('rule-find').value,
+                replaceStr: document.getElementById('rule-replace').value,
+                prefix: document.getElementById('rule-prefix').value,
+                suffix: document.getElementById('rule-suffix').value,
+                caseStyle: document.getElementById('rule-case').value,
+                numEnable: document.getElementById('rule-num-enable').checked,
+                numStart: document.getElementById('rule-num-start').value || 1,
+                numDigits: document.getElementById('rule-num-digits').value || 3,
+                numPos: document.querySelector('input[name="num-pos"]:checked').value,
+                extMode: document.getElementById('rule-ext-mode').value,
+                extNew: document.getElementById('rule-ext-new').value
+            };
+
+            const replacePanel = document.getElementById('panel-replace');
+            rules.newName && rules.newName.trim() !== '' ? replacePanel.classList.add('disabled-panel') : replacePanel.classList.remove('disabled-panel');
+            document.getElementById('rule-ext-new').classList.toggle('hidden', rules.extMode !== 'change');
+
+            fileData.forEach((item, index) => item.newName = generateName(item, index, rules));
+            renderList();
+        }
+
+        function renderList() {
+            const container = document.getElementById('file-list');
+            container.innerHTML = '';
+            fileData.forEach((item, idx) => {
+                const row = document.createElement('div');
+                row.className = 'table-row-sao flex items-center p-2';
+                row.innerHTML = `
+                    <div class="w-5/12 pl-2 truncate original-name" title="${item.originalName}">${item.originalName} <span class="text-[8px] opacity-40">[${item.sizeStr}]</span></div>
+                    <div class="w-1/12 text-center text-cyan-900"><i class="fas fa-angle-right"></i></div>
+                    <div class="w-5/12 truncate ${item.originalName !== item.newName ? 'changed-name' : 'text-gray-600'}">${item.newName}</div>
+                    <div class="w-1/12 text-right pr-2"><button onclick="removeItem(${idx})" class="text-gray-800 hover:text-red-500"><i class="fas fa-times"></i></button></div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function removeItem(i) {
+            fileData.splice(i, 1);
+            if (fileData.length === 0) document.getElementById('empty-state').style.display = 'flex';
+            updateCount(); previewChanges();
+        }
+
+        async function processAndDownload() {
+            if (fileData.length === 0) return alert('No objects found.');
+            const modal = document.getElementById('loading-modal');
+            modal.style.display = 'flex';
+            log('Processing batch naming sequence...', 'info');
+
+            try {
+                const zip = new JSZip();
+                const folder = zip.folder("DarkRepulser_Batch");
+                const nameTracker = {};
+
+                fileData.forEach(item => {
+                    let finalName = item.newName;
+                    if (nameTracker[finalName] !== undefined) {
+                        nameTracker[finalName]++;
+                        const dot = finalName.lastIndexOf('.');
+                        finalName = dot !== -1 ? `${finalName.substring(0, dot)}_(${nameTracker[finalName]})${finalName.substring(dot)}` : `${finalName}_(${nameTracker[finalName]})`;
+                    } else { nameTracker[finalName] = 0; }
+                    folder.file(finalName, item.file);
+                });
+
+                const content = await zip.generateAsync({type:"blob"});
+                saveAs(content, `DarkRepulser_Renamed_${Date.now()}.zip`);
+                log('Batch Process Complete. ZIP Streamed.', 'success');
+            } catch (err) { log(`System Error: ${err.message}`, 'error'); } 
+            finally { setTimeout(() => modal.style.display = 'none', 1000); }
+        }
+    </script>
+</body>
+</html>

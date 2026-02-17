@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Link Start! - Watermark Master V2.18 [Ultimate]</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <link rel="apple-touch-icon" href="คิริโตะ.jpg">
+    <link rel="icon" type="image/png" href="คิริโตะ.jpg">
+
+    <!-- Performance: Preconnect -->
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- UI Core -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Logic Libraries (Deferred) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" defer></script>
+
+    <style>
+        :root {
+            --neon-blue: #00d2ff;
+            --neon-glow: rgba(0, 210, 255, 0.5);
+            --bg-dark: #010409;
+            --gemini-purple: #9b72cb;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #f1f5f9;
+            font-family: 'Sarabun', sans-serif;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(0, 210, 255, 0.05) 0%, transparent 70%),
+                linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+            background-attachment: fixed;
+            user-select: none;
+        }
+
+        .font-tech { font-family: 'Orbitron', sans-serif; }
+
+        .sao-panel {
+            background: rgba(13, 17, 23, 0.96);
+            border: 1px solid rgba(0, 210, 255, 0.2);
+            backdrop-filter: blur(25px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+            position: relative;
+        }
+
+        .sao-panel::before {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+        }
+
+        .btn-sao {
+            background: rgba(0, 210, 255, 0.1);
+            border: 1px solid var(--neon-blue);
+            color: var(--neon-blue);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+            border-radius: 2px;
+        }
+
+        .btn-sao:hover:not(:disabled) {
+            background: var(--neon-blue);
+            color: #000;
+            box-shadow: 0 0 25px var(--neon-glow);
+            transform: translateY(-2px);
+        }
+
+        .btn-gemini {
+            background: rgba(155, 114, 203, 0.1);
+            border: 1px solid var(--gemini-purple);
+            color: var(--gemini-purple);
+        }
+
+        .btn-gemini:hover:not(:disabled) {
+            background: var(--gemini-purple);
+            color: #fff;
+            box-shadow: 0 0 15px var(--gemini-purple);
+        }
+
+        .btn-ai-reset {
+            background: rgba(249, 115, 22, 0.1);
+            border: 1px solid #f97316;
+            color: #f97316;
+        }
+        .btn-ai-reset:hover {
+            background: #f97316;
+            color: #fff;
+            box-shadow: 0 0 15px #f97316;
+        }
+
+        .input-sao {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(0, 210, 255, 0.2);
+            color: #fff;
+            padding: 6px 10px;
+            outline: none;
+        }
+
+        .hp-container { height: 4px; background: rgba(255, 255, 255, 0.05); width: 100%; overflow: hidden; }
+        #hp-fill { height: 100%; background: #00d2ff; width: 0%; box-shadow: 0 0 10px var(--neon-blue); transition: width 0.1s linear; }
+
+        input[type="range"] {
+            -webkit-appearance: none; appearance: none;
+            width: 100%; height: 6px; background: #1f2937; border-radius: 5px; outline: none;
+            cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 16px; height: 16px; background: var(--neon-blue);
+            border-radius: 50%; cursor: pointer; border: 2px solid #fff;
+            box-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        .tag-btn {
+            background: rgba(0, 210, 255, 0.05);
+            border: 1px solid rgba(0, 210, 255, 0.2);
+            color: var(--neon-blue);
+            padding: 2px 10px;
+            font-size: 10px;
+            font-family: 'Orbitron';
+            transition: 0.2s;
+        }
+
+        #viewer-modal, #system-modal, #settings-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.98); z-index: 9999; justify-content: center; align-items: center;
+        }
+        #viewer-container { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; transition: transform 0.1s ease-out; transform-origin: center; }
+        #viewer-img { max-width: 90%; max-height: 90%; pointer-events: none; box-shadow: 0 0 60px rgba(0, 210, 255, 0.2); }
+
+        .portal-back-btn {
+            position: fixed; bottom: 20px; left: 20px; z-index: 1000;
+            background: rgba(0, 0, 0, 0.8); color: #fff; padding: 6px 15px;
+            border: 1px solid var(--neon-blue); border-radius: 20px;
+            text-decoration: none; font-size: 11px; font-weight: bold; font-family: 'Orbitron';
+            transition: all 0.3s;
+        }
+        .portal-back-btn:hover {
+            background: rgba(0, 210, 255, 0.2);
+            box-shadow: 0 0 15px var(--neon-blue);
+        }
+
+        .switch { position: relative; display: inline-block; width: 34px; height: 18px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--neon-blue); }
+        input:checked + .slider:before { transform: translateX(16px); }
+
+        .ai-glow { animation: ai-pulse 2s infinite; }
+        @keyframes ai-pulse {
+            0% { box-shadow: 0 0 5px var(--gemini-purple); }
+            50% { box-shadow: 0 0 15px var(--gemini-purple); }
+            100% { box-shadow: 0 0 5px var(--gemini-purple); }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <header class="p-4 md:p-8 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
+        <div>
+            <h1 class="font-tech text-3xl font-black italic tracking-tighter text-white">
+                WATERMARK <span class="text-blue-500">TITANIUM AI</span>
+            </h1>
+            <p class="text-[10px] text-blue-400 font-tech tracking-[0.4em] uppercase opacity-80">ระบบวิเคราะห์ลิขสิทธิ์ V2.18 [ULTIMATE]</p>
+        </div>
+        
+        <div class="flex items-center gap-4 mt-4 md:mt-0">
+            <button onclick="openSettings()" class="text-slate-400 hover:text-white transition-colors">
+                <i class="fas fa-cog text-xl">⚙️ ตั้งค่า API</i>
+            </button>
+            <div class="text-right hidden sm:block border-l border-slate-700 pl-6">
+                <p class="text-[10px] text-slate-500 font-tech uppercase">SYSTEM_STATUS</p>
+                <div class="hp-container w-32 mt-1"><div style="width: 100%" class="h-full bg-blue-500 shadow-[0_0_10px_rgba(0,210,255,0.5)]"></div></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 md:px-8 pb-12 grid grid-cols-1 xl:grid-cols-12 gap-8">
+        
+        <!-- แผงควบคุม (ซ้าย) -->
+        <aside class="xl:col-span-4 space-y-6">
+            
+            <div class="sao-panel p-6 border-t-2 border-blue-500">
+                <h3 class="font-tech text-[11px] font-bold text-blue-400 mb-6 uppercase tracking-widest flex items-center gap-2">
+                    <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+                    01_จัดการทรัพยากร
+                </h3>
+                
+                <div id="drop-zone" class="border border-dashed border-slate-700 p-8 text-center cursor-pointer hover:border-blue-500 transition-all bg-black/40 group" onclick="document.getElementById('file-input').click()">
+                    <input type="file" id="file-input" multiple accept="image/*" class="hidden" onchange="handleFiles(this.files)">
+                    <div class="text-4xl mb-2 group-hover:scale-110 transition-transform">📂</div>
+                    <p class="text-sm font-bold text-slate-300 font-thai">นำเข้ารูปภาพ (BATCH)</p>
+                    <p class="text-[9px] text-slate-500 mt-2 uppercase font-tech tracking-tighter">Click or Drag & Drop</p>
+                </div>
+
+                <div id="progress-container" class="mt-6 hidden">
+                    <div class="flex justify-between text-[10px] mb-2 font-tech">
+                        <span id="status-label" class="text-blue-400 uppercase">Processing...</span>
+                        <span id="status-percent" class="text-white">0%</span>
+                    </div>
+                    <div class="hp-container">
+                        <div id="hp-fill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sao-panel p-6 border-t-2 border-orange-500">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-tech text-[11px] font-bold text-orange-400 uppercase tracking-widest flex items-center gap-2">
+                        <span class="w-2 h-2 bg-orange-500 rounded-full"></span>
+                        02_ตั้งค่าลายน้ำ
+                    </h3>
+                    <div class="flex items-center gap-3">
+                        <button onclick="resetSettings()" class="text-[9px] text-orange-400 hover:text-white font-tech border border-orange-400/30 px-2 py-1 rounded hover:bg-orange-400/20 transition-all">↺ รีเซ็ต</button>
+                        <div class="h-4 w-px bg-slate-800"></div>
+                        <span class="text-[9px] font-tech text-slate-500">SHOW</span>
+                        <label class="switch">
+                            <input type="checkbox" id="wm-enabled" checked onchange="queueUpdate()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="space-y-5">
+                    <!-- ข้อความลายน้ำ -->
+                    <div>
+                        <div class="flex justify-between items-end mb-2">
+                            <label class="text-[11px] font-bold text-slate-400 uppercase">ข้อความลายน้ำ</label>
+                            <div class="flex gap-1">
+                                <button onclick="insertTag('{{date}}')" class="tag-btn">+ วันที่</button>
+                                <button onclick="insertTag('{{time}}')" class="tag-btn">+ เวลา</button>
+                            </div>
+                        </div>
+                        <input type="text" id="wm-text" placeholder="ว่างไว้ = ใช้ชื่อไฟล์รูป" class="input-sao w-full text-xs font-thai" oninput="queueUpdate()">
+                    </div>
+
+                    <!-- ขนาดลายน้ำ (Side-by-side) -->
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">ขนาดลายน้ำ (%)</label>
+                        <div class="flex items-center gap-3">
+                            <input type="range" id="wm-size-slide" min="1" max="100" value="15" class="flex-1" oninput="syncControl('size', 'slide')">
+                            <input type="number" id="wm-size-num" value="15" min="1" max="100" class="input-sao text-[10px] w-14 text-center" oninput="syncControl('size', 'num')">
+                        </div>
+                    </div>
+
+                    <!-- ความโปร่งใส (Side-by-side) -->
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">ความโปร่งใส (0-100)</label>
+                        <div class="flex items-center gap-3">
+                            <input type="range" id="wm-alpha-slide" min="0" max="100" value="50" class="flex-1" oninput="syncControl('alpha', 'slide')">
+                            <input type="number" id="wm-alpha-num" value="50" min="0" max="100" class="input-sao text-[10px] w-14 text-center" oninput="syncControl('alpha', 'num')">
+                        </div>
+                    </div>
+
+                    <!-- การหมุน (Side-by-side) -->
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">การหมุน (องศา)</label>
+                        <div class="flex items-center gap-3">
+                            <input type="range" id="wm-rot-slide" min="0" max="360" value="0" class="flex-1" oninput="syncControl('rot', 'slide')">
+                            <input type="number" id="wm-rot-num" value="0" min="0" max="360" class="input-sao text-[10px] w-14 text-center" oninput="syncControl('rot', 'num')">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-400 uppercase mb-2 block">รูปแบบการวาง</label>
+                        <select id="wm-pos" class="input-sao w-full text-xs cursor-pointer font-thai" onchange="queueUpdate()">
+                            <option value="br">↘️ ขวาล่าง</option>
+                            <option value="bl">↙️ ซ้ายล่าง</option>
+                            <option value="tr">↗️ ขวาบน</option>
+                            <option value="tl">↖️ ซ้ายบน</option>
+                            <option value="center">⏺️ ตรงกลาง</option>
+                            <option value="tiled">🧱 โหมดตารางป้องกัน AI</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-500 uppercase mb-2 block">สี</label>
+                            <input type="color" id="wm-color" value="#ffffff" class="w-full h-8 bg-transparent border-none cursor-pointer" oninput="queueUpdate()">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-500 uppercase mb-2 block">ฟอนต์ธีม</label>
+                            <select id="wm-font" class="input-sao w-full text-[10px]" onchange="queueUpdate()">
+                                <option value="Sarabun">Sarabun (TH)</option>
+                                <option value="Orbitron">Orbitron (EN)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button onclick="startProcess()" class="btn-sao w-full py-5 mt-4 font-tech text-xs tracking-widest shadow-[0_0_15px_rgba(0,210,255,0.3)]">
+                        EXECUTE LINK START
+                    </button>
+                </div>
+            </div>
+
+            <!-- Image Filters -->
+            <div class="sao-panel p-6 border-t-2 border-slate-700">
+                <h3 class="font-tech text-[10px] font-bold text-slate-500 mb-6 uppercase tracking-widest">03_ฟิลเตอร์ประมวลผล</h3>
+                <div class="space-y-5">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">ความสว่าง (%)</label>
+                        <div class="flex items-center gap-3">
+                            <input type="range" id="fx-bright-slide" min="50" max="150" value="100" class="flex-1" oninput="syncControl('bright', 'slide')">
+                            <input type="number" id="fx-bright-num" value="100" min="50" max="150" class="input-sao text-[10px] w-14 text-center" oninput="syncControl('bright', 'num')">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">ความคมชัด (%)</label>
+                        <div class="flex items-center gap-3">
+                            <input type="range" id="fx-contrast-slide" min="50" max="150" value="100" class="flex-1" oninput="syncControl('contrast', 'slide')">
+                            <input type="number" id="fx-contrast-num" value="100" min="50" max="150" class="input-sao text-[10px] w-14 text-center" oninput="syncControl('contrast', 'num')">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- พื้นที่แสดงผล (ขวา) -->
+        <section class="xl:col-span-8">
+            <div class="sao-panel p-6 md:p-10 min-h-[700px] flex flex-col">
+                <div class="flex flex-col sm:flex-row justify-between items-center mb-8 border-b border-slate-800 pb-6 gap-4">
+                    <h2 class="font-tech text-sm font-bold text-blue-400 tracking-wider uppercase">Workspace_Monitor <span id="file-count" class="ml-4 text-[10px] text-slate-600 font-normal">0 Items</span></h2>
+                    <div class="flex flex-wrap gap-4">
+                        <button id="btn-ai-toggle" onclick="toggleAiMode()" class="btn-sao btn-gemini px-4 py-2 text-[9px] font-tech ai-glow">✨ วิเคราะห์ AI ทั้งหมด</button>
+                        <button id="dl-zip" onclick="downloadAllZip('jpg')" class="btn-sao px-5 py-2 text-[10px] hidden font-tech">📦 ZIP (JPG)</button>
+                        <button id="dl-zip-png" onclick="downloadAllZip('png')" class="btn-sao px-5 py-2 text-[10px] hidden font-tech border-blue-400/50 text-blue-300">📦 ZIP (PNG)</button>
+                        <button onclick="requestClearWorkspace()" class="text-[10px] text-red-500 font-tech uppercase tracking-widest border border-red-500/30 px-4 py-2 hover:bg-red-500 hover:text-white transition-all">ล้างระบบ</button>
+                    </div>
+                </div>
+
+                <div id="output-grid" class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start"></div>
+
+                <div id="empty-state" class="flex-1 flex flex-col items-center justify-center opacity-10">
+                    <div class="text-[120px] mb-8">⚔️</div>
+                    <p class="font-tech text-xs tracking-[1em] uppercase italic">Awaiting Data Transmission...</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Viewer Modal -->
+    <div id="viewer-modal" onwheel="handleZoom(event)" onmousedown="startPan(event)" onmousemove="doPan(event)" onmouseup="endPan()" onmouseleave="endPan()">
+        <div id="viewer-container"><img id="viewer-img" src="" alt="Full View"></div>
+        <div class="absolute top-5 right-10 flex flex-col items-end gap-2">
+            <button onclick="closeViewer()" class="font-tech text-xs text-white bg-red-600 px-4 py-1 border border-white/20 uppercase">ปิด [ESC]</button>
+            <div class="bg-black/80 px-4 py-2 border border-blue-500/50 text-blue-400 font-tech text-[10px] uppercase">Scale: <span id="zoom-val">100%</span></div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/95 z-[9999] hidden flex items-center justify-center p-4">
+        <div class="sao-panel p-8 max-w-md w-full border-2 border-slate-600 shadow-[0_0_30px_rgba(100,116,139,0.2)]">
+            <h3 class="font-tech text-xl text-white mb-6 tracking-widest uppercase border-b border-slate-700 pb-2">SYSTEM_SETTINGS</h3>
+            <div class="mb-6">
+                <label class="text-[11px] font-bold text-blue-400 uppercase mb-2 block">Gemini API Key</label>
+                <input type="password" id="api-key-input" placeholder="วาง API Key ที่นี่..." class="input-sao w-full text-xs font-mono">
+                <p class="text-[9px] text-slate-500 mt-2">Key จะถูกบันทึกในเครื่องของคุณเท่านั้น (LocalStorage)</p>
+            </div>
+            <div class="flex gap-4 justify-end">
+                <button onclick="closeSettings()" class="btn-sao border-slate-600 text-slate-400 px-6 py-2 text-xs hover:bg-slate-800">CANCEL</button>
+                <button onclick="saveSettings()" class="btn-sao px-8 py-2 text-xs hover:bg-blue-500 hover:text-white">SAVE_CONFIG</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Modal -->
+    <div id="system-modal" class="fixed inset-0 bg-black/90 z-[9999] hidden flex items-center justify-center p-4">
+        <div class="sao-panel p-6 max-w-sm w-full text-center border-2 border-red-500/50 shadow-[0_0_30px_rgba(239,68,68,0.3)] animate-in fade-in zoom-in duration-200">
+            <h3 id="modal-title" class="font-tech text-xl text-red-500 mb-4 tracking-widest uppercase">SYSTEM_ALERT</h3>
+            <p id="modal-msg" class="text-sm text-slate-300 mb-6 font-thai">ข้อความแจ้งเตือน</p>
+            <div class="flex gap-4 justify-center" id="modal-actions"></div>
+        </div>
+    </div>
+
+    <!-- Link Back to Hub -->
+    <a href="index.html" class="portal-back-btn"><span>←</span> HOME_PORTAL</a>
+
+    <script>
+        let items = [];
+        let updateTimer;
+        let isAiActive = false; 
+
+        // Load API Key
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedKey = localStorage.getItem('gemini_api_key');
+            if(savedKey) document.getElementById('api-key-input').value = savedKey;
+        });
+
+        function openSettings() { document.getElementById('settings-modal').style.display = 'flex'; }
+        function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
+        function saveSettings() {
+            const key = document.getElementById('api-key-input').value.trim();
+            localStorage.setItem('gemini_api_key', key);
+            closeSettings();
+            showSystemAlert("API Key บันทึกเรียบร้อยแล้ว!");
+        }
+
+        // --- Custom Modal System ---
+        function showSystemAlert(msg) {
+            const modal = document.getElementById('system-modal');
+            document.getElementById('modal-title').innerText = "SYSTEM_NOTICE";
+            document.getElementById('modal-title').className = "font-tech text-xl text-blue-400 mb-4 tracking-widest uppercase";
+            document.getElementById('modal-msg').innerText = msg;
+            document.getElementById('modal-actions').innerHTML = `<button onclick="closeModal()" class="btn-sao px-6 py-2 text-xs w-full">ACKNOWLEDGE</button>`;
+            modal.style.display = 'flex';
+        }
+
+        function showSystemConfirm(msg, yesCallback) {
+            const modal = document.getElementById('system-modal');
+            document.getElementById('modal-title').innerText = "SYSTEM_WARNING";
+            document.getElementById('modal-title').className = "font-tech text-xl text-red-500 mb-4 tracking-widest uppercase";
+            document.getElementById('modal-msg').innerText = msg;
+            window.tempConfirmYes = () => { yesCallback(); closeModal(); };
+            document.getElementById('modal-actions').innerHTML = `
+                <button onclick="closeModal()" class="btn-sao border-slate-600 text-slate-400 px-4 py-2 text-xs hover:bg-slate-800">CANCEL</button>
+                <button onclick="tempConfirmYes()" class="btn-sao border-red-500 text-red-500 px-6 py-2 text-xs hover:bg-red-500 hover:text-white">CONFIRM</button>
+            `;
+            modal.style.display = 'flex';
+        }
+        function closeModal() { document.getElementById('system-modal').style.display = 'none'; }
+
+        // --- Zoom & Pan ---
+        let scale = 1, isPanning = false, startPos = { x: 0, y: 0 }, offset = { x: 0, y: 0 };
+        function handleZoom(e) { e.preventDefault(); scale = Math.min(Math.max(0.5, scale + (e.deltaY > 0 ? -0.1 : 0.1)), 8); applyViewerTransform(); }
+        function startPan(e) { isPanning = true; startPos = { x: e.clientX - offset.x, y: e.clientY - offset.y }; }
+        function doPan(e) { if (!isPanning) return; offset = { x: e.clientX - startPos.x, y: e.clientY - startPos.y }; applyViewerTransform(); }
+        function endPan() { isPanning = false; }
+        function applyViewerTransform() { document.getElementById('viewer-container').style.transform = `translate(${offset.x}px, ${offset.y}px) scale(${scale})`; document.getElementById('zoom-val').innerText = Math.round(scale * 100) + '%'; }
+        function openViewer(dataUrl) { scale = 1; offset = { x: 0, y: 0 }; document.getElementById('viewer-img').src = dataUrl; document.getElementById('viewer-modal').style.display = 'flex'; applyViewerTransform(); }
+        function closeViewer() { document.getElementById('viewer-modal').style.display = 'none'; }
+
+        // --- Gemini AI ---
+        async function callGemini(payload) {
+            const key = localStorage.getItem('gemini_api_key');
+            if(!key) { openSettings(); throw new Error("No API Key"); }
+            
+            const maxRetries = 3;
+            for(let i=0; i<maxRetries; i++) {
+                try {
+                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`, {
+                        method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)
+                    });
+                    if(!res.ok) throw new Error('API Error');
+                    const data = await res.json();
+                    return data.candidates?.[0]?.content?.parts?.[0]?.text;
+                } catch(e) { await new Promise(r => setTimeout(r, 1000 * Math.pow(2, i))); }
+            }
+        }
+
+        async function aiAnalyzeSpecific(id) {
+            const item = items.find(i => i.id === id);
+            if (!item) return;
+            const btn = document.getElementById(`btn-ai-${id}`);
+            if(btn) { btn.disabled = true; btn.innerHTML = "🌀"; }
+
+            try {
+                const base64 = item.img.src.split(',')[1];
+                const payload = { contents: [{ parts: [{text: "วิเคราะห์ภาพนี้และเขียนข้อความลายน้ำสั้นๆ (1-3 คำ) ที่มีความหมายสอดคล้องกับโทนและวัตถุหลักในภาพ ตอบมาเฉพาะข้อความสั้นๆ เป็นภาษาไทยหรืออังกฤษก็ได้"}, {inlineData: {mimeType: "image/jpeg", data: base64}}] }] };
+                const text = await callGemini(payload);
+                if(text) { item.customCaption = text.trim(); render(); }
+            } catch(e) { console.error(e); } 
+            finally { if(btn) { btn.disabled = false; btn.innerHTML = "✨"; } }
+        }
+
+        async function toggleAiMode() {
+            const btn = document.getElementById('btn-ai-toggle');
+            if (isAiActive) {
+                showSystemConfirm("ต้องการล้างค่า AI ทั้งหมดและกลับไปใช้ค่าเริ่มต้น?", () => {
+                    items.forEach(item => item.customCaption = null);
+                    isAiActive = false;
+                    btn.innerHTML = "✨ วิเคราะห์ AI ทั้งหมด";
+                    btn.className = "btn-sao btn-gemini px-4 py-2 text-[9px] font-tech ai-glow";
+                    render();
+                });
+            } else {
+                if (items.length === 0) return showSystemAlert("กรุณาอัปโหลดรูปภาพก่อนใช้ระบบ AI ✨");
+                const key = localStorage.getItem('gemini_api_key');
+                if(!key) { openSettings(); return; }
+
+                btn.disabled = true; btn.innerHTML = "🌀 กำลังวิเคราะห์...";
+                for (const item of items) { if (!item.customCaption) await aiAnalyzeSpecific(item.id); }
+                btn.disabled = false; isAiActive = true; 
+                btn.innerHTML = "↺ ล้าง AI ทั้งหมด";
+                btn.className = "btn-sao btn-ai-reset px-4 py-2 text-[9px] font-tech";
+            }
+        }
+
+        function resetAiCaption(id) {
+            const item = items.find(i => i.id === id);
+            if (item) {
+                item.customCaption = null;
+                if (!items.some(i => i.customCaption)) {
+                    isAiActive = false;
+                    const btn = document.getElementById('btn-ai-toggle');
+                    btn.innerHTML = "✨ วิเคราะห์ AI ทั้งหมด";
+                    btn.className = "btn-sao btn-gemini px-4 py-2 text-[9px] font-tech ai-glow";
+                }
+                render();
+            }
+        }
+
+        // --- Core Logic ---
+        function insertTag(tag) { document.getElementById('wm-text').value += (document.getElementById('wm-text').value ? " " : "") + tag; queueUpdate(); }
+        
+        function syncControl(type, source) {
+            const slide = document.getElementById(`wm-${type}-slide`) || document.getElementById(`fx-${type}-slide`);
+            const num = document.getElementById(`wm-${type}-num`) || document.getElementById(`fx-${type}-num`);
+            if (slide && num) {
+                if(source === 'slide') num.value = slide.value; else slide.value = num.value;
+                queueUpdate();
+            }
+        }
+
+        function getParsedText(filename, customCaption) {
+            const now = new Date();
+            let raw = document.getElementById('wm-text').value.trim();
+            let base = customCaption ? customCaption : (raw !== "" ? raw : filename.split('.')[0]);
+            return base.replace(/{{date}}/g, now.toLocaleDateString('th-TH')).replace(/{{time}}/g, now.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'}));
+        }
+
+        async function handleFiles(files) {
+            if (files.length === 0) return;
+            const newFiles = Array.from(files).filter(f => !items.some(i => i.file.name === f.name && i.file.size === f.size));
+            for (let f of newFiles) {
+                if (!f.type.startsWith('image/')) continue;
+                const img = await new Promise(r => { const reader = new FileReader(); reader.onload = e => { const i = new Image(); i.onload = () => r(i); i.src = e.target.result; }; reader.readAsDataURL(f); });
+                items.push({ file: f, img, id: Math.random().toString(36).substr(2, 9), customCaption: null });
+            }
+            isAiActive = false;
+            const btn = document.getElementById('btn-ai-toggle');
+            if(btn) { btn.innerHTML = "✨ วิเคราะห์ AI ทั้งหมด"; btn.className = "btn-sao btn-gemini px-4 py-2 text-[9px] font-tech ai-glow"; }
+            const fileInput = document.getElementById('file-input');
+            if(fileInput) fileInput.value = '';
+            render();
+        }
+
+        function queueUpdate() { clearTimeout(updateTimer); updateTimer = setTimeout(render, 100); }
+
+        function render() {
+            const grid = document.getElementById('output-grid');
+            const emptyState = document.getElementById('empty-state');
+            grid.innerHTML = '';
+            document.getElementById('file-count').innerText = `${items.length} Items`;
+
+            if (items.length === 0) {
+                emptyState.style.display = 'flex';
+                document.getElementById('dl-zip').classList.add('hidden');
+                document.getElementById('dl-zip-png').classList.add('hidden');
+                return;
+            } else {
+                emptyState.style.display = 'none';
+                document.getElementById('dl-zip').classList.remove('hidden');
+                document.getElementById('dl-zip-png').classList.remove('hidden');
+            }
+
+            items.forEach(item => {
+                const canvas = document.createElement('canvas');
+                applyWatermark(item, canvas);
+                const card = document.createElement('div');
+                card.className = 'sao-panel p-3 bg-black/60 group animate-in fade-in zoom-in duration-500';
+                const aiBtn = item.customCaption 
+                    ? `<button onclick="resetAiCaption('${item.id}')" class="btn-sao border-purple-500/50 text-purple-400 px-2 py-0.5 text-[8px]">↺ ล้าง AI</button>`
+                    : `<button id="btn-ai-${item.id}" onclick="aiAnalyzeSpecific('${item.id}')" class="btn-sao btn-gemini px-2 py-0.5 text-[8px] ai-glow">✨</button>`;
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-center mb-2 px-1">
+                        <div class="text-[9px] text-slate-500 truncate font-tech tracking-wider max-w-[60%]">${item.file.name}</div>
+                        ${aiBtn}
+                    </div>
+                    <div class="relative cursor-zoom-in border border-white/5 bg-slate-900 group-hover:border-blue-500/50 overflow-hidden" onclick="openViewer('${canvas.toDataURL('image/jpeg', 0.95)}')">
+                        <img src="${canvas.toDataURL('image/jpeg', 0.6)}" class="w-full h-auto block shadow-lg">
+                    </div>
+                    <div class="mt-3 flex gap-2">
+                        <button onclick="downloadSingle('${item.id}')" class="flex-1 btn-sao py-2 text-[9px] font-tech uppercase">SAVE</button>
+                        <button onclick="removeItem('${item.id}')" class="btn-sao border-red-900/40 text-red-500/60 hover:text-white hover:bg-red-600 px-3 py-2 text-[9px]">✕</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function applyWatermark(item, canvas) {
+            const ctx = canvas.getContext('2d');
+            const mode = document.getElementById('wm-pos').value;
+            const sizeP = document.getElementById('wm-size-num').value;
+            const alpha = document.getElementById('wm-alpha-num').value / 100;
+            const rot = document.getElementById('wm-rot-num').value * Math.PI / 180;
+            const color = document.getElementById('wm-color').value;
+            const font = document.getElementById('wm-font').value;
+            const enabled = document.getElementById('wm-enabled').checked;
+            
+            canvas.width = item.img.width; canvas.height = item.img.height;
+            const br = document.getElementById('fx-bright-num');
+            const ct = document.getElementById('fx-contrast-num');
+            if(br && ct) ctx.filter = `brightness(${br.value}%) contrast(${ct.value}%)`;
+            ctx.drawImage(item.img, 0, 0);
+            ctx.filter = 'none';
+
+            if (!enabled) return;
+
+            const fontSize = Math.max(14, (canvas.width * (sizeP / 600)));
+            ctx.font = `bold ${fontSize}px ${font === 'Sarabun' ? 'Sarabun' : 'Orbitron'}`;
+            ctx.fillStyle = color; ctx.globalAlpha = alpha;
+            ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = fontSize * 0.2;
+            const text = getParsedText(item.file.name, item.customCaption);
+
+            ctx.save();
+            if (mode === 'tiled') {
+                ctx.translate(canvas.width/2, canvas.height/2); ctx.rotate(-30 * Math.PI/180); ctx.textAlign = "center";
+                const step = fontSize * 8;
+                for(let x=-canvas.width*1.5; x<canvas.width*1.5; x+=step) for(let y=-canvas.height*1.5; y<canvas.height*1.5; y+=step) ctx.fillText(text, x, y);
+            } else {
+                ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                let x = canvas.width/2, y = canvas.height/2; const pad = fontSize * 1.8;
+                if(mode==='tl'){x=pad;y=pad; ctx.textAlign="left";} else if(mode==='tr'){x=canvas.width-pad;y=pad; ctx.textAlign="right";}
+                else if(mode==='bl'){x=pad;y=canvas.height-pad; ctx.textAlign="left";} else if(mode==='br'){x=canvas.width-pad;y=canvas.height-pad; ctx.textAlign="right";}
+                ctx.translate(x, y); ctx.rotate(rot); ctx.fillText(text, 0, 0);
+            }
+            ctx.restore();
+        }
+
+        async function startProcess() {
+            if(items.length===0) return;
+            document.getElementById('progress-container').classList.remove('hidden');
+            const bar = document.getElementById('hp-fill');
+            for(let i=0; i<=100; i+=10) { bar.style.width = i+'%'; await new Promise(r=>setTimeout(r,50)); }
+            setTimeout(() => { document.getElementById('progress-container').classList.add('hidden'); bar.style.width='0%'; showSystemAlert("LINK_START: ประมวลผลเสร็จสิ้น!"); }, 200);
+        }
+
+        function downloadSingle(id) {
+            const item = items.find(i => i.id === id);
+            const cvs = document.createElement('canvas'); applyWatermark(item, cvs);
+            const a = document.createElement('a'); a.download = `protected_${item.file.name.split('.')[0]}.jpg`;
+            a.href = cvs.toDataURL('image/jpeg', 0.95); a.click();
+        }
+
+        async function downloadAllZip(format = 'jpg') {
+            const zip = new JSZip();
+            document.getElementById('status-label').innerText = "ZIPPING...";
+            for(let i=0; i<items.length; i++) {
+                const cvs = document.createElement('canvas'); applyWatermark(items[i], cvs);
+                const mime = format === 'png' ? 'image/png' : 'image/jpeg';
+                zip.file(`LinkStart_${i+1}.${format}`, cvs.toDataURL(mime, 0.9).split(',')[1], {base64:true});
+            }
+            saveAs(await zip.generateAsync({type:"blob"}), `LinkStart_Pack.${format === 'png' ? 'zip' : 'zip'}`);
+            document.getElementById('status-label').innerText = "READY";
+        }
+
+        function removeItem(id) { items = items.filter(i => i.id !== id); render(); const fileInput = document.getElementById('file-input'); if(fileInput) fileInput.value = ''; }
+
+        function requestClearWorkspace() {
+            showSystemConfirm("ยืนยันการล้างระบบ? ข้อมูลและค่าตั้งค่าทั้งหมดจะถูกรีเซ็ต", () => {
+                items = []; isAiActive = false;
+                const inputs = {
+                    'wm-text': "", 'wm-size-num': 15, 'wm-size-slide': 15, 'wm-alpha-num': 50, 'wm-alpha-slide': 50, 'wm-rot-num': 0, 'wm-rot-slide': 0,
+                    'fx-bright-num': 100, 'fx-bright-slide': 100, 'fx-contrast-num': 100, 'fx-contrast-slide': 100
+                };
+                for (const [id, val] of Object.entries(inputs)) { const el = document.getElementById(id); if(el) el.value = val; }
+                const btn = document.getElementById('btn-ai-toggle');
+                if(btn) { btn.innerHTML = "✨ วิเคราะห์ AI ทั้งหมด"; btn.className = "btn-sao btn-gemini px-4 py-2 text-[9px] font-tech ai-glow"; btn.disabled = false; }
+                const fileInput = document.getElementById('file-input'); if(fileInput) fileInput.value = '';
+                render();
+            });
+        }
+
+        function resetSettings() {
+            showSystemConfirm("ต้องการรีเซ็ตการตั้งค่าทั้งหมดกลับเป็นค่าเริ่มต้น?", () => {
+                const defaults = {
+                    'wm-text': "", 'wm-size-num': 15, 'wm-size-slide': 15, 'wm-alpha-num': 50, 'wm-alpha-slide': 50, 'wm-rot-num': 0, 'wm-rot-slide': 0,
+                    'wm-pos': 'br', 'wm-color': '#ffffff', 'wm-font': 'Sarabun', 'fx-bright-num': 100, 'fx-bright-slide': 100, 'fx-contrast-num': 100, 'fx-contrast-slide': 100
+                };
+                for (const [id, val] of Object.entries(defaults)) { const el = document.getElementById(id); if(el) el.value = val; }
+                document.getElementById('wm-enabled').checked = true;
+                render();
+            });
+        }
+
+        const dropZone = document.getElementById('drop-zone');
+        if (dropZone) {
+            dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add('border-blue-500', 'bg-blue-500/10'); };
+            dropZone.ondragleave = (e) => { e.preventDefault(); dropZone.classList.remove('border-blue-500', 'bg-blue-500/10'); };
+            dropZone.ondrop = (e) => { e.preventDefault(); dropZone.classList.remove('border-blue-500', 'bg-blue-500/10'); handleFiles(e.dataTransfer.files); };
+        }
+
+        window.onkeydown = (e) => { if(e.key === "Escape") { closeViewer(); closeModal(); closeSettings(); } };
+    </script>
+</body>
+</html>

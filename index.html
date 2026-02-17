@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Personal Space - System Hub</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <link rel="icon" type="image/png" href="คิรโตะธีมดำ.jpg">
+    <link rel="apple-touch-icon" href="คิรโตะธีมดำ.jpg">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- ตั้งค่าธีม --- */
+        :root {
+            --bg-color: #050a10;      
+            --text-color: #ffffff;    
+            --glow-color: #00f2ff;
+            --secondary-glow: #9b72cb;    
+            --font-main: 'Sarabun', sans-serif;
+            --font-tech: 'Orbitron', sans-serif;
+            --system-green: #39ff14;
+            --alert-red: #ff3333; /* เพิ่มสีแดงสำหรับ Downloader */
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-y: auto; 
+            padding: 20px;
+            box-sizing: border-box;
+            user-select: none;
+            background-image: 
+                linear-gradient(rgba(0, 242, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 242, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .container {
+            text-align: center;
+            z-index: 10;
+            max-width: 450px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            padding: 30px 25px;
+            border: 1px solid rgba(0, 242, 255, 0.1);
+            border-radius: 15px;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--glow-color), transparent);
+        }
+
+        .profile-img {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid var(--glow-color);
+            filter: drop-shadow(0 0 15px rgba(0, 242, 255, 0.4)); 
+            margin-bottom: 15px;
+            transition: transform 0.3s ease;
+        }
+
+        .profile-img:hover {
+            transform: scale(1.05) rotate(5deg);
+        }
+
+        h1 {
+            font-family: var(--font-tech);
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: linear-gradient(to right, #ffffff, var(--glow-color));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            filter: drop-shadow(0 0 10px rgba(0, 242, 255, 0.5));
+        }
+
+        p {
+            font-size: 0.8rem;
+            margin-bottom: 25px;
+            color: #8daab9;
+            font-family: var(--font-tech);
+            letter-spacing: 1px;
+        }
+
+        .menu-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .link-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            text-decoration: none;
+            color: #fff;
+            background: rgba(0, 242, 255, 0.05);
+            padding: 10px 15px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            border: 1px solid rgba(0, 242, 255, 0.3);
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .link-btn:hover {
+            background: rgba(0, 242, 255, 0.15);
+            border-color: var(--glow-color);
+            transform: translateX(5px);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
+        }
+
+        /* --- Specific Button Colors --- */
+        .btn-dark-repulser { border-color: #00f2ff; }
+        .btn-dark-repulser:hover { box-shadow: 0 0 15px rgba(0, 242, 255, 0.4); }
+
+        .btn-elucidator { border-color: #9b72cb; }
+        .btn-elucidator i { color: #9b72cb; }
+        .btn-elucidator:hover { box-shadow: 0 0 15px rgba(155, 114, 203, 0.4); border-color: #9b72cb; background: rgba(155, 114, 203, 0.15); }
+
+        .btn-watermark { border-color: #f97316; }
+        .btn-watermark i { color: #f97316; }
+        .btn-watermark:hover { box-shadow: 0 0 15px rgba(249, 115, 22, 0.4); border-color: #f97316; background: rgba(249, 115, 22, 0.15); }
+
+        .btn-system-call { border-color: var(--system-green); }
+        .btn-system-call i { color: var(--system-green); }
+        .btn-system-call:hover { 
+            box-shadow: 0 0 15px rgba(57, 255, 20, 0.4); 
+            border-color: var(--system-green); 
+            background: rgba(57, 255, 20, 0.15); 
+        }
+
+        /* --- เพิ่มสีปุ่ม Downloader (สีแดง) --- */
+        .btn-downloader { border-color: var(--alert-red); }
+        .btn-downloader i { color: var(--alert-red); }
+        .btn-downloader:hover { 
+            box-shadow: 0 0 15px rgba(255, 51, 51, 0.4); 
+            border-color: var(--alert-red); 
+            background: rgba(255, 51, 51, 0.15); 
+        }
+
+        .btn-icon {
+            font-size: 1.1rem;
+            width: 25px;
+            text-align: center;
+        }
+
+        .btn-text {
+            flex-grow: 1;
+            text-align: left;
+            padding-left: 12px;
+            font-family: var(--font-tech);
+            letter-spacing: 0.5px;
+            font-size: 0.75rem;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background: #333;
+            border-radius: 50%;
+            box-shadow: 0 0 5px #333;
+        }
+
+        .link-btn:hover .status-dot {
+            background: #0f0;
+            box-shadow: 0 0 8px #0f0;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <img src="คิรโตะธีมดำ.jpg" alt="Profile Image" class="profile-img">
+
+        <h1>Personal Space</h1>
+        <p>SYSTEM ACCESS PORTAL</p>
+
+        <div class="menu-grid">
+            <a href="DARK REPULSER.html" class="link-btn btn-dark-repulser">
+                <i class="fas fa-bolt btn-icon" style="color: #00f2ff;"></i>
+                <span class="btn-text">DARK REPULSER - ( ระบบเปลี่ยนชื่อไฟล์ )</span>
+                <span class="status-dot"></span>
+            </a>
+
+            <a href="WATERMARK MASTER.html" class="link-btn btn-watermark">
+                <i class="fas fa-copyright btn-icon"></i>
+                <span class="btn-text">WATERMARK TITANIUM - ( ระบบประทับลายน้ำ )</span>
+                <span class="status-dot"></span>
+            </a>
+
+            <a href="ELUCIDATOR.html" class="link-btn btn-elucidator">
+                <i class="fas fa-image btn-icon"></i>
+                <span class="btn-text">ELUCIDATOR - ( ระบบแปลงรูป -> ไฟล์ )</span>
+                <span class="status-dot"></span>
+            </a>
+
+            <a href="SYSTEM CALL.html" class="link-btn btn-system-call">
+                <i class="fas fa-microchip btn-icon"></i>
+                <span class="btn-text">SYSTEM CALL - ( ระบบแปลงไฟล์ -> รูป )</span>
+                <span class="status-dot"></span>
+            </a>
+
+            <a href="downloader.html" class="link-btn btn-downloader">
+                <i class="fas fa-cloud-download-alt btn-icon"></i>
+                <span class="btn-text">KIRITO DOWNLOADER - ( ระบบดูดรูปภาพ )</span>
+                <span class="status-dot"></span>
+            </a>
+            
+            <a href="https://prthachnu999.github.io/LinkStar_Universal/" class="link-btn" style="margin-top: 5px; border-style: dashed; opacity: 0.7; padding: 8px 15px;">
+                <i class="fas fa-globe btn-icon"></i>
+                <span class="btn-text">LinkStar Universal (Web)</span>
+                <i class="fas fa-external-link-alt text-xs"></i>
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>
