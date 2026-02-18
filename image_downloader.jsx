@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Download, Search, Image as ImageIcon, Trash2, Loader2, AlertCircle, CheckCircle2, ScanSearch, Filter, XCircle, Link as LinkIcon, ClipboardCopy, CheckSquare, X, Maximize2, ChevronLeft, ChevronRight, FileType, ZoomIn, ZoomOut, RotateCcw, Flame, ArrowLeft, ShieldCheck, Database, FileCode, Play } from 'lucide-react';
+import { Download, Search, Image as ImageIcon, Trash2, Loader2, AlertCircle, CheckCircle2, ScanSearch, Filter, Link as LinkIcon, ClipboardCopy, CheckSquare, X, Maximize2, RotateCcw, Flame, ArrowLeft, ShieldCheck, Database, FileCode } from 'lucide-react';
 
 const App = () => {
   const [url, setUrl] = useState('');
-  const [htmlInput, setHtmlInput] = useState(''); // New: Manual HTML Input
+  const [htmlInput, setHtmlInput] = useState(''); 
   const [showHtmlInput, setShowHtmlInput] = useState(false);
   
   const [images, setImages] = useState([]);
@@ -11,7 +11,8 @@ const App = () => {
   const [status, setStatus] = useState({ type: '', message: '' });
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   
-  const [minSize, setMinSize] = useState(10); 
+  // ปรับค่าเริ่มต้น: กรองขยะ = เปิด, ขนาดขั้นต่ำ = 50px (กันไอคอนเล็กๆ หลุดมา)
+  const [minSize, setMinSize] = useState(50); 
   const [filterSocial, setFilterSocial] = useState(true);
   const [fileTypeFilter, setFileTypeFilter] = useState('all');
 
@@ -30,12 +31,11 @@ const App = () => {
 
   const abortControllerRef = useRef(null);
 
-  // --- Utility: Decode Recursively ---
+  // --- Utility: แกะรหัส (Decode) ---
   const safeDecode = (str) => {
     try {
       let decoded = decodeURIComponent(str);
       let count = 0;
-      // Decode up to 3 times to handle nested encoding
       while (decoded.includes('%') && count < 3) {
         try { 
            const next = decodeURIComponent(decoded);
@@ -50,25 +50,22 @@ const App = () => {
     }
   };
 
-  // --- Utility: Extract URL from Next.js/Proxy Patterns ---
+  // --- Utility: หาลิงก์จริงจาก Next.js/Proxy ---
   const extractRealUrl = (rawSrc) => {
     if (!rawSrc || typeof rawSrc !== 'string') return null;
     let candidate = rawSrc;
 
-    // 1. Next.js / Proxy Params (url=, img=, src=)
+    // แกะจาก params เช่น /_next/image?url=...
     if (candidate.includes('url=') || candidate.includes('img=') || candidate.includes('src=')) {
         try {
-            // Create a dummy URL to parse params easily
             const dummy = new URL('http://dummy.com' + (candidate.startsWith('/') ? '' : '/') + candidate);
             const target = dummy.searchParams.get('url') || dummy.searchParams.get('img') || dummy.searchParams.get('src');
             if (target) candidate = target;
         } catch(e) {
-            // Regex fallback if URL parsing fails
             const match = candidate.match(/[?&](url|img|src)=([^&]+)/);
             if (match && match[2]) candidate = match[2];
         }
     }
-    
     return safeDecode(candidate);
   };
 
@@ -135,7 +132,6 @@ const App = () => {
   };
 
   const fetchHtmlWithFallback = async (targetUrl, signal) => {
-     // List of Proxies to try in order
      const proxies = [
          `https://api.allorigins.win/get?url=${targetUrl}`,
          `https://corsproxy.io/?${targetUrl}`,
@@ -147,69 +143,56 @@ const App = () => {
              if (signal.aborted) throw new Error('Aborted');
              const response = await fetch(proxy, { signal });
              if (!response.ok) continue;
-             
              if (proxy.includes('allorigins')) {
                  const data = await response.json();
-                 return data.contents; // allorigins returns JSON
+                 return data.contents;
              } else {
                  return await response.text();
              }
          } catch (e) {
              if (e.name === 'AbortError') throw e;
-             console.warn(`Proxy failed: ${proxy}`, e);
          }
      }
-     throw new Error('เชื่อมต่อล้มเหลว (ลองใช้ "โหมดวางโค้ด" แทน)');
+     throw new Error('เชื่อมต่อล้มเหลว (ลองใช้โหมดวางโค้ด HTML แทน)');
   };
 
   const processHtml = async (htmlContent, baseUrl) => {
-      setStatus({ type: '', message: 'กำลังสแกนหาไฟล์รูปภาพ (Deep Scan V6)...' });
+      setStatus({ type: '', message: 'กำลังสแกนและคัดกรองขยะ (V6.5)...' });
       
       const rawUrls = new Set();
       const imageExtensions = /\.(jpg|jpeg|png|webp|avif|svg|gif|ico|bmp|tiff)/i;
 
-      // --- STRATEGY 1: "The Bag of URLs" (Regex Everything) ---
-      // This ignores HTML structure and finds anything looking like a URL
-      // Pattern A: Standard http://...
+      // 1. Regex Scan (กวาดเรียบ)
       const regexBroad = /https?:\/\/[^\s"'<>\\,]+(?:\.(?:jpg|jpeg|png|webp|avif|svg|gif))/gi;
       const broadMatches = htmlContent.match(regexBroad) || [];
       broadMatches.forEach(m => rawUrls.add(extractRealUrl(m)));
 
-      // Pattern B: Next.js / URL Encoded (https%3A...)
       const regexEncoded = /https?%3A%2F%2F[^\s"'<>\\,]+/gi;
       const encodedMatches = htmlContent.match(regexEncoded) || [];
       encodedMatches.forEach(m => {
           const decoded = safeDecode(m);
-          // If after decoding it has an image extension
           if (imageExtensions.test(decoded.split('?')[0])) {
               rawUrls.add(decoded);
           }
       });
 
-      // --- STRATEGY 2: DOM Parsing (Structure Aware) ---
+      // 2. DOM Scan (ตามโครงสร้าง)
       const parser = new DOMParser();
       const doc = parser.parseFromString(htmlContent, 'text/html');
-      
       doc.querySelectorAll('*').forEach(el => {
-          // Check standard attributes
           ['src', 'data-src', 'srcset', 'data-srcset', 'imagesrcset', 'href', 'content'].forEach(attr => {
               const val = el.getAttribute(attr);
               if (!val) return;
-
               if (attr.includes('srcset')) {
-                  // Handle srcset: "url 1x, url 2x" -> split by comma
                   val.split(',').forEach(part => {
                       const urlPart = part.trim().split(' ')[0];
                       if(urlPart) rawUrls.add(extractRealUrl(urlPart));
                   });
               } else {
-                  // For 'href' and 'content', verify extension to avoid trash
                   if ((attr === 'href' || attr === 'content') && !imageExtensions.test(val)) return;
                   rawUrls.add(extractRealUrl(val));
               }
           });
-
-          // Check CSS Backgrounds
           const style = el.getAttribute('style');
           if (style && style.includes('url(')) {
               const matches = style.match(/url\(['"]?(.*?)['"]?\)/g);
@@ -222,19 +205,15 @@ const App = () => {
           }
       });
 
-      // --- PROCESS & FILTER ---
+      // 3. Process & Filter (คัดกรองเข้มข้น)
       const candidates = [];
       rawUrls.forEach(raw => {
         try {
-            // Fix absolute/relative URLs
             let absolute = raw;
             if (raw.startsWith('//')) absolute = 'https:' + raw;
             else if (raw.startsWith('/') || raw.startsWith('./') || !raw.startsWith('http')) {
-                if (baseUrl) {
-                    absolute = new URL(raw, baseUrl).href;
-                } else {
-                    return; // Skip relative if no base URL
-                }
+                if (baseUrl) absolute = new URL(raw, baseUrl).href;
+                else return;
             }
             if (absolute && !absolute.startsWith('data:')) candidates.push(absolute);
         } catch(e) {}
@@ -243,20 +222,21 @@ const App = () => {
       const imageGroups = new Map();
       candidates.forEach(imgUrl => {
         const lower = imgUrl.toLowerCase();
-        // Strict Filter
-        if (filterSocial && (
-            lower.includes('facebook.com/tr') || 
-            lower.includes('google-analytics') || 
-            lower.includes('pixel') || 
-            lower.includes('favicon') || 
-            lower.includes('w3.org') ||
-            !imageExtensions.test(lower.split('?')[0]) 
-        )) return;
         
-        // Group by filename to find best quality
-        // e.g. banner.png?w=200 and banner.png?w=1920 -> same key
+        // --- ส่วนกรองขยะ (V6.5 Update) ---
+        if (filterSocial) {
+            // 1. กรองเว็บ Tracking/Social
+            if (lower.includes('facebook.com/tr') || lower.includes('google-analytics') || lower.includes('pixel')) return;
+            // 2. กรอง System Files
+            if (lower.includes('favicon') || lower.includes('w3.org')) return;
+            // 3. กรอง UI Elements (Navbar, Buttons, Icons) -> แก้ปัญหาของคุณตรงนี้
+            if (lower.includes('navbar') || lower.includes('button') || lower.includes('btn') || lower.includes('icon') || lower.includes('logo') || lower.includes('arrow') || lower.includes('bg-')) return;
+            // 4. ต้องมีนามสกุลรูปเท่านั้น
+            if (!imageExtensions.test(lower.split('?')[0])) return;
+        }
+        
         let baseName = imgUrl.split(/[?#]/)[0].split('/').pop();
-        if (!baseName || baseName.length < 3) baseName = imgUrl; // Fallback
+        if (!baseName || baseName.length < 3) baseName = imgUrl; 
         
         if (!imageGroups.has(baseName)) imageGroups.set(baseName, []);
         imageGroups.get(baseName).push(imgUrl);
@@ -264,20 +244,18 @@ const App = () => {
 
       const uniqueCandidates = [];
       imageGroups.forEach((group) => {
-        // Sort: Longest URL usually implies more params (e.g. signature, size) or unshortened
-        // For Next.js: banner.png?w=3840 (Longer) > banner.png?w=32 (Shorter)
+        // เลือกรูปที่ดีที่สุด (ยาวสุด = ชัดสุด สำหรับ Next.js)
         group.sort((a, b) => b.length - a.length);
         uniqueCandidates.push(group[0]); 
       });
 
-      setStatus({ type: '', message: `พบลิงก์ ${uniqueCandidates.length} ไฟล์ (กำลังตรวจสอบรูปจริง)...` });
+      setStatus({ type: '', message: `เจอ ${uniqueCandidates.length} ไฟล์ (กำลังคัดรูปเสียออก)...` });
       setProgress({ current: 0, total: uniqueCandidates.length });
 
       const verifiedImages = [];
       const batchSize = 12;
       for (let i = 0; i < uniqueCandidates.length; i += batchSize) {
         const batch = uniqueCandidates.slice(i, i + batchSize);
-        // Use Promise.allSettled to avoid failing entire batch if one fails
         const results = await Promise.allSettled(batch.map(url => checkImageSize(url)));
         
         const goodBatch = results
@@ -287,17 +265,12 @@ const App = () => {
         verifiedImages.push(...goodBatch);
         setImages(prev => [...prev, ...goodBatch]); 
         setProgress({ current: Math.min(i + batchSize, uniqueCandidates.length), total: uniqueCandidates.length });
-        
-        // Small delay to prevent browser freeze
         await new Promise(r => setTimeout(r, 50));
       }
 
       setLoading(false);
-      if (verifiedImages.length === 0) {
-          showStatus('warning', 'ไม่พบรูปภาพ (ลองใช้โหมดวางโค้ด HTML ดูครับ)');
-      } else {
-          showStatus('success', `เสร็จสิ้น! ค้นพบ ${verifiedImages.length} รูป`);
-      }
+      if (verifiedImages.length === 0) showStatus('warning', 'ไม่พบรูปภาพ (ลองใช้โหมดวางโค้ด HTML)');
+      else showStatus('success', `เสร็จสิ้น! ค้นพบ ${verifiedImages.length} รูป`);
   };
 
   const handleFetch = async () => {
@@ -305,8 +278,6 @@ const App = () => {
         if (!htmlInput) return showStatus('error', 'กรุณาวางโค้ด HTML ก่อนครับ');
         setLoading(true);
         setImages([]);
-        // Use a dummy base URL if user inputs HTML manually, or try to guess from HTML?
-        // Let's assume absolute links or relative to root if they pasted manually.
         processHtml(htmlInput, 'https://example.com');
     } else {
         if (!url) return showStatus('error', 'กรุณากรอก URL ก่อนครับ');
@@ -314,7 +285,6 @@ const App = () => {
         setImages([]);
         if (abortControllerRef.current) abortControllerRef.current.abort();
         abortControllerRef.current = new AbortController();
-        
         try {
             const cleanUrl = url.trim();
             const encoded = encodeURIComponent(cleanUrl);
@@ -329,7 +299,6 @@ const App = () => {
     }
   };
 
-  // --- UI Actions ---
   const showStatus = (type, msg) => {
     setStatus({ type, message: msg });
     if (type === 'success') setTimeout(() => setStatus({ type: '', message: '' }), 4000);
@@ -348,24 +317,12 @@ const App = () => {
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
-    } catch (e) {
-      window.open(imgUrl, '_blank');
-    }
+    } catch (e) { window.open(imgUrl, '_blank'); }
   };
 
   const copyToClipboard = async (text) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      showStatus('success', 'คัดลอกลิงก์แล้ว');
-    } catch (err) {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-      showStatus('success', 'คัดลอกลิงก์แล้ว');
-    }
+    try { await navigator.clipboard.writeText(text); showStatus('success', 'คัดลอกลิงก์แล้ว'); } 
+    catch (err) { /* fallback */ }
   };
 
   const copyImageToClipboard = async (imgUrl) => {
@@ -376,23 +333,19 @@ const App = () => {
       const pngBlob = await convertToPng(blob);
       await navigator.clipboard.write([new ClipboardItem({ [pngBlob.type]: pngBlob })]);
       showStatus('success', 'คัดลอกรูปแล้ว!');
-    } catch (e) {
-      copyToClipboard(imgUrl);
-      showStatus('warning', 'ก๊อปรูปไม่ได้ (ติดสิทธิ์) -> คัดลอกลิงก์แทน');
-    }
+    } catch (e) { copyToClipboard(imgUrl); showStatus('warning', 'ก๊อปรูปไม่ได้ -> คัดลอกลิงก์แทน'); }
   };
 
   const toggleSelect = (img) => {
     const newSet = new Set(selectedImages);
-    if (newSet.has(img)) newSet.delete(img);
-    else newSet.add(img);
+    if (newSet.has(img)) newSet.delete(img); else newSet.add(img);
     setSelectedImages(newSet);
   };
 
   const downloadSelected = async () => {
     setIsDownloadingGroup(true);
     const list = Array.from(selectedImages);
-    showStatus('info', `กำลังโหลด ${list.length} รูป... (กรุณากด Allow ถ้ามี Pop-up)`);
+    showStatus('info', `กำลังโหลด ${list.length} รูป...`);
     for (let i = 0; i < list.length; i++) {
       await downloadImage(list[i]);
       await new Promise(r => setTimeout(r, 500)); 
@@ -406,23 +359,6 @@ const App = () => {
     copyToClipboard(links);
   };
 
-  // --- Zoom Logic ---
-  useEffect(() => {
-    if (previewImage) {
-      document.body.style.overflow = 'hidden';
-      if (containerRef.current) {
-        containerRef.current.addEventListener('wheel', (e) => {
-           if(e.ctrlKey) return; 
-           e.preventDefault(); 
-        }, { passive: false });
-      }
-      setZoom(1); setOffset({x:0, y:0}); setIsDragging(false);
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => { document.body.style.overflow = 'unset'; };
-  }, [previewImage]);
-
   const handleWheel = (e) => {
     const delta = e.deltaY * -0.002; 
     const newZoom = Math.min(Math.max(1, zoom + delta), 5);
@@ -432,9 +368,7 @@ const App = () => {
 
   const handleMouseDown = (e) => {
     if (zoom > 1) {
-      e.preventDefault();
-      setIsDragging(true);
-      isDragActionRef.current = false; 
+      e.preventDefault(); setIsDragging(true); isDragActionRef.current = false; 
       dragStartRef.current = { x: e.clientX - offset.x, y: e.clientY - offset.y };
     }
   };
@@ -450,28 +384,28 @@ const App = () => {
 
   const handleMouseUp = () => { setIsDragging(false); setTimeout(() => { isDragActionRef.current = false; }, 200); };
 
+  useEffect(() => {
+    if (previewImage) {
+      document.body.style.overflow = 'hidden';
+      if (containerRef.current) containerRef.current.addEventListener('wheel', (e) => { if(e.ctrlKey) return; e.preventDefault(); }, { passive: false });
+      setZoom(1); setOffset({x:0, y:0}); setIsDragging(false);
+    } else document.body.style.overflow = 'unset';
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [previewImage]);
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-gray-200 p-4 font-sans selection:bg-red-500/30">
       <a href="https://prthachnu999.github.io/My-Personal-Space/" className="fixed bottom-5 left-5 z-40 flex items-center gap-2 bg-black/60 hover:bg-red-600 text-white/80 hover:text-white px-4 py-2 rounded-full backdrop-blur-md border border-white/10 shadow-2xl transition-all hover:scale-105 group text-sm">
-         <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-         <span className="font-medium">Home</span>
+         <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> <span className="font-medium">Home</span>
       </a>
 
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8 pt-4">
           <div className="inline-flex items-center justify-center gap-3 mb-2 animate-in fade-in zoom-in duration-500">
-            <div className="relative">
-               <div className="absolute inset-0 bg-red-600 blur-lg opacity-50 rounded-full"></div>
-               <Flame className="relative text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]" size={40} />
-            </div>
-            <h1 className="text-4xl font-bold text-white tracking-tight drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]">
-              KIRITO <span className="text-red-500">DOWNLOADER</span>
-            </h1>
+            <div className="relative"><div className="absolute inset-0 bg-red-600 blur-lg opacity-50 rounded-full"></div><Flame className="relative text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]" size={40} /></div>
+            <h1 className="text-4xl font-bold text-white tracking-tight drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]">KIRITO <span className="text-red-500">DOWNLOADER</span></h1>
           </div>
-          <div className="flex items-center justify-center gap-2 text-gray-500 text-sm tracking-widest uppercase opacity-80 mt-1">
-             <Database size={14} className="text-yellow-500"/>
-             <span>System Level: Administrator (V6 Universal Breaker)</span>
-          </div>
+          <div className="flex items-center justify-center gap-2 text-gray-500 text-sm tracking-widest uppercase opacity-80 mt-1"><ShieldCheck size={14} className="text-green-500"/><span>System Level: Administrator (V6.5 Clean Filter)</span></div>
         </div>
 
         <div className="bg-[#121212] border border-gray-800 p-5 rounded-2xl shadow-2xl mb-8 relative overflow-hidden group">
@@ -479,58 +413,45 @@ const App = () => {
           <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-blue-900 to-transparent opacity-50"></div>
 
           <div className="flex flex-col gap-4 relative z-10">
-            {/* Tabs for Mode Selection */}
             <div className="flex gap-2 border-b border-gray-800 pb-2">
-                <button onClick={() => setShowHtmlInput(false)} className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors ${!showHtmlInput ? 'bg-red-900/30 text-red-400 border border-red-900' : 'text-gray-500 hover:text-gray-300'}`}>
-                    <LinkIcon size={16}/> ค้นหาด้วยลิงก์
-                </button>
-                <button onClick={() => setShowHtmlInput(true)} className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors ${showHtmlInput ? 'bg-blue-900/30 text-blue-400 border border-blue-900' : 'text-gray-500 hover:text-gray-300'}`}>
-                    <FileCode size={16}/> วางโค้ด HTML (ไม้ตาย)
-                </button>
+                <button onClick={() => setShowHtmlInput(false)} className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors ${!showHtmlInput ? 'bg-red-900/30 text-red-400 border border-red-900' : 'text-gray-500 hover:text-gray-300'}`}><LinkIcon size={16}/> ค้นหาด้วยลิงก์</button>
+                <button onClick={() => setShowHtmlInput(true)} className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors ${showHtmlInput ? 'bg-blue-900/30 text-blue-400 border border-blue-900' : 'text-gray-500 hover:text-gray-300'}`}><FileCode size={16}/> วางโค้ด HTML (ไม้ตาย)</button>
             </div>
 
             <div className="flex flex-col md:flex-row gap-3">
               {!showHtmlInput ? (
                   <div className="relative flex-1 group/input">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Search className="text-gray-500 group-focus-within/input:text-red-500 transition-colors" size={20} />
-                    </div>
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><Search className="text-gray-500 group-focus-within/input:text-red-500 transition-colors" size={20} /></div>
                     <input type="text" placeholder="วางลิงก์เว็บไซต์ที่นี่..." className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#0f0f0f] border border-gray-700 text-white placeholder-gray-600 focus:ring-2 focus:ring-red-900 focus:border-red-700 outline-none transition-all shadow-inner" value={url} onChange={e => setUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleFetch()}/>
                   </div>
               ) : (
                   <div className="relative flex-1">
-                    <textarea placeholder="กด Ctrl+U ที่หน้าเว็บ -> Ctrl+A (เลือกทั้งหมด) -> Ctrl+C (ก๊อปปี้) -> แล้วมาวางที่นี่ (Ctrl+V)" className="w-full h-24 p-3 rounded-xl bg-[#0f0f0f] border border-blue-900/50 text-white placeholder-gray-600 focus:ring-2 focus:ring-blue-900 focus:border-blue-700 outline-none transition-all shadow-inner text-xs font-mono" value={htmlInput} onChange={e => setHtmlInput(e.target.value)}></textarea>
+                    <textarea placeholder="กด Ctrl+U ที่หน้าเว็บ -> Ctrl+A -> Ctrl+C -> แล้วมาวางที่นี่ (Ctrl+V)" className="w-full h-24 p-3 rounded-xl bg-[#0f0f0f] border border-blue-900/50 text-white placeholder-gray-600 focus:ring-2 focus:ring-blue-900 focus:border-blue-700 outline-none transition-all shadow-inner text-xs font-mono" value={htmlInput} onChange={e => setHtmlInput(e.target.value)}></textarea>
                   </div>
               )}
               
               <div className="flex flex-col justify-start">
                   <button onClick={handleFetch} disabled={loading} className={`h-full bg-gradient-to-br ${showHtmlInput ? 'from-blue-700 to-blue-900 hover:from-blue-600' : 'from-red-700 to-red-900 hover:from-red-600'} text-white px-8 py-3 rounded-xl font-bold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transition-all active:scale-95 border ${showHtmlInput ? 'border-blue-800' : 'border-red-800'}`}>
-                    {loading ? <Loader2 className="animate-spin" size={20} /> : <ScanSearch size={20} />}
-                    <span>{showHtmlInput ? 'แกะรหัส' : 'ค้นหา'}</span>
+                    {loading ? <Loader2 className="animate-spin" size={20} /> : <ScanSearch size={20} />} <span>{showHtmlInput ? 'แกะรหัส' : 'ค้นหา'}</span>
                   </button>
-                  <button onClick={() => { setImages([]); setUrl(''); setHtmlInput(''); setStatus({type:'',message:''}); }} className="mt-2 text-xs text-gray-500 hover:text-white underline flex items-center justify-center gap-1">
-                      <Trash2 size={12}/> ล้างค่า
-                  </button>
+                  <button onClick={() => { setImages([]); setUrl(''); setHtmlInput(''); setStatus({type:'',message:''}); }} className="mt-2 text-xs text-gray-500 hover:text-white underline flex items-center justify-center gap-1"><Trash2 size={12}/> ล้างค่า</button>
               </div>
             </div>
           </div>
 
-          {/* Filters (Keep existing) */}
           <div className="flex flex-wrap items-center justify-between gap-4 mt-5 pt-4 border-t border-gray-800/50">
              <div className="flex flex-wrap items-center gap-4">
                 <div className="flex items-center gap-2 bg-[#0a0a0a] px-3 py-1.5 rounded-lg border border-gray-800">
-                   <Filter size={14} className="text-blue-500"/>
-                   <span className="text-xs text-gray-500 uppercase font-bold">ขนาด</span>
+                   <Filter size={14} className="text-blue-500"/><span className="text-xs text-gray-500 uppercase font-bold">ขนาด</span>
                    <select value={minSize} onChange={e => setMinSize(Number(e.target.value))} className="bg-transparent text-gray-300 text-sm border-none outline-none cursor-pointer hover:text-white appearance-none pr-4">
                       <option value="0" className="bg-[#121212] text-white">ทั้งหมด (0px+)</option>
-                      <option value="10" className="bg-[#121212] text-white">เล็ก (&gt;10px)</option>
+                      <option value="50" className="bg-[#121212] text-white">ปกติ (&gt;50px)</option>
                       <option value="200" className="bg-[#121212] text-white">ปานกลาง (&gt;200px)</option>
                       <option value="500" className="bg-[#121212] text-white">ใหญ่ (&gt;500px)</option>
                    </select>
                 </div>
                 <div className="flex items-center gap-2 bg-[#0a0a0a] px-3 py-1.5 rounded-lg border border-gray-800">
-                   <FileType size={14} className="text-blue-500"/>
-                   <span className="text-xs text-gray-500 uppercase font-bold">ไฟล์</span>
+                   <FileType size={14} className="text-blue-500"/><span className="text-xs text-gray-500 uppercase font-bold">ไฟล์</span>
                    <select value={fileTypeFilter} onChange={e => setFileTypeFilter(e.target.value)} className="bg-transparent text-gray-300 text-sm border-none outline-none cursor-pointer hover:text-white appearance-none pr-4">
                       <option value="all" className="bg-[#121212] text-white">ทั้งหมด</option>
                       <option value="jpg" className="bg-[#121212] text-white">JPG</option>
@@ -540,9 +461,7 @@ const App = () => {
                    </select>
                 </div>
                 <label className="flex items-center gap-2 cursor-pointer select-none group/chk">
-                   <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${filterSocial ? 'bg-red-900 border-red-700' : 'bg-transparent border-gray-600'}`}>
-                      {filterSocial && <CheckSquare size={10} className="text-white"/>}
-                   </div>
+                   <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${filterSocial ? 'bg-red-900 border-red-700' : 'bg-transparent border-gray-600'}`}>{filterSocial && <CheckSquare size={10} className="text-white"/>}</div>
                    <input type="checkbox" checked={filterSocial} onChange={e => setFilterSocial(e.target.checked)} className="hidden" />
                    <span className="text-sm text-gray-400 group-hover/chk:text-gray-200">กรองขยะ</span>
                 </label>
@@ -551,18 +470,14 @@ const App = () => {
              {images.length > 0 && (
                <div className="flex items-center gap-2">
                  {!isSelectionMode ? (
-                   <button onClick={() => setIsSelectionMode(true)} className="flex items-center gap-2 px-4 py-1.5 bg-[#0a0a0a] hover:bg-gray-800 border border-gray-700 rounded-lg text-gray-300 text-sm transition-all">
-                     <CheckSquare size={16} /> เลือกหลายรูป
-                   </button>
+                   <button onClick={() => setIsSelectionMode(true)} className="flex items-center gap-2 px-4 py-1.5 bg-[#0a0a0a] hover:bg-gray-800 border border-gray-700 rounded-lg text-gray-300 text-sm transition-all"><CheckSquare size={16} /> เลือกหลายรูป</button>
                  ) : (
                    <div className="flex items-center gap-2 bg-blue-900/10 px-2 py-1 rounded-lg border border-blue-900/30 animate-in slide-in-from-right-5">
                       <span className="text-blue-400 font-bold text-xs px-2">เลือกแล้ว {selectedImages.size}</span>
                       <button onClick={() => setSelectedImages(selectedImages.size === images.length ? new Set() : new Set(images))} className="text-gray-400 hover:text-white text-xs px-2 hover:bg-white/5 rounded py-1">{selectedImages.size === images.length ? 'ไม่เลือก' : 'เลือกหมด'}</button>
                       <div className="w-px h-4 bg-gray-700 mx-1"></div>
                       <button onClick={copySelectedLinks} disabled={selectedImages.size===0} className="text-blue-400 hover:text-blue-300 p-1.5 rounded hover:bg-blue-900/30 disabled:opacity-30" title="คัดลอกลิงก์"><LinkIcon size={16} /></button>
-                      <button onClick={downloadSelected} disabled={selectedImages.size===0 || isDownloadingGroup} className="bg-blue-700 hover:bg-blue-600 text-white px-3 py-1 rounded-md disabled:opacity-50 flex items-center gap-1 shadow-lg text-xs font-bold">
-                        {isDownloadingGroup ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />} โหลด
-                      </button>
+                      <button onClick={downloadSelected} disabled={selectedImages.size===0 || isDownloadingGroup} className="bg-blue-700 hover:bg-blue-600 text-white px-3 py-1 rounded-md disabled:opacity-50 flex items-center gap-1 shadow-lg text-xs font-bold">{isDownloadingGroup ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />} โหลด</button>
                       <button onClick={() => {setIsSelectionMode(false); setSelectedImages(new Set())}} className="text-gray-500 hover:text-red-500 ml-1"><XCircle size={16}/></button>
                    </div>
                  )}
@@ -571,26 +486,16 @@ const App = () => {
           </div>
         </div>
 
-        {/* Status & Progress */}
         {loading && progress.total > 0 && (
-          <div className="mb-6 h-1 bg-gray-800 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-red-600 to-red-400 transition-all duration-300 shadow-[0_0_10px_red]" style={{ width: `${(progress.current / progress.total) * 100}%` }} />
-          </div>
+          <div className="mb-6 h-1 bg-gray-800 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-red-600 to-red-400 transition-all duration-300 shadow-[0_0_10px_red]" style={{ width: `${(progress.current / progress.total) * 100}%` }} /></div>
         )}
 
         {status.message && !loading && (
-          <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 text-sm font-medium border ${
-            status.type === 'error' ? 'bg-red-900/20 border-red-900/50 text-red-200' :
-            status.type === 'warning' ? 'bg-amber-900/20 border-amber-900/50 text-amber-200' :
-            status.type === 'info' ? 'bg-blue-900/20 border-blue-900/50 text-blue-200' :
-            'bg-green-900/20 border-green-900/50 text-green-200'
-          }`}>
-             {status.type === 'error' ? <AlertCircle size={18}/> : <CheckCircle2 size={18}/>}
-             {status.message}
+          <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 text-sm font-medium border ${status.type === 'error' ? 'bg-red-900/20 border-red-900/50 text-red-200' : status.type === 'warning' ? 'bg-amber-900/20 border-amber-900/50 text-amber-200' : status.type === 'info' ? 'bg-blue-900/20 border-blue-900/50 text-blue-200' : 'bg-green-900/20 border-green-900/50 text-green-200'}`}>
+             {status.type === 'error' ? <AlertCircle size={18}/> : <CheckCircle2 size={18}/>} {status.message}
           </div>
         )}
 
-        {/* Gallery Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 pb-24">
           {images.map((img, idx) => {
             const isSelected = selectedImages.has(img);
@@ -598,11 +503,7 @@ const App = () => {
               <div key={idx} className={`group relative bg-[#121212] rounded-xl border overflow-hidden shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-red-900/20 cursor-pointer ${isSelected ? 'ring-2 ring-blue-500 border-transparent' : 'border-gray-800 hover:border-gray-600'}`} onClick={() => isSelectionMode ? toggleSelect(img) : openPreview(img)}>
                 <div className="aspect-square bg-[#050505] relative flex items-center justify-center p-2 pattern-grid">
                   <img src={img} alt="" className="max-w-full max-h-full object-contain" loading="lazy" />
-                  {isSelectionMode && (
-                    <div className={`absolute top-2 left-2 w-6 h-6 rounded border flex items-center justify-center shadow-lg ${isSelected ? 'bg-blue-600 border-blue-500 text-white' : 'bg-black/50 border-gray-500'}`}>
-                      {isSelected && <CheckSquare size={14} />}
-                    </div>
-                  )}
+                  {isSelectionMode && <div className={`absolute top-2 left-2 w-6 h-6 rounded border flex items-center justify-center shadow-lg ${isSelected ? 'bg-blue-600 border-blue-500 text-white' : 'bg-black/50 border-gray-500'}`}>{isSelected && <CheckSquare size={14} />}</div>}
                   {!isSelectionMode && (
                     <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3 backdrop-blur-sm">
                       <div className="flex gap-2">
@@ -628,13 +529,12 @@ const App = () => {
         {!loading && images.length === 0 && !status.message && (
           <div className="text-center py-32 opacity-30 flex flex-col items-center">
             <ImageIcon size={80} className="mb-4 text-gray-600" />
-            <p className="text-xl font-light tracking-widest uppercase">ระบบพร้อมใช้งาน (V6)</p>
+            <p className="text-xl font-light tracking-widest uppercase">ระบบพร้อมใช้งาน (V6.5)</p>
             <p className="text-sm mt-2 font-mono text-gray-500">ใส่ลิงก์ปกติ หรือกด "วางโค้ด HTML" เพื่อดึงแบบเจาะลึก</p>
           </div>
         )}
       </div>
 
-      {/* Lightbox (Same as before) */}
       {previewImage && (
         <div className="fixed inset-0 z-50 bg-black/98 flex items-center justify-center overflow-hidden animate-in fade-in duration-300" onClick={() => setPreviewImage(null)} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
            <div className="absolute top-6 right-6 z-50 flex gap-4">
