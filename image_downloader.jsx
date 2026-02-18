@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Download, Search, Image as ImageIcon, Trash2, ExternalLink, Loader2, AlertCircle, CheckCircle2, ScanSearch, Filter, XCircle, Link as LinkIcon, ClipboardCopy, CheckSquare, X, Maximize2, ChevronLeft, ChevronRight, FileType, ZoomIn, ZoomOut, RotateCcw, Flame, ArrowLeft } from 'lucide-react';
+import { Download, Search, Image as ImageIcon, Trash2, Loader2, AlertCircle, CheckCircle2, ScanSearch, Filter, XCircle, Link as LinkIcon, ClipboardCopy, CheckSquare, X, Maximize2, ChevronLeft, ChevronRight, FileType, ZoomIn, ZoomOut, RotateCcw, Flame, ArrowLeft, ShieldCheck, Zap } from 'lucide-react';
 
 const App = () => {
   const [url, setUrl] = useState('');
@@ -8,17 +8,14 @@ const App = () => {
   const [status, setStatus] = useState({ type: '', message: '' });
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   
-  // Settings & Filters
-  const [minSize, setMinSize] = useState(10); // Default allow small icons
+  const [minSize, setMinSize] = useState(10); 
   const [filterSocial, setFilterSocial] = useState(true);
   const [fileTypeFilter, setFileTypeFilter] = useState('all');
 
-  // Selection & UI Modes
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedImages, setSelectedImages] = useState(new Set());
   const [isDownloadingGroup, setIsDownloadingGroup] = useState(false);
   
-  // Lightbox & Zoom State
   const [previewImage, setPreviewImage] = useState(null);
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -30,7 +27,6 @@ const App = () => {
 
   const abortControllerRef = useRef(null);
 
-  // --- Scroll Lock & Zoom Reset ---
   useEffect(() => {
     if (previewImage) {
       document.body.style.overflow = 'hidden';
@@ -55,8 +51,6 @@ const App = () => {
     };
   }, [previewImage]);
 
-  // --- Utility Functions ---
-
   const getExtension = (url) => {
     try {
       const cleanUrl = url.split(/[?#]/)[0];
@@ -78,11 +72,10 @@ const App = () => {
     try {
       const cleanUrl = url.split(/[?#]/)[0];
       const filename = cleanUrl.split('/').pop();
-      let base = filename.replace(/\.(jpg|jpeg|png|webp|avif|gif|svg)$/i, '');
+      let base = filename.replace(/\.(jpg|jpeg|png|webp|avif|gif|svg|ico|bmp|tiff)$/i, '');
       base = base.replace(/[-_]\d+x\d+$/i, '');
-      base = base.replace(/[-_](scaled|rotated|copy|crop|cropped|optimized|resize|thumb|thumbnail)/gi, '');
+      base = base.replace(/[-_](scaled|rotated|copy|crop|cropped|optimized|resize|thumb|thumbnail|medium|large|small)/gi, '');
       base = base.replace(/-\d+$/i, '');
-      base = base.replace(/^(cropped|resized|scaled|rotated|copy)-/gi, '');
       return decodeURIComponent(base).trim().toLowerCase();
     } catch (e) {
       return '';
@@ -110,7 +103,7 @@ const App = () => {
         resolve({ valid: isBigEnough && typePass, width, height, url });
       };
       img.onerror = () => { resolve({ valid: false, url }); };
-      setTimeout(() => resolve({ valid: false, url }), 6000); 
+      setTimeout(() => resolve({ valid: false, url }), 8000); 
     });
   };
 
@@ -141,20 +134,74 @@ const App = () => {
   const resolveUrl = (path, baseUrl) => {
     try {
       if (!path) return null;
+      path = path.trim();
+      
+      // Recursive Decode
+      let previousPath = '';
+      while (path !== previousPath) {
+          previousPath = path;
+          try { path = decodeURIComponent(path); } catch(e){}
+      }
+
       path = path.replace(/\\/g, ''); 
       if (path.startsWith('data:')) return null;
       
-      if (path.startsWith('./')) {
-         return new URL(path, baseUrl).href;
-      }
       if (path.startsWith('//')) return 'https:' + path;
-      if (path.startsWith('/')) return new URL(path, baseUrl).href;
       if (path.startsWith('http')) return path;
       
       return new URL(path, baseUrl).href;
     } catch (e) {
       return null;
     }
+  };
+
+  // --- Advanced Extraction Logic V3.5 ---
+  const extractRealUrl = (rawSrc) => {
+    try {
+        if (!rawSrc) return null;
+        let candidate = rawSrc;
+
+        // Extract from proxy/nextjs params like ?url=...
+        if (candidate.includes('url=') || candidate.includes('img=') || candidate.includes('src=')) {
+            try {
+                // Fake base to parse relative urls with params
+                const urlObj = new URL(candidate.startsWith('http') ? candidate : 'http://fake.com' + (candidate.startsWith('/') ? '' : '/') + candidate);
+                const realUrl = urlObj.searchParams.get('url') || urlObj.searchParams.get('img') || urlObj.searchParams.get('src');
+                if (realUrl) candidate = realUrl;
+            } catch(e) {}
+        }
+
+        // Clean query params for better matching, but keep if needed
+        // For now, let's keep full url to ensure we get the image
+        return candidate;
+    } catch (e) {
+        return rawSrc;
+    }
+  };
+
+  const fetchHtmlWithFallback = async (targetUrl, signal) => {
+     const proxies = [
+         `https://corsproxy.io/?${targetUrl}`,
+         `https://api.allorigins.win/get?url=${targetUrl}`
+     ];
+
+     for (const proxy of proxies) {
+         try {
+             if (signal.aborted) throw new Error('Aborted');
+             const response = await fetch(proxy, { signal });
+             if (!response.ok) continue;
+             
+             if (proxy.includes('allorigins')) {
+                 const data = await response.json();
+                 return data.contents;
+             } else {
+                 return await response.text();
+             }
+         } catch (e) {
+             if (e.name === 'AbortError') throw e;
+         }
+     }
+     throw new Error('ไม่สามารถเข้าถึงหน้าเว็บได้ (ทุก Proxy ล้มเหลว)');
   };
 
   // --- Main Fetch Logic ---
@@ -171,133 +218,136 @@ const App = () => {
     setSelectedImages(new Set());
     setIsSelectionMode(false);
     setPreviewImage(null);
-    setStatus({ type: '', message: 'กำลังเชื่อมต่อ...' });
+    setStatus({ type: '', message: 'กำลังเจาะระบบและดึงข้อมูล...' });
     setProgress({ current: 0, total: 0 });
 
     try {
       const cleanInputUrl = url.trim();
-      const targetUrl = encodeURIComponent(cleanInputUrl);
-      let htmlContent = '';
+      const encodedTargetUrl = encodeURIComponent(cleanInputUrl);
       
-      try {
-        const response = await fetch(`https://corsproxy.io/?${targetUrl}`, { signal: abortControllerRef.current.signal });
-        if (response.ok) htmlContent = await response.text();
-        else throw new Error('Proxy 1 failed');
-      } catch (e) {
-        if (e.name === 'AbortError') return;
-        const response = await fetch(`https://api.allorigins.win/get?url=${targetUrl}`);
-        const data = await response.json();
-        htmlContent = data.contents;
+      const htmlContent = await fetchHtmlWithFallback(encodedTargetUrl, abortControllerRef.current.signal);
+
+      setStatus({ type: '', message: 'กำลังสแกนโค้ดหาลิงก์รูป (Deep Miner V3.5)...' });
+
+      const rawUrls = new Set();
+      const imageExtensions = /\.(jpg|jpeg|png|webp|avif|svg|gif|ico|bmp|tiff)/i;
+
+      // --- STRATEGY 1: Regex Mining (Scan EVERYTHING as text) ---
+      // 1.1 Standard URLs
+      const regexBroad = /(?:https?:\/\/|www\.)[\w\-\._~:/?#[\]@!$&'()*+,;=]+(?:\.(?:jpg|jpeg|png|webp|avif|svg|gif|ico|bmp|tiff))/gi;
+      const matchesBroad = htmlContent.match(regexBroad) || [];
+      matchesBroad.forEach(m => rawUrls.add(extractRealUrl(m.replace(/\\/g, ''))));
+
+      // 1.2 Encoded URLs (https%3A...)
+      const regexEncoded = /(?:https?%3A%2F%2F)[^"'\s\\]+/gi;
+      const matchesEncoded = htmlContent.match(regexEncoded) || [];
+      matchesEncoded.forEach(m => {
+          try {
+              let decoded = decodeURIComponent(m);
+              // Recursive decode
+              while (decoded.includes('%3A')) decoded = decodeURIComponent(decoded);
+              
+              // Clean up suffix
+              const clean = decoded.split(/[?#]/)[0];
+              if (imageExtensions.test(clean)) {
+                  rawUrls.add(decoded);
+              }
+          } catch(e) {}
+      });
+
+      // 1.3 JSON Extraction (For Next.js props)
+      // Look for patterns like "url":"https://..."
+      const regexJson = /"url":"(https?:\\\/\\\/[^"]+)"/gi;
+      let matchJson;
+      while ((matchJson = regexJson.exec(htmlContent)) !== null) {
+          if (matchJson[1]) rawUrls.add(extractRealUrl(matchJson[1].replace(/\\/g, '')));
       }
 
-      if (!htmlContent) throw new Error('ไม่สามารถเข้าถึงหน้าเว็บได้');
-      setStatus({ type: '', message: 'กำลังเจาะระบบค้นหารูป (Deep Scan)...' });
-
+      // --- STRATEGY 2: DOM Parsing ---
       const parser = new DOMParser();
       const doc = parser.parseFromString(htmlContent, 'text/html');
-      const rawUrls = new Set();
-
-      // 1. Standard Tags
-      doc.querySelectorAll('img, source').forEach(el => {
-        ['src', 'data-src', 'data-original', 'srcset', 'data-lazy-src', 'data-url'].forEach(attr => {
-          const val = el.getAttribute(attr);
-          if (val) {
-            if (attr === 'srcset') {
-              val.split(',').forEach(part => rawUrls.add(part.trim().split(' ')[0]));
-            } else {
-              rawUrls.add(val);
-            }
-          }
-        });
-      });
-
-      // 2. CSS Styles
-      doc.querySelectorAll('[style*="url"]').forEach(el => {
-         const style = el.getAttribute('style');
-         const match = style.match(/url\(['"]?(.*?)['"]?\)/);
-         if (match && match[1]) rawUrls.add(match[1]);
-      });
-
-      // 3. Deep Regex Mining
-      const regexAbs = /(?:https?:\/\/|\/|\.\/|www\.)[^"'\s<>]+\.(?:jpg|jpeg|png|webp|avif|svg)(?![a-z0-9])/gi;
-      const matchesAbs = htmlContent.match(regexAbs) || [];
-      matchesAbs.forEach(m => rawUrls.add(m.replace(/\\/g, '')));
-
-      const regexRel = /["'](\/[a-zA-Z0-9_\-\/]+?\.(?:jpg|jpeg|png|webp|avif|svg))["']/gi;
-      let matchRel;
-      while ((matchRel = regexRel.exec(htmlContent)) !== null) {
-          if(matchRel[1]) rawUrls.add(matchRel[1].replace(/\\/g, ''));
-      }
       
-      const regexRelativeSrc = /src=["'](\.\/[^"']+)["']/gi;
-      let matchRelSrc;
-      while ((matchRelSrc = regexRelativeSrc.exec(htmlContent)) !== null) {
-          if (matchRelSrc[1]) rawUrls.add(matchRelSrc[1]);
-      }
+      const allElements = doc.querySelectorAll('*');
+      allElements.forEach(el => {
+          // Check ALL attributes for potential image links
+          for (let i = 0; i < el.attributes.length; i++) {
+              const attr = el.attributes[i];
+              const val = attr.value;
+              
+              // If value looks like an image URL
+              if (imageExtensions.test(val.split('?')[0]) || val.includes('/_next/image')) {
+                  rawUrls.add(extractRealUrl(val));
+              }
+              
+              // Special case: srcset handling (Split by comma)
+              if (attr.name === 'srcset' || attr.name === 'data-srcset') {
+                  val.split(',').forEach(part => {
+                      const urlPart = part.trim().split(' ')[0];
+                      if (urlPart) rawUrls.add(extractRealUrl(urlPart));
+                  });
+              }
+          }
 
-      // 4. Resolve URLs
+          // Check Inline Styles
+          const style = el.getAttribute('style');
+          if (style && style.includes('url(')) {
+              const matches = style.match(/url\(['"]?(.*?)['"]?\)/g);
+              if (matches) {
+                  matches.forEach(m => {
+                      const clean = m.replace(/^url\(['"]?/, '').replace(/['"]?\)$/, '');
+                      rawUrls.add(extractRealUrl(clean));
+                  });
+              }
+          }
+      });
+
+      // --- STRATEGY 3: Filter & Process ---
       const candidates = [];
       rawUrls.forEach(raw => {
         const absolute = resolveUrl(raw, cleanInputUrl);
         if (absolute) candidates.push(absolute);
       });
 
-      // 5. De-duplication Logic
       const imageGroups = new Map();
       candidates.forEach(imgUrl => {
-        if (filterSocial) {
-           const lower = imgUrl.toLowerCase();
-           if (lower.includes('facebook') || lower.includes('line') || lower.includes('instagram') || lower.includes('twitter')) return;
-           if (lower.includes('icon') || lower.includes('logo') || lower.includes('button')) return;
-           
-           const baseName = getBaseFilename(imgUrl);
-           if (!baseName || baseName.length < 2) return;
-           
-           if (!imageGroups.has(baseName)) imageGroups.set(baseName, []);
-           imageGroups.get(baseName).push(imgUrl);
-        } else {
-           let fileNameKey = imgUrl.split(/[?#]/)[0].split('/').pop();
-           if (!imageGroups.has(fileNameKey)) imageGroups.set(fileNameKey, []);
-           imageGroups.get(fileNameKey).push(imgUrl);
-        }
+        const lower = imgUrl.toLowerCase();
+        // Filter junk
+        if (filterSocial && (lower.includes('facebook.com/tr') || lower.includes('google-analytics') || lower.includes('pixel'))) return;
+        
+        // Use filename as key to group duplicates
+        const baseName = getBaseFilename(imgUrl);
+        const key = (baseName && baseName.length > 2) ? baseName : imgUrl;
+        
+        if (!imageGroups.has(key)) imageGroups.set(key, []);
+        imageGroups.get(key).push(imgUrl);
       });
 
       const uniqueCandidates = [];
       imageGroups.forEach((group) => {
-        group.sort((a, b) => {
-           const aExt = getExtension(a);
-           const bExt = getExtension(b);
-           const isPhotoA = ['jpg','jpeg','webp'].includes(aExt);
-           const isPhotoB = ['jpg','jpeg','webp'].includes(bExt);
-           if (isPhotoA && !isPhotoB) return -1;
-           if (!isPhotoA && isPhotoB) return 1;
-           return a.length - b.length;
-        });
+        // Sort: Prefer cleaner URLs (shorter) unless they look like thumbnails
+        // For this specific site, the longer URL often has the high-res params.
+        // Let's try sorting by file size hint if possible, otherwise length.
+        group.sort((a, b) => b.length - a.length); // Longest first usually works for CDN params
         uniqueCandidates.push(group[0]); 
       });
 
-      setStatus({ type: '', message: `พบ ${uniqueCandidates.length} รูป (กำลังตรวจสอบคุณภาพ)...` });
+      setStatus({ type: '', message: `พบ ${uniqueCandidates.length} ไฟล์ (ตรวจสอบคุณภาพ)...` });
       setProgress({ current: 0, total: uniqueCandidates.length });
 
-      // 6. Verification
       const verifiedImages = [];
-      const batchSize = 6;
+      const batchSize = 10;
       for (let i = 0; i < uniqueCandidates.length; i += batchSize) {
         if (abortControllerRef.current.signal.aborted) break;
         const batch = uniqueCandidates.slice(i, i + batchSize);
-        const results = await Promise.all(checkImageSize(batch)); // Fixed batch call
-        
-        // Fix: checkImageSize expects single url, need to map properly
-        const batchResults = await Promise.all(batch.map(checkImageSize));
-        const goodBatch = batchResults.filter(r => r.valid).map(r => r.url);
-        
+        const results = await Promise.all(batch.map(url => checkImageSize(url)));
+        const goodBatch = results.filter(r => r.valid).map(r => r.url);
         verifiedImages.push(...goodBatch);
         setImages(prev => [...prev, ...goodBatch]); 
         setProgress({ current: Math.min(i + batchSize, uniqueCandidates.length), total: uniqueCandidates.length });
       }
 
-      if (verifiedImages.length === 0) showStatus('warning', 'ไม่พบรูปภาพ (อาจเป็นเว็บที่มีการป้องกันสูง)');
-      else showStatus('success', `เสร็จสิ้น! พบ ${verifiedImages.length} รูป`);
+      if (verifiedImages.length === 0) showStatus('warning', 'ไม่พบรูปภาพ (อาจต้องใช้การเปิดเว็บจริง)');
+      else showStatus('success', `เสร็จสิ้น! คัดมาได้ ${verifiedImages.length} รูป`);
     } catch (error) {
       if (error.name !== 'AbortError') showStatus('error', error.message);
     } finally {
@@ -305,7 +355,6 @@ const App = () => {
     }
   };
 
-  // --- Actions ---
   const showStatus = (type, msg) => {
     setStatus({ type, message: msg });
     if (type === 'success') setTimeout(() => setStatus({ type: '', message: '' }), 4000);
@@ -314,6 +363,7 @@ const App = () => {
   const downloadImage = async (imgUrl) => {
     try {
       const response = await fetch(`https://corsproxy.io/?${encodeURIComponent(imgUrl)}`);
+      if (!response.ok) throw new Error('Proxy failed');
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -352,9 +402,8 @@ const App = () => {
       await navigator.clipboard.write([new ClipboardItem({ [pngBlob.type]: pngBlob })]);
       showStatus('success', 'คัดลอกรูปแล้ว! (วางได้เลย)');
     } catch (e) {
-      console.warn("Copy Image Failed", e);
       copyToClipboard(imgUrl);
-      showStatus('warning', 'ก๊อปรูปไม่ได้ (ติดสิทธิ์) -> ก๊อปลิงก์ให้แทน');
+      showStatus('warning', 'ก๊อปรูปไม่ได้ -> ก๊อปลิงก์ให้แทน');
     }
   };
 
@@ -383,7 +432,6 @@ const App = () => {
     showStatus('success', `คัดลอกลิงก์ ${selectedImages.size} รูปแล้ว`);
   };
 
-  // --- Zoom & Pan Logic ---
   const handleWheel = (e) => {
     const delta = e.deltaY * -0.002; 
     const newZoom = Math.min(Math.max(1, zoom + delta), 5);
@@ -460,20 +508,12 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-gray-200 p-4 font-sans selection:bg-red-500/30">
-      
-      {/* --- ADDED: HOME BUTTON (Bottom Left, Small) --- */}
-      <a 
-        href="https://prthachnu999.github.io/My-Personal-Space/" 
-        className="fixed bottom-5 left-5 z-40 flex items-center gap-2 bg-black/60 hover:bg-red-600 text-white/80 hover:text-white px-4 py-2 rounded-full backdrop-blur-md border border-white/10 shadow-2xl transition-all hover:scale-105 group text-sm"
-      >
+      <a href="https://prthachnu999.github.io/My-Personal-Space/" className="fixed bottom-5 left-5 z-40 flex items-center gap-2 bg-black/60 hover:bg-red-600 text-white/80 hover:text-white px-4 py-2 rounded-full backdrop-blur-md border border-white/10 shadow-2xl transition-all hover:scale-105 group text-sm">
          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
          <span className="font-medium">Home</span>
       </a>
-      {/* ----------------------------------------------- */}
 
       <div className="max-w-7xl mx-auto">
-        
-        {/* Header */}
         <div className="text-center mb-8 pt-4">
           <div className="inline-flex items-center justify-center gap-3 mb-2 animate-in fade-in zoom-in duration-500">
             <div className="relative">
@@ -484,10 +524,12 @@ const App = () => {
               KIRITO <span className="text-red-500">DOWNLOADER</span>
             </h1>
           </div>
-          <p className="text-gray-500 text-sm tracking-widest uppercase opacity-80">System Level: Administrator</p>
+          <div className="flex items-center justify-center gap-2 text-gray-500 text-sm tracking-widest uppercase opacity-80 mt-1">
+             <ShieldCheck size={14} className="text-green-500"/>
+             <span>System Level: Administrator (V3.5 Deep Miner)</span>
+          </div>
         </div>
 
-        {/* Controls Panel */}
         <div className="bg-[#121212] border border-gray-800 p-5 rounded-2xl shadow-2xl mb-8 relative overflow-hidden group">
           <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-red-900 to-transparent opacity-50"></div>
           <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-blue-900 to-transparent opacity-50"></div>
@@ -594,14 +636,12 @@ const App = () => {
           </div>
         </div>
 
-        {/* Progress Line */}
         {loading && progress.total > 0 && (
           <div className="mb-6 h-1 bg-gray-800 rounded-full overflow-hidden">
             <div className="h-full bg-gradient-to-r from-red-600 to-red-400 transition-all duration-300 shadow-[0_0_10px_red]" style={{ width: `${(progress.current / progress.total) * 100}%` }} />
           </div>
         )}
 
-        {/* Status Message */}
         {status.message && !loading && (
           <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 text-sm font-medium border ${
             status.type === 'error' ? 'bg-red-900/20 border-red-900/50 text-red-200' :
@@ -614,7 +654,6 @@ const App = () => {
           </div>
         )}
 
-        {/* Gallery Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 pb-24">
           {images.map((img, idx) => {
             const isSelected = selectedImages.has(img);
@@ -655,7 +694,6 @@ const App = () => {
                   )}
                 </div>
                 
-                {/* Filename Footer */}
                 <div className="px-3 py-2 bg-[#1a1a1a] border-t border-gray-800 flex justify-between items-center">
                    <span className="text-[10px] text-gray-400 truncate font-mono flex-1 opacity-70 group-hover:opacity-100 transition-opacity">{getReadableFilename(img)}</span>
                    <span className="text-[9px] text-gray-500 bg-black px-1.5 py-0.5 rounded ml-2 border border-gray-800 font-bold">{getExtension(img).toUpperCase()}</span>
@@ -674,7 +712,6 @@ const App = () => {
         )}
       </div>
 
-      {/* Lightbox Modal */}
       {previewImage && (
         <div 
            className="fixed inset-0 z-50 bg-black/98 flex items-center justify-center overflow-hidden animate-in fade-in duration-300" 
@@ -683,7 +720,6 @@ const App = () => {
            onMouseUp={handleMouseUp}
            onMouseLeave={handleMouseUp}
         >
-           {/* Top Actions */}
            <div className="absolute top-6 right-6 z-50 flex gap-4">
               <div className="bg-black/50 backdrop-blur-xl rounded-full flex items-center p-1.5 text-gray-300 gap-2 border border-white/10 shadow-2xl">
                   <button onClick={(e)=>{e.stopPropagation(); handleZoomOut()}} className="p-2 hover:bg-white/10 rounded-full hover:text-white transition-colors"><ZoomOut size={18}/></button>
@@ -697,7 +733,6 @@ const App = () => {
               </button>
            </div>
            
-           {/* Nav Buttons */}
            <button className="absolute left-6 top-1/2 -translate-y-1/2 text-white/20 hover:text-white p-4 rounded-full hover:bg-white/5 z-50 hidden md:block transition-all hover:scale-110" onClick={(e) => {e.stopPropagation(); prevPreview()}}>
              <ChevronLeft size={48} />
            </button>
@@ -705,7 +740,6 @@ const App = () => {
              <ChevronRight size={48} />
            </button>
 
-           {/* Image Container */}
            <div 
              className="w-full h-full flex items-center justify-center overflow-hidden cursor-move"
              ref={containerRef}
@@ -732,7 +766,6 @@ const App = () => {
              />
            </div>
            
-           {/* Bottom Toolbar */}
            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-4 w-full px-4">
              <div className="flex gap-4">
                 <button onClick={(e) => {e.stopPropagation(); downloadImage(previewImage)}} className="flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white px-8 py-3 rounded-full font-bold shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:scale-105 transition-transform border border-red-500">
