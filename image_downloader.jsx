@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Download, Search, Image as ImageIcon, Trash2, Loader2, AlertCircle, CheckCircle2, ScanSearch, Filter, XCircle, Link as LinkIcon, ClipboardCopy, CheckSquare, X, Maximize2, ChevronLeft, ChevronRight, FileType, ZoomIn, ZoomOut, RotateCcw, Flame, ArrowLeft, ShieldCheck, Zap } from 'lucide-react';
+import { Download, Search, Image as ImageIcon, Trash2, Loader2, AlertCircle, CheckCircle2, ScanSearch, Filter, XCircle, Link as LinkIcon, ClipboardCopy, CheckSquare, X, Maximize2, ChevronLeft, ChevronRight, FileType, ZoomIn, ZoomOut, RotateCcw, Flame, ArrowLeft, ShieldCheck, Database } from 'lucide-react';
 
 const App = () => {
   const [url, setUrl] = useState('');
@@ -75,7 +75,6 @@ const App = () => {
       let base = filename.replace(/\.(jpg|jpeg|png|webp|avif|gif|svg|ico|bmp|tiff)$/i, '');
       base = base.replace(/[-_]\d+x\d+$/i, '');
       base = base.replace(/[-_](scaled|rotated|copy|crop|cropped|optimized|resize|thumb|thumbnail|medium|large|small)/gi, '');
-      base = base.replace(/-\d+$/i, '');
       return decodeURIComponent(base).trim().toLowerCase();
     } catch (e) {
       return '';
@@ -131,21 +130,29 @@ const App = () => {
     });
   };
 
+  // --- V4 Logic: Robust URL Resolution ---
   const resolveUrl = (path, baseUrl) => {
     try {
-      if (!path) return null;
+      if (!path || typeof path !== 'string') return null;
       path = path.trim();
       
-      // Recursive Decode
-      let previousPath = '';
-      while (path !== previousPath) {
-          previousPath = path;
+      // Remove escaping backslashes from JSON
+      path = path.replace(/\\/g, ''); 
+      
+      // Decode recursively if needed
+      if (path.includes('%3A') || path.includes('%2F')) {
           try { path = decodeURIComponent(path); } catch(e){}
       }
 
-      path = path.replace(/\\/g, ''); 
       if (path.startsWith('data:')) return null;
       
+      // Fix Next.js specific paths
+      if (path.startsWith('/_next/image?url=')) {
+          const params = new URLSearchParams(path.split('?')[1]);
+          const realUrl = params.get('url');
+          if (realUrl) return resolveUrl(realUrl, baseUrl); // Recurse
+      }
+
       if (path.startsWith('//')) return 'https:' + path;
       if (path.startsWith('http')) return path;
       
@@ -155,28 +162,48 @@ const App = () => {
     }
   };
 
-  // --- Advanced Extraction Logic V3.5 ---
   const extractRealUrl = (rawSrc) => {
     try {
-        if (!rawSrc) return null;
+        if (!rawSrc || typeof rawSrc !== 'string') return null;
         let candidate = rawSrc;
 
         // Extract from proxy/nextjs params like ?url=...
         if (candidate.includes('url=') || candidate.includes('img=') || candidate.includes('src=')) {
             try {
-                // Fake base to parse relative urls with params
-                const urlObj = new URL(candidate.startsWith('http') ? candidate : 'http://fake.com' + (candidate.startsWith('/') ? '' : '/') + candidate);
+                // Check if it's a relative path starting with /
+                const base = candidate.startsWith('/') ? 'http://fake.com' : '';
+                const urlObj = new URL(base + candidate);
                 const realUrl = urlObj.searchParams.get('url') || urlObj.searchParams.get('img') || urlObj.searchParams.get('src');
                 if (realUrl) candidate = realUrl;
             } catch(e) {}
         }
-
-        // Clean query params for better matching, but keep if needed
-        // For now, let's keep full url to ensure we get the image
         return candidate;
     } catch (e) {
         return rawSrc;
     }
+  };
+
+  // --- V4 Logic: Recursive JSON Walker ---
+  const findUrlsInObject = (obj, foundUrls) => {
+      if (!obj) return;
+      
+      if (typeof obj === 'string') {
+          // Check if string looks like an image URL
+          if (/\.(jpg|jpeg|png|webp|avif|svg|gif)$/i.test(obj.split('?')[0]) || obj.includes('/_next/image')) {
+              foundUrls.add(obj);
+          }
+          // Check for URL encoded strings inside JSON
+          if (obj.includes('%3A%2F%2F')) {
+              try { foundUrls.add(decodeURIComponent(obj)); } catch(e){}
+          }
+          return;
+      }
+
+      if (typeof obj === 'object') {
+          for (const key in obj) {
+              findUrlsInObject(obj[key], foundUrls);
+          }
+      }
   };
 
   const fetchHtmlWithFallback = async (targetUrl, signal) => {
@@ -218,7 +245,7 @@ const App = () => {
     setSelectedImages(new Set());
     setIsSelectionMode(false);
     setPreviewImage(null);
-    setStatus({ type: '', message: 'กำลังเจาะระบบและดึงข้อมูล...' });
+    setStatus({ type: '', message: 'กำลังเจาะระบบ (JSON Mining)...' });
     setProgress({ current: 0, total: 0 });
 
     try {
@@ -227,94 +254,77 @@ const App = () => {
       
       const htmlContent = await fetchHtmlWithFallback(encodedTargetUrl, abortControllerRef.current.signal);
 
-      setStatus({ type: '', message: 'กำลังสแกนโค้ดหาลิงก์รูป (Deep Miner V3.5)...' });
+      setStatus({ type: '', message: 'กำลังถอดรหัสโครงสร้างเว็บ (V4)...' });
 
       const rawUrls = new Set();
-      const imageExtensions = /\.(jpg|jpeg|png|webp|avif|svg|gif|ico|bmp|tiff)/i;
-
-      // --- STRATEGY 1: Regex Mining (Scan EVERYTHING as text) ---
-      // 1.1 Standard URLs
-      const regexBroad = /(?:https?:\/\/|www\.)[\w\-\._~:/?#[\]@!$&'()*+,;=]+(?:\.(?:jpg|jpeg|png|webp|avif|svg|gif|ico|bmp|tiff))/gi;
-      const matchesBroad = htmlContent.match(regexBroad) || [];
-      matchesBroad.forEach(m => rawUrls.add(extractRealUrl(m.replace(/\\/g, ''))));
-
-      // 1.2 Encoded URLs (https%3A...)
-      const regexEncoded = /(?:https?%3A%2F%2F)[^"'\s\\]+/gi;
-      const matchesEncoded = htmlContent.match(regexEncoded) || [];
-      matchesEncoded.forEach(m => {
-          try {
-              let decoded = decodeURIComponent(m);
-              // Recursive decode
-              while (decoded.includes('%3A')) decoded = decodeURIComponent(decoded);
-              
-              // Clean up suffix
-              const clean = decoded.split(/[?#]/)[0];
-              if (imageExtensions.test(clean)) {
-                  rawUrls.add(decoded);
-              }
-          } catch(e) {}
-      });
-
-      // 1.3 JSON Extraction (For Next.js props)
-      // Look for patterns like "url":"https://..."
-      const regexJson = /"url":"(https?:\\\/\\\/[^"]+)"/gi;
-      let matchJson;
-      while ((matchJson = regexJson.exec(htmlContent)) !== null) {
-          if (matchJson[1]) rawUrls.add(extractRealUrl(matchJson[1].replace(/\\/g, '')));
-      }
-
-      // --- STRATEGY 2: DOM Parsing ---
       const parser = new DOMParser();
       const doc = parser.parseFromString(htmlContent, 'text/html');
-      
-      const allElements = doc.querySelectorAll('*');
-      allElements.forEach(el => {
-          // Check ALL attributes for potential image links
-          for (let i = 0; i < el.attributes.length; i++) {
-              const attr = el.attributes[i];
-              const val = attr.value;
-              
-              // If value looks like an image URL
-              if (imageExtensions.test(val.split('?')[0]) || val.includes('/_next/image')) {
-                  rawUrls.add(extractRealUrl(val));
-              }
-              
-              // Special case: srcset handling (Split by comma)
-              if (attr.name === 'srcset' || attr.name === 'data-srcset') {
-                  val.split(',').forEach(part => {
-                      const urlPart = part.trim().split(' ')[0];
-                      if (urlPart) rawUrls.add(extractRealUrl(urlPart));
-                  });
-              }
-          }
 
-          // Check Inline Styles
-          const style = el.getAttribute('style');
-          if (style && style.includes('url(')) {
-              const matches = style.match(/url\(['"]?(.*?)['"]?\)/g);
-              if (matches) {
-                  matches.forEach(m => {
-                      const clean = m.replace(/^url\(['"]?/, '').replace(/['"]?\)$/, '');
-                      rawUrls.add(extractRealUrl(clean));
-                  });
-              }
+      // --- STRATEGY 1: Next.js Data Extraction (The GOLD MINE) ---
+      const nextDataScript = doc.getElementById('__NEXT_DATA__');
+      if (nextDataScript) {
+          try {
+              const jsonData = JSON.parse(nextDataScript.textContent);
+              findUrlsInObject(jsonData, rawUrls);
+              console.log("Found URLs in Next Data:", rawUrls.size);
+          } catch(e) {
+              console.warn("Failed to parse NEXT_DATA", e);
           }
+      }
+
+      // --- STRATEGY 2: Brute Force JSON/Text Scanning ---
+      // Find anything that looks like http.....jpg
+      const regexBroad = /(?:https?:\/\/|\/|www\.)[\w\-\._~:/?#[\]@!$&'()*+,;=]+(?:\.(?:jpg|jpeg|png|webp|avif|svg))/gi;
+      const allTextMatches = htmlContent.match(regexBroad) || [];
+      allTextMatches.forEach(m => rawUrls.add(m.replace(/\\/g, '')));
+
+      // Find anything encoded
+      const regexEncoded = /(?:https?%3A%2F%2F)[^"'\s\\]+/gi;
+      const encodedMatches = htmlContent.match(regexEncoded) || [];
+      encodedMatches.forEach(m => {
+          try { rawUrls.add(decodeURIComponent(m)); } catch(e){}
       });
 
-      // --- STRATEGY 3: Filter & Process ---
+      // --- STRATEGY 3: Standard DOM & Srcset ---
+      doc.querySelectorAll('img, source, video').forEach(el => {
+          ['src', 'data-src', 'srcset', 'data-srcset'].forEach(attr => {
+              const val = el.getAttribute(attr);
+              if (!val) return;
+
+              if (attr.includes('srcset')) {
+                  // Split srcset by comma, but handle commas inside URLs? Usually space separates url/size
+                  // Simple split:
+                  val.split(',').forEach(part => {
+                      const urlPart = part.trim().split(' ')[0];
+                      if(urlPart) rawUrls.add(urlPart);
+                  });
+              } else {
+                  rawUrls.add(val);
+              }
+          });
+      });
+
+      // --- PROCESS ---
       const candidates = [];
       rawUrls.forEach(raw => {
-        const absolute = resolveUrl(raw, cleanInputUrl);
+        const extracted = extractRealUrl(raw); // Handle /_next/image?url=...
+        const absolute = resolveUrl(extracted, cleanInputUrl);
         if (absolute) candidates.push(absolute);
       });
 
+      // Filter & Group
       const imageGroups = new Map();
       candidates.forEach(imgUrl => {
         const lower = imgUrl.toLowerCase();
-        // Filter junk
-        if (filterSocial && (lower.includes('facebook.com/tr') || lower.includes('google-analytics') || lower.includes('pixel'))) return;
+        // Strict Filter for junk
+        if (filterSocial && (
+            lower.includes('facebook.com/tr') || 
+            lower.includes('google-analytics') || 
+            lower.includes('pixel') || 
+            lower.includes('favicon') || 
+            !/\.(jpg|jpeg|png|webp|avif|svg)/.test(lower) // Must have extension in V4 to reduce trash
+        )) return;
         
-        // Use filename as key to group duplicates
         const baseName = getBaseFilename(imgUrl);
         const key = (baseName && baseName.length > 2) ? baseName : imgUrl;
         
@@ -324,18 +334,17 @@ const App = () => {
 
       const uniqueCandidates = [];
       imageGroups.forEach((group) => {
-        // Sort: Prefer cleaner URLs (shorter) unless they look like thumbnails
-        // For this specific site, the longer URL often has the high-res params.
-        // Let's try sorting by file size hint if possible, otherwise length.
-        group.sort((a, b) => b.length - a.length); // Longest first usually works for CDN params
+        // Sort: Prefer Cleanest > Longest (params) > Shortest
+        // For Next.js, longest usually has query params for quality.
+        group.sort((a, b) => b.length - a.length);
         uniqueCandidates.push(group[0]); 
       });
 
-      setStatus({ type: '', message: `พบ ${uniqueCandidates.length} ไฟล์ (ตรวจสอบคุณภาพ)...` });
+      setStatus({ type: '', message: `เจอ ${uniqueCandidates.length} ลิงก์ (กำลังเช็ครูปจริง)...` });
       setProgress({ current: 0, total: uniqueCandidates.length });
 
       const verifiedImages = [];
-      const batchSize = 10;
+      const batchSize = 12;
       for (let i = 0; i < uniqueCandidates.length; i += batchSize) {
         if (abortControllerRef.current.signal.aborted) break;
         const batch = uniqueCandidates.slice(i, i + batchSize);
@@ -346,8 +355,8 @@ const App = () => {
         setProgress({ current: Math.min(i + batchSize, uniqueCandidates.length), total: uniqueCandidates.length });
       }
 
-      if (verifiedImages.length === 0) showStatus('warning', 'ไม่พบรูปภาพ (อาจต้องใช้การเปิดเว็บจริง)');
-      else showStatus('success', `เสร็จสิ้น! คัดมาได้ ${verifiedImages.length} รูป`);
+      if (verifiedImages.length === 0) showStatus('warning', 'ไม่พบรูป (เว็บอาจเข้ารหัสขั้นสูง)');
+      else showStatus('success', `เสร็จสิ้น! ดูดมาได้ ${verifiedImages.length} รูป`);
     } catch (error) {
       if (error.name !== 'AbortError') showStatus('error', error.message);
     } finally {
@@ -525,8 +534,8 @@ const App = () => {
             </h1>
           </div>
           <div className="flex items-center justify-center gap-2 text-gray-500 text-sm tracking-widest uppercase opacity-80 mt-1">
-             <ShieldCheck size={14} className="text-green-500"/>
-             <span>System Level: Administrator (V3.5 Deep Miner)</span>
+             <Database size={14} className="text-blue-500"/>
+             <span>System Level: Administrator (V4 JSON Hunter)</span>
           </div>
         </div>
 
