@@ -299,8 +299,8 @@
         </div>
 
         <div class="global-actions">
-            <label class="toggle-container">
-                <input type="checkbox" id="allowDuplicates"> แสดงรูปซ้ำ (Duplicates)
+            <label class="toggle-container" title="ถ้าไม่ติ๊ก ระบบจะลบรูปขนาดเล็กที่ซ้ำกับรูปใหญ่ทิ้งอัตโนมัติ (ไม่ลบรูปหน้ามังงะ/โดจิน)">
+                <input type="checkbox" id="allowDuplicates"> แสดงรูปซ้ำ (Smart Dedupe)
             </label>
             <button class="btn-action" onclick="copyAllLinks()" id="btn-copy-all"><i class="fas fa-link"></i> คัดลอก Link ทั้งหมด</button>
             <button class="btn-action" onclick="downloadAll()" id="btn-dl-all"><i class="fas fa-cloud-download-alt"></i> บันทึกเป็น ZIP ทั้งหมด</button>
@@ -324,7 +324,7 @@
     </div>
 
     <script>
-        // --- ฟังก์ชันช่วยเหลือสำหรับเปลี่ยนไอคอน/ข้อความปุ่มชั่วคราว (ใช้แทน Alert 100%) ---
+        // --- ฟังก์ชันช่วยเหลือสำหรับเปลี่ยนไอคอน/ข้อความปุ่มชั่วคราว (ไร้ป๊อปอัป Alert 100%) ---
         function showTempSuccess(btnId, tempHtml, originalHtml, time = 2500) {
             const btn = document.getElementById(btnId);
             if(!btn) return;
@@ -397,7 +397,7 @@
             if (currentSizeFilter !== 'all' || currentTypeFilter !== 'all') {
                 status += ` (แสดงผล ${visibleCards.length} รูปตามตัวกรอง)`;
             }
-            status += allowDupes ? ' [โหมดแสดงซ้ำ]' : ' [โหมดกรองซ้ำ]';
+            status += allowDupes ? ' [โหมดแสดงซ้ำ]' : ' [โหมดกรองซ้ำอัตโนมัติ]';
             document.getElementById('status').innerText = status;
         }
 
@@ -418,7 +418,7 @@
             return false;
         }
 
-        // --- Core Extraction (ทะลวง Lazy Load 100%) ---
+        // --- Core Extraction (ขุด Lazy Load ทะลุปรุโปร่ง) ---
         function extractImagesFromHtml(html, baseUrl) {
             let foundRaw = []; 
             let text = html.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&').replace(/\\"/g, '"').replace(/\\u002F/g, "/");
@@ -477,22 +477,35 @@
             return foundRaw;
         }
 
-        function getCleanKey(url) {
+        // --- SMART DEDUPLICATION LOGIC ---
+        // ตัดเฉพาะรูปแบบความละเอียด xความกว้างxความยาว (เช่น 150x150) เพื่อไม่ให้กระทบหน้ามังงะ/โดจิน (-001.jpg)
+        function getCleanKey(urlStr) {
             try {
-                let u = new URL(url);
+                let u = new URL(urlStr);
                 u.searchParams.delete('w'); u.searchParams.delete('q');
                 u.searchParams.delete('width'); u.searchParams.delete('height');
-                return u.href;
-            } catch(e) { return url; }
+                let s = u.origin + u.pathname;
+                s = s.replace(/[-_]\d+x\d+(?=\.[a-zA-Z0-9]+$)/i, '');
+                s = s.replace(/(-\d{6,9})_\d{3,4}(?=\.[a-zA-Z0-9]+$)/i, '$1');
+                return s;
+            } catch(e) { 
+                let s = urlStr.split('?')[0].replace(/\/$/, "");
+                s = s.replace(/[-_]\d+x\d+(?=\.[a-zA-Z0-9]+$)/i, '');
+                s = s.replace(/(-\d{6,9})_\d{3,4}(?=\.[a-zA-Z0-9]+$)/i, '$1');
+                return s; 
+            }
         }
 
-        function isImage(url) {
-            const u = url.toLowerCase();
-            return (u.includes('.jpg') || u.includes('.jpeg') || u.includes('.png') || u.includes('.webp') || u.includes('.gif') || u.includes('.svg') || u.includes('.tiff') || u.includes('.heic') || u.includes('.ico')) && !u.includes('analytics');
+        function getResolutionScore(urlStr) {
+            let m1 = urlStr.split('?')[0].match(/[-_](\d+)x(\d+)(?=\.[a-zA-Z0-9]+$)/i);
+            if(m1) return parseInt(m1[1]) * parseInt(m1[2]); 
+            let m2 = urlStr.split('?')[0].match(/-\d{6,9}_(\d{3,4})(?=\.[a-zA-Z0-9]+$)/i);
+            if(m2) return parseInt(m2[1]);
+            return 0;
         }
 
         async function fetchHtmlSafe(url) {
-            const proxies = ['', 'https://corsproxy.io/?', 'https://api.allorigins.win/raw?url=', 'https://api.codetabs.com/v1/proxy?quest='];
+            const proxies = ['', 'https://api.codetabs.com/v1/proxy?quest=', 'https://corsproxy.io/?', 'https://api.allorigins.win/raw?url='];
             for (let p of proxies) {
                 try {
                     const targetUrl = p ? p + encodeURIComponent(url) : url;
@@ -549,7 +562,18 @@
                 let uniqueMap = new Map();
                 allScannedImages.forEach(url => {
                     let cleanKey = getCleanKey(url);
-                    if (!uniqueMap.has(cleanKey)) uniqueMap.set(cleanKey, url);
+                    let existing = uniqueMap.get(cleanKey);
+                    if (!existing) {
+                        uniqueMap.set(cleanKey, url);
+                    } else {
+                        let newScore = getResolutionScore(url);
+                        let oldScore = getResolutionScore(existing);
+                        if (newScore > oldScore) {
+                            uniqueMap.set(cleanKey, url);
+                        } else if (newScore === oldScore && !url.includes('?') && existing.includes('?')) {
+                            uniqueMap.set(cleanKey, url);
+                        }
+                    }
                 });
                 imagesToShow = Array.from(uniqueMap.values());
             }
@@ -573,12 +597,27 @@
                 const info = document.createElement('div');
                 info.className = 'img-info';
                 
+                // --- ระบบ Fallback รูปภาพที่ตาย ---
+                img.setAttribute('data-rts', '0');
                 img.onerror = function() {
-                    if (!this.getAttribute('data-retried')) {
-                        this.setAttribute('data-retried', 'true');
-                        this.src = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(src);
+                    let rts = parseInt(this.getAttribute('data-rts'));
+                    const pxs = [
+                        'https://api.codetabs.com/v1/proxy?quest=',
+                        'https://corsproxy.io/?',
+                        'https://api.allorigins.win/raw?url='
+                    ];
+                    
+                    if (rts < pxs.length) {
+                        this.setAttribute('data-rts', (rts + 1).toString());
+                        this.src = pxs[rts] + encodeURIComponent(src);
                     } else {
-                        card.remove(); 
+                        // ป้องกันการลบการ์ดทิ้ง ให้โชว์ไอคอน Error แทน จะได้นับรูปถูก
+                        this.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ff3333"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>';
+                        this.style.opacity = '0.5';
+                        this.style.padding = '30px';
+                        this.title = 'โหลดภาพล้มเหลว (อาจติดป้องกัน CORS/Referrer)';
+                        card.setAttribute('data-width', '500'); // ให้ผ่าน filter
+                        card.classList.add('error-load');
                         setTimeout(updateStatusText, 100); 
                     }
                 };
@@ -586,13 +625,17 @@
                 img.onload = function() { 
                     const w = this.naturalWidth;
                     const h = this.naturalHeight;
-                    card.setAttribute('data-width', w);
-                    if(w < 30) { card.remove(); setTimeout(updateStatusText, 100); return; }
+                    // ถ้าไม่ใช่ error icon
+                    if(!card.classList.contains('error-load')) {
+                        card.setAttribute('data-width', w);
+                        if(w < 30) { card.remove(); setTimeout(updateStatusText, 100); return; }
+                    }
                     
                     let show = true;
-                    if (currentSizeFilter === 'small' && w >= 500) show = false;
-                    if (currentSizeFilter === 'medium' && (w < 500 || w > 1200)) show = false;
-                    if (currentSizeFilter === 'large' && w <= 1200) show = false;
+                    let cw = parseInt(card.getAttribute('data-width'));
+                    if (currentSizeFilter === 'small' && cw >= 500) show = false;
+                    if (currentSizeFilter === 'medium' && (cw < 500 || cw > 1200)) show = false;
+                    if (currentSizeFilter === 'large' && cw <= 1200) show = false;
                     if(!show) card.classList.add('hidden-by-filter');
                     
                     let rawFilename = src.split('/').pop().split(/[#?]/)[0];
@@ -627,25 +670,26 @@
             });
         }
 
-        // --- ระบบ Fetch รูปที่แข็งแกร่ง (ต่อตรงก่อน -> Proxy สำรอง) ข้ามไฟล์เสีย 100% ---
+        // --- ระบบ Fetch รูปที่แข็งแกร่งระดับจักรวาล (ต่อตรง -> codetabs -> corsproxy -> allorigins) ---
         async function fetchImageSafe(url) {
             const proxies = [
                 '', 
+                'https://api.codetabs.com/v1/proxy?quest=',
                 'https://corsproxy.io/?', 
-                'https://api.allorigins.win/raw?url=', 
-                'https://api.codetabs.com/v1/proxy?quest='
+                'https://api.allorigins.win/raw?url='
             ];
             for (const proxy of proxies) {
                 try {
                     const targetUrl = proxy ? proxy + encodeURIComponent(url) : url;
                     const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 5000); // ตัดจบ 5 วิ
+                    const timeoutId = setTimeout(() => controller.abort(), 6000); // 6 วิ ตัดจบ ไม่รอให้ค้าง
                     const res = await fetch(targetUrl, { signal: controller.signal });
                     clearTimeout(timeoutId);
                     
                     if (res.ok) {
                         const blob = await res.blob();
-                        if (blob.size > 200 && !blob.type.includes('text/html')) {
+                        // ป้องกันไฟล์เสีย และป้องกัน HTML ที่เนียนมาเป็นรูป
+                        if (blob.size > 150 && (blob.type.startsWith('image/') || blob.type === 'application/octet-stream')) {
                             return blob;
                         }
                     }
@@ -686,7 +730,7 @@
 
         function copyAllLinks() {
             const visibleCards = Array.from(document.querySelectorAll('.img-card:not(.hidden-by-filter) img'));
-            const links = visibleCards.map(img => img.src).join('\n');
+            const links = visibleCards.map(img => img.src).filter(src => !src.startsWith('data:')).join('\n');
             if(!links) return;
 
             const textArea = document.createElement("textarea");
@@ -722,10 +766,10 @@
             }
         }
 
-        // --- THE ULTIMATE SPEED: ระบบโหลดคู่ขนานแบบ Worker Pool (8 Threads) ---
+        // --- THE ULTIMATE SPEED: ระบบโหลดคู่ขนานแบบ Worker Pool (8 Threads) ไม่มีค้าง ---
         async function downloadAll() {
             const visibleCards = Array.from(document.querySelectorAll('.img-card:not(.hidden-by-filter) img'));
-            const images = visibleCards.map(img => img.src);
+            const images = visibleCards.map(img => img.src).filter(src => !src.startsWith('data:'));
 
             if(images.length === 0) return;
             
@@ -747,7 +791,7 @@
                 let processedCount = 0;
                 let currentIndex = 0;
                 
-                // ให้ทำงานพร้อมกัน 8 ตัว (Worker Pool)
+                // คนงาน 8 คนลุยโหลดพร้อมกัน (เร็วกว่าโหลดทีละชุด)
                 const MAX_WORKERS = 8;
                 
                 const worker = async () => {
@@ -778,13 +822,12 @@
                     }
                 };
 
-                // เรียกคนงาน 8 คนมาทำพร้อมกัน
                 const workers = Array(MAX_WORKERS).fill(0).map(() => worker());
                 await Promise.all(workers);
 
                 if(successCount === 0) {
                     progContainer.style.display = 'none';
-                    showTempSuccess('btn-dl-all', `<i class="fas fa-times"></i> โหลดไม่สำเร็จ (โดนบล็อก)`, originalText, 3000);
+                    showTempSuccess('btn-dl-all', `<i class="fas fa-times"></i> โหลดไม่สำเร็จ (โดนบล็อกทั้งหมด)`, originalText, 4000);
                     btn.style.pointerEvents = 'auto';
                     return;
                 }
@@ -807,7 +850,7 @@
             } catch(e) {
                 console.error(e);
                 progContainer.style.display = 'none';
-                showTempSuccess('btn-dl-all', `<i class="fas fa-times"></i> เกิดข้อผิดพลาด`, originalText, 3000);
+                showTempSuccess('btn-dl-all', `<i class="fas fa-times"></i> เกิดข้อผิดพลาด`, originalText, 4000);
                 btn.style.pointerEvents = 'auto';
             }
         }
@@ -853,11 +896,28 @@
             updateTransform();
         });
 
-        // --- BOOKMARKLET GENERATOR SCRIPT (รื้อระบบสร้างใหม่ให้สมบูรณ์) ---
+        document.getElementById('allowDuplicates').addEventListener('change', renderGallery);
+
+        // --- BOOKMARKLET GENERATOR SCRIPT (อัปเกรดเครื่องยนต์ 8 เลน + กรองซ้ำอัจฉริยะ) ---
         document.addEventListener('DOMContentLoaded', () => {
             const bookmarkletLogic = function() {
                 if(document.getElementById('krt-sys')) document.getElementById('krt-sys').remove();
-                var u = new Set();
+                
+                var cleanK = function(u) {
+                    var p = u.split('?')[0];
+                    p = p.replace(/[-_]\d+x\d+(?=\.[a-zA-Z0-9]+$)/i, '');
+                    p = p.replace(/(-\d{6,9})_\d{3,4}(?=\.[a-zA-Z0-9]+$)/i, '$1');
+                    return p;
+                };
+                var getSc = function(u) {
+                    var m1 = u.split('?')[0].match(/[-_](\d+)x(\d+)(?=\.[a-zA-Z0-9]+$)/i);
+                    if(m1) return parseInt(m1[1])*parseInt(m1[2]);
+                    var m2 = u.split('?')[0].match(/-\d{6,9}_(\d{3,4})(?=\.[a-zA-Z0-9]+$)/i);
+                    if(m2) return parseInt(m2[1]);
+                    return 0;
+                };
+
+                var uMap = new Map();
                 function a(s) {
                     if(!s || s.startsWith('data:')) return;
                     if(s.startsWith('//')) s = 'https:' + s;
@@ -868,10 +928,17 @@
                         var inr = d.searchParams.get('url');
                         if(inr) s = inr;
                     } catch(e) {}
-                    u.add(s);
+                    
+                    var k = cleanK(s);
+                    var ex = uMap.get(k);
+                    if(!ex) {
+                        uMap.set(k, s);
+                    } else {
+                        if(getSc(s) > getSc(ex)) uMap.set(k, s);
+                        else if(getSc(s) === getSc(ex) && !s.includes('?') && ex.includes('?')) uMap.set(k, s);
+                    }
                 }
                 
-                // ขุดทุกซอกทุกมุมของ DOM รวมถึง Lazy Load
                 Array.from(document.images).forEach(e => { a(e.src); });
                 Array.from(document.querySelectorAll('*')).forEach(e => {
                     var ds = e.getAttribute('data-src') || e.getAttribute('data-original') || e.getAttribute('data-lazy-src') || e.getAttribute('data-srcset');
@@ -888,7 +955,7 @@
                     }
                 });
                 
-                if(u.size === 0) {
+                if(uMap.size === 0) {
                     var btn = document.createElement('div');
                     btn.style.cssText = 'position:fixed;top:20px;right:20px;background:#f03;color:#fff;padding:10px 20px;z-index:999999;border-radius:5px;font-family:sans-serif;box-shadow:0 0 10px #000;';
                     btn.innerText = 'ไม่พบรูปภาพ (KIRITO SYSTEM)';
@@ -909,7 +976,7 @@
                             '<button id="krt-close" style="background:#f03;color:#fff;border:none;padding:10px 20px;cursor:pointer;border-radius:5px;font-weight:bold;">CLOSE (ปิด)</button>' +
                         '</div>' +
                     '</div>' +
-                    '<h3>พบรูปภาพทั้งหมด ' + u.size + ' รูป</h3>' +
+                    '<h3>พบรูปภาพ (ที่กรองซ้ำแล้ว) ทั้งหมด ' + uMap.size + ' รูป</h3>' +
                     '<div id="krt-prog-bg" style="display:none;width:100%;background:#222;border-radius:5px;margin-bottom:15px;overflow:hidden;border:1px solid #444;box-shadow:inset 0 0 10px #000;">' +
                         '<div id="krt-prog" style="width:0%;height:24px;background:#f03;color:#fff;text-align:center;font-size:12px;line-height:24px;font-weight:bold;transition:width 0.3s;">0%</div>' +
                     '</div>' +
@@ -927,20 +994,20 @@
                 document.body.appendChild(sys);
 
                 var gal = document.getElementById('krt-gal');
-                var all = Array.from(u);
+                var all = Array.from(uMap.values());
                 
                 async function fetchImg(url) {
-                    const pxs = ['', 'https://corsproxy.io/?', 'https://api.allorigins.win/raw?url=', 'https://api.codetabs.com/v1/proxy?quest='];
+                    const pxs = ['', 'https://api.codetabs.com/v1/proxy?quest=', 'https://corsproxy.io/?', 'https://api.allorigins.win/raw?url='];
                     for (let px of pxs) {
                         try {
                             let tgt = px ? px + encodeURIComponent(url) : url;
                             let ctrl = new AbortController();
-                            let tid = setTimeout(() => ctrl.abort(), 5000);
+                            let tid = setTimeout(() => ctrl.abort(), 6000);
                             let r = await fetch(tgt, {signal: ctrl.signal});
                             clearTimeout(tid);
                             if(r.ok) {
                                 let b = await r.blob();
-                                if(b.size > 200 && !b.type.includes('text/html')) return b;
+                                if(b.size > 150 && (b.type.startsWith('image/') || b.type === 'application/octet-stream')) return b;
                             }
                         } catch(e) {}
                     }
@@ -954,6 +1021,24 @@
                     i.src = s;
                     i.style.cssText = 'width:100%;height:120px;object-fit:contain;margin-bottom:10px;background:#000;cursor:zoom-in;';
                     
+                    i.setAttribute('data-orig', s);
+                    i.setAttribute('data-rts', '0');
+                    i.onerror = function() {
+                        var orig = this.getAttribute('data-orig');
+                        var rts = parseInt(this.getAttribute('data-rts'));
+                        var pxs = ['https://api.codetabs.com/v1/proxy?quest=', 'https://corsproxy.io/?', 'https://api.allorigins.win/raw?url='];
+                        if(rts < pxs.length) {
+                            this.setAttribute('data-rts', rts+1);
+                            this.src = pxs[rts] + encodeURIComponent(orig);
+                        } else {
+                            this.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ff3333"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>';
+                            this.style.opacity = '0.5';
+                            this.style.padding = '30px';
+                            this.title = 'โหลดภาพล้มเหลว (อาจติดป้องกัน CORS)';
+                            this.style.cursor = 'default';
+                        }
+                    };
+
                     var info = document.createElement('div');
                     info.style.cssText = 'color:#aaa;font-size:10px;margin-bottom:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
                     var fname = s.split('/').pop().split('?')[0];
@@ -987,6 +1072,7 @@
                     };
                     
                     i.onclick = function() {
+                        if(this.src.startsWith('data:')) return; // ห้ามซูมถ้ารูป error
                         document.getElementById('krt-lb').style.display = 'flex';
                         document.getElementById('krt-lbi').src = s;
                         sc = 1; tx = 0; ty = 0; up();
@@ -1049,7 +1135,7 @@
                         if(count === 0) {
                             pbg.style.display = 'none';
                             btn.innerText = 'FAILED (โดนบล็อก)';
-                            setTimeout(function(){ btn.innerText = ogTxt; btn.disabled = false; btn.style.background = '#28a745'; }, 3000);
+                            setTimeout(function(){ btn.innerText = ogTxt; btn.disabled = false; btn.style.background = '#28a745'; }, 4000);
                             return;
                         }
                         
