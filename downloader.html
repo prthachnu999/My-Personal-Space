@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KIRITO DOWNLOADER - ULTIMATE MASTERPIECE</title>
+    <title>KIRITO DOWNLOADER - ULTIMATE BYPASS</title>
     
     <!-- FAVICON -->
     <link rel="icon" type="image/jpeg" href="คิริโตะแดง.jpg">
@@ -233,7 +233,7 @@
 
     <header>
         <h1>KIRITO DOWNLOADER</h1>
-        <div style="font-size: 0.7rem; color: #aaa;">THE ULTIMATE MASTERPIECE EDITION</div>
+        <div style="font-size: 0.7rem; color: #aaa;">THE ULTIMATE BYPASS EDITION</div>
     </header>
 
     <div class="control-panel">
@@ -265,7 +265,7 @@
                         <i class="fas fa-bookmark"></i> KIRITO PULL
                     </a>
                 </div>
-                <p style="font-size:0.8rem; color:#888; margin-top:10px;">ลากปุ่มนี้ไปใส่แถบบุคมาร์ก เพื่อใช้ดึงรูปจากเว็บที่ป้องกันสูง (เวอร์ชันมาสเตอร์พีซ โหลดเร็วทะลุขีดจำกัด!)</p>
+                <p style="font-size:0.8rem; color:#888; margin-top:10px;">ลากปุ่มนี้ไปใส่แถบบุคมาร์ก (Bookmark Bar) เพื่อดึงรูปจากเว็บที่ป้องกันสูง (แก้บั๊ก .js .css ขยะแล้ว 100%)</p>
             </div>
         </div>
 
@@ -299,8 +299,8 @@
         </div>
 
         <div class="global-actions">
-            <label class="toggle-container" title="ถ้าไม่ติ๊ก ระบบจะลบรูปขนาดเล็กที่ซ้ำกับรูปใหญ่ทิ้งอัตโนมัติ (ไม่ลบรูปหน้ามังงะ/โดจิน)">
-                <input type="checkbox" id="allowDuplicates"> แสดงรูปซ้ำ (Smart Dedupe)
+            <label class="toggle-container" title="ถ้าไม่ติ๊ก ระบบจะลบรูปขนาดเล็กที่ซ้ำกับรูปใหญ่ทิ้งอัตโนมัติ (ไม่ลบรูปหน้าโดจิน)">
+                <input type="checkbox" id="allowDuplicates"> แสดงรูปซ้ำ (ปิด Smart Dedupe)
             </label>
             <button class="btn-action" onclick="copyAllLinks()" id="btn-copy-all"><i class="fas fa-link"></i> คัดลอก Link ทั้งหมด</button>
             <button class="btn-action" onclick="downloadAll()" id="btn-dl-all"><i class="fas fa-cloud-download-alt"></i> บันทึกเป็น ZIP ทั้งหมด</button>
@@ -324,7 +324,7 @@
     </div>
 
     <script>
-        // --- ฟังก์ชันช่วยเหลือสำหรับเปลี่ยนไอคอน/ข้อความปุ่มชั่วคราว (ไร้ป๊อปอัป Alert 100%) ---
+        // --- ฟังก์ชันช่วยเหลือสำหรับเปลี่ยนไอคอน/ข้อความปุ่มชั่วคราว ---
         function showTempSuccess(btnId, tempHtml, originalHtml, time = 2500) {
             const btn = document.getElementById(btnId);
             if(!btn) return;
@@ -397,14 +397,26 @@
             if (currentSizeFilter !== 'all' || currentTypeFilter !== 'all') {
                 status += ` (แสดงผล ${visibleCards.length} รูปตามตัวกรอง)`;
             }
-            status += allowDupes ? ' [โหมดแสดงซ้ำ]' : ' [โหมดกรองซ้ำอัตโนมัติ]';
+            status += allowDupes ? ' [โชว์รูปซ้ำ]' : ' [โหมดกรองซ้ำอัตโนมัติ]';
             document.getElementById('status').innerText = status;
         }
 
+        function isImage(url) {
+            if (!url || typeof url !== 'string') return false;
+            const u = url.toLowerCase().split('?')[0].split('#')[0];
+            // สกัดไฟล์ขยะ 100%
+            if (u.endsWith('.js') || u.endsWith('.css') || u.endsWith('.html') || u.endsWith('.php') || u.endsWith('.json') || u.endsWith('.xml') || u.endsWith('.txt')) return false;
+            // ยอมรับเฉพาะนามสกุลภาพเท่านั้น
+            return (u.match(/\.(jpg|jpeg|png|webp|gif|svg|tiff|heic|ico)$/i)) != null;
+        }
+
         function checkFileType(url, filter) {
-            if (filter === 'all') return true;
             const u = url.toLowerCase().split('?')[0];
-            const hasExt = u.match(/\.(jpg|jpeg|png|gif|webp|svg|tiff|heic|raw)$/);
+            const hasExt = u.match(/\.(jpg|jpeg|png|gif|webp|svg|tiff|heic|raw|ico)$/);
+            
+            if (u.endsWith('.js') || u.endsWith('.css') || u.endsWith('.html') || u.endsWith('.php')) return false;
+
+            if (filter === 'all') return true; 
             if (filter === 'jpg' && (u.endsWith('.jpg') || u.endsWith('.jpeg'))) return true;
             if (filter === 'png' && u.endsWith('.png')) return true;
             if (filter === 'gif' && u.endsWith('.gif')) return true;
@@ -418,12 +430,43 @@
             return false;
         }
 
-        // --- Core Extraction (ขุด Lazy Load ทะลุปรุโปร่ง) ---
+        // --- Core Extraction (อัปเกรดขุด Lazy Load ขั้นเทพ) ---
         function extractImagesFromHtml(html, baseUrl) {
-            let foundRaw = []; 
-            let text = html.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&').replace(/\\"/g, '"').replace(/\\u002F/g, "/");
+            let foundRaw = new Set(); 
+            
+            // 1. ดึงด้วย Regex แบบเต็มพิกัด (ดึงทุกลิงก์ที่มีนามสกุลภาพ)
+            const regex = /(?:https?:)?\/\/[^\s"'<>;&]+\.(?:jpg|jpeg|png|gif|webp|svg|ico)\b/gi;
+            let match;
+            while ((match = regex.exec(html)) !== null) {
+                foundRaw.add(match[0]);
+            }
+            
+            // 2. ดึงจาก DOM (ทะลวงทุก Attribute)
+            try {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                doc.querySelectorAll('img, a, link, source, div, span, bg').forEach(el => {
+                    ['src', 'data-src', 'data-original', 'data-lazy-src', 'data-srcset', 'href', 'srcset', 'imagesrcset', 'content'].forEach(attr => {
+                        let val = el.getAttribute(attr);
+                        if (val) {
+                            if (val.includes(',') && attr.includes('set')) {
+                                val.split(',').forEach(p => foundRaw.add(p.trim().split(' ')[0]));
+                            } else {
+                                foundRaw.add(val);
+                            }
+                        }
+                    });
+                    
+                    let style = el.getAttribute('style');
+                    if (style && style.includes('url')) {
+                        let m = style.match(/url\(['"]?([^'"()]+)['"]?\)/);
+                        if (m) foundRaw.add(m[1]);
+                    }
+                });
+            } catch(e){}
 
-            const add = (url, isFromDOM = false) => {
+            let finalUrls = [];
+            foundRaw.forEach(url => {
                 if (!url || url.startsWith('data:')) return;
                 try {
                     url = url.trim();
@@ -431,54 +474,30 @@
                     
                     if (url.startsWith('//')) url = 'https:' + url;
                     else if (url.startsWith('/')) {
-                        let base = new URL(baseUrl);
-                        url = new URL(url, base.origin).href;
+                        if(baseUrl) url = new URL(url, new URL(baseUrl).origin).href;
                     }
                     else if (!url.startsWith('http')) {
-                        let base = baseUrl;
-                        if (!base.endsWith('/') && !base.split('/').pop().includes('.')) base += '/';
-                        if (base.split('/').pop().includes('.')) base = base.substring(0, base.lastIndexOf('/') + 1);
-                        url = new URL(url, base).href;
+                        if(baseUrl) {
+                            let base = baseUrl.endsWith('/') ? baseUrl : baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1);
+                            url = new URL(url, base).href;
+                        }
                     }
 
                     if (url.includes('url=')) {
                         let dummy = new URL(url, 'http://d');
                         let inner = dummy.searchParams.get('url');
-                        if (inner) { add(inner, isFromDOM); return; }
+                        if (inner) url = inner;
                     }
 
-                    if (isFromDOM || isImage(url)) foundRaw.push(url);
+                    if (isImage(url)) finalUrls.push(url);
                 } catch(e) {}
-            };
+            });
 
-            const regex = /(https?:\/\/[^"'\s<>,;)]+)|(\/[^"'\s<>,;)]+\.(jpg|jpeg|png|gif|webp|svg|ico))/gi;
-            let match;
-            while ((match = regex.exec(text)) !== null) add(match[0], false);
-
-            try {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                doc.querySelectorAll('*').forEach(el => {
-                    ['src', 'data-src', 'data-original', 'data-lazy-src', 'data-srcset', 'href', 'srcset', 'imagesrcset'].forEach(attr => {
-                        let val = el.getAttribute(attr);
-                        if (val) {
-                            if (val.includes(',')) val.split(',').forEach(p => add(p.trim().split(' ')[0], true));
-                            else add(val, true);
-                        }
-                    });
-                    let style = el.getAttribute('style');
-                    if (style && style.includes('url')) {
-                        let m = style.match(/url\(['"]?([^'")]+)['"]?\)/);
-                        if (m) add(m[1], true);
-                    }
-                });
-            } catch(e){}
-
-            return foundRaw;
+            return finalUrls;
         }
 
-        // --- SMART DEDUPLICATION LOGIC ---
-        // ตัดเฉพาะรูปแบบความละเอียด xความกว้างxความยาว (เช่น 150x150) เพื่อไม่ให้กระทบหน้ามังงะ/โดจิน (-001.jpg)
+        // --- SMART DEDUPLICATION LOGIC (ปล่อยหน้าโดจินไว้ ไม่ลบ) ---
+        // ตัดเฉพาะรูปแบบขนาดภาพ กว้างxยาว (เช่น -150x150) ทำให้ -001.jpg รอดแน่นอน!
         function getCleanKey(urlStr) {
             try {
                 let u = new URL(urlStr);
@@ -486,22 +505,21 @@
                 u.searchParams.delete('width'); u.searchParams.delete('height');
                 let s = u.origin + u.pathname;
                 s = s.replace(/[-_]\d+x\d+(?=\.[a-zA-Z0-9]+$)/i, '');
-                s = s.replace(/(-\d{6,9})_\d{3,4}(?=\.[a-zA-Z0-9]+$)/i, '$1');
                 return s;
             } catch(e) { 
-                let s = urlStr.split('?')[0].replace(/\/$/, "");
+                let s = urlStr.split('?')[0].split('#')[0];
                 s = s.replace(/[-_]\d+x\d+(?=\.[a-zA-Z0-9]+$)/i, '');
-                s = s.replace(/(-\d{6,9})_\d{3,4}(?=\.[a-zA-Z0-9]+$)/i, '$1');
                 return s; 
             }
         }
 
         function getResolutionScore(urlStr) {
-            let m1 = urlStr.split('?')[0].match(/[-_](\d+)x(\d+)(?=\.[a-zA-Z0-9]+$)/i);
-            if(m1) return parseInt(m1[1]) * parseInt(m1[2]); 
-            let m2 = urlStr.split('?')[0].match(/-\d{6,9}_(\d{3,4})(?=\.[a-zA-Z0-9]+$)/i);
-            if(m2) return parseInt(m2[1]);
-            return 0;
+            try {
+                let u = urlStr.split('?')[0];
+                let m1 = u.match(/[-_](\d+)x(\d+)(?=\.[a-zA-Z0-9]+$)/i);
+                if(m1) return parseInt(m1[1]) * parseInt(m1[2]); 
+                return 0;
+            } catch(e) { return 0; }
         }
 
         async function fetchHtmlSafe(url) {
@@ -551,7 +569,7 @@
 
         function renderGallery() {
             const gallery = document.getElementById('gallery');
-            const allowDupes = document.getElementById('allowDuplicates').checked;
+            const allowDupes = document.getElementById('allowDuplicates').checked; 
             
             gallery.innerHTML = '';
             let imagesToShow = [];
@@ -597,26 +615,26 @@
                 const info = document.createElement('div');
                 info.className = 'img-info';
                 
-                // --- ระบบ Fallback รูปภาพที่ตาย ---
+                // --- ระบบ Fallback ทะลุการบล็อก ---
                 img.setAttribute('data-rts', '0');
                 img.onerror = function() {
+                    // ถ้าโหลดไม่ขึ้นเพราะติด 403 / CORS ให้เปลี่ยน proxy ไปเรื่อยๆ
                     let rts = parseInt(this.getAttribute('data-rts'));
                     const pxs = [
                         'https://api.codetabs.com/v1/proxy?quest=',
-                        'https://corsproxy.io/?',
-                        'https://api.allorigins.win/raw?url='
+                        'https://corsproxy.io/?'
                     ];
                     
                     if (rts < pxs.length) {
                         this.setAttribute('data-rts', (rts + 1).toString());
                         this.src = pxs[rts] + encodeURIComponent(src);
                     } else {
-                        // ป้องกันการลบการ์ดทิ้ง ให้โชว์ไอคอน Error แทน จะได้นับรูปถูก
+                        // ป้องกันการลบการ์ดทิ้ง ให้โชว์ไอคอน Error สีแดง แทนรูปที่โหลดไม่ได้ เพื่อให้นับรูปเจอ
                         this.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ff3333"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>';
                         this.style.opacity = '0.5';
                         this.style.padding = '30px';
-                        this.title = 'โหลดภาพล้มเหลว (อาจติดป้องกัน CORS/Referrer)';
-                        card.setAttribute('data-width', '500'); // ให้ผ่าน filter
+                        this.title = 'โหลดภาพล้มเหลว (อาจติดระบบป้องกัน 18+/CORS)';
+                        card.setAttribute('data-width', '500'); 
                         card.classList.add('error-load');
                         setTimeout(updateStatusText, 100); 
                     }
@@ -625,10 +643,14 @@
                 img.onload = function() { 
                     const w = this.naturalWidth;
                     const h = this.naturalHeight;
-                    // ถ้าไม่ใช่ error icon
+                    
                     if(!card.classList.contains('error-load')) {
+                        // ดักทาง Google Proxy/AllOrigins ที่ชอบส่ง 1x1 Pixel มาให้เวลาโหลดรูปไม่ติด
+                        if(w < 30) { 
+                            this.onerror(); // สั่งให้มันเปลี่ยน Proxy ทันที!
+                            return; 
+                        }
                         card.setAttribute('data-width', w);
-                        if(w < 30) { card.remove(); setTimeout(updateStatusText, 100); return; }
                     }
                     
                     let show = true;
@@ -670,34 +692,30 @@
             });
         }
 
-        // --- ระบบ Fetch รูปที่แข็งแกร่งระดับจักรวาล (ต่อตรง -> codetabs -> corsproxy -> allorigins) ---
+        // --- ระบบ Fetch รูปที่แข็งแกร่งระดับโลก ---
         async function fetchImageSafe(url) {
             const proxies = [
                 '', 
                 'https://api.codetabs.com/v1/proxy?quest=',
-                'https://corsproxy.io/?', 
-                'https://api.allorigins.win/raw?url='
+                'https://corsproxy.io/?'
             ];
             for (const proxy of proxies) {
                 try {
                     const targetUrl = proxy ? proxy + encodeURIComponent(url) : url;
                     const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 6000); // 6 วิ ตัดจบ ไม่รอให้ค้าง
+                    const timeoutId = setTimeout(() => controller.abort(), 6000); 
                     const res = await fetch(targetUrl, { signal: controller.signal });
                     clearTimeout(timeoutId);
                     
                     if (res.ok) {
                         const blob = await res.blob();
-                        // ป้องกันไฟล์เสีย และป้องกัน HTML ที่เนียนมาเป็นรูป
-                        if (blob.size > 150 && (blob.type.startsWith('image/') || blob.type === 'application/octet-stream')) {
+                        if (blob.size > 150 && !blob.type.includes('text/html')) {
                             return blob;
                         }
                     }
-                } catch (e) {
-                    // Ignore and try next proxy
-                }
+                } catch (e) {}
             }
-            return null; // ล้มเหลวทุกช่องทาง
+            return null; 
         }
 
         async function downloadSingleImage(url, btnElement) {
@@ -729,8 +747,8 @@
         }
 
         function copyAllLinks() {
-            const visibleCards = Array.from(document.querySelectorAll('.img-card:not(.hidden-by-filter) img'));
-            const links = visibleCards.map(img => img.src).filter(src => !src.startsWith('data:')).join('\n');
+            const visibleCards = Array.from(document.querySelectorAll('.img-card:not(.hidden-by-filter) img:not([src^="data:"])'));
+            const links = visibleCards.map(img => img.getAttribute('data-orig') || img.src).join('\n');
             if(!links) return;
 
             const textArea = document.createElement("textarea");
@@ -766,10 +784,11 @@
             }
         }
 
-        // --- THE ULTIMATE SPEED: ระบบโหลดคู่ขนานแบบ Worker Pool (8 Threads) ไม่มีค้าง ---
+        // --- THE ULTIMATE SPEED: ระบบโหลดคู่ขนานแบบ Worker Pool (8 Threads) ---
         async function downloadAll() {
-            const visibleCards = Array.from(document.querySelectorAll('.img-card:not(.hidden-by-filter) img'));
-            const images = visibleCards.map(img => img.src).filter(src => !src.startsWith('data:'));
+            // ดึงเฉพาะรูปที่ไม่ใช่ Error SVG
+            const visibleCards = Array.from(document.querySelectorAll('.img-card:not(.hidden-by-filter) img:not([src^="data:"])'));
+            const images = visibleCards.map(img => img.getAttribute('data-orig') || img.src);
 
             if(images.length === 0) return;
             
@@ -791,7 +810,6 @@
                 let processedCount = 0;
                 let currentIndex = 0;
                 
-                // คนงาน 8 คนลุยโหลดพร้อมกัน (เร็วกว่าโหลดทีละชุด)
                 const MAX_WORKERS = 8;
                 
                 const worker = async () => {
@@ -810,7 +828,9 @@
                             let base = decodedFilename.substring(0, decodedFilename.lastIndexOf('.'));
                             if(!base) base = 'KIRITO_IMAGE';
                             
-                            zip.file(`${base}_${idx+1}.${ext}`, blob);
+                            // จัดเรียงชื่อให้โหลดแล้วเรียงหน้าสวยๆ
+                            let paddedIdx = String(idx+1).padStart(3, '0');
+                            zip.file(`${base}_${paddedIdx}.${ext}`, blob);
                             successCount++;
                         }
                         
@@ -859,6 +879,7 @@
         const lbImg = document.getElementById('lb-img');
 
         function openLightbox(src) {
+            if(src.startsWith('data:')) return; 
             document.getElementById('lightbox').style.display = 'flex';
             lbImg.src = src;
             scale = 1; translateX = 0; translateY = 0;
@@ -898,28 +919,30 @@
 
         document.getElementById('allowDuplicates').addEventListener('change', renderGallery);
 
-        // --- BOOKMARKLET GENERATOR SCRIPT (อัปเกรดเครื่องยนต์ 8 เลน + กรองซ้ำอัจฉริยะ) ---
+        // --- BOOKMARKLET GENERATOR SCRIPT (อัปเกรดเครื่องยนต์ + กรองซ้ำแบบใหม่ + กัน 1x1 Pixel + ทะลวง 18+) ---
         document.addEventListener('DOMContentLoaded', () => {
             const bookmarkletLogic = function() {
                 if(document.getElementById('krt-sys')) document.getElementById('krt-sys').remove();
                 
                 var cleanK = function(u) {
-                    var p = u.split('?')[0];
-                    p = p.replace(/[-_]\d+x\d+(?=\.[a-zA-Z0-9]+$)/i, '');
-                    p = p.replace(/(-\d{6,9})_\d{3,4}(?=\.[a-zA-Z0-9]+$)/i, '$1');
-                    return p;
+                    try {
+                        var p = u.split('?')[0].split('#')[0];
+                        p = p.replace(/[-_]\d+x\d+(?=\.[a-zA-Z0-9]+$)/i, '');
+                        return p;
+                    } catch(e) { return u; }
                 };
                 var getSc = function(u) {
-                    var m1 = u.split('?')[0].match(/[-_](\d+)x(\d+)(?=\.[a-zA-Z0-9]+$)/i);
-                    if(m1) return parseInt(m1[1])*parseInt(m1[2]);
-                    var m2 = u.split('?')[0].match(/-\d{6,9}_(\d{3,4})(?=\.[a-zA-Z0-9]+$)/i);
-                    if(m2) return parseInt(m2[1]);
-                    return 0;
+                    try {
+                        var p = u.split('?')[0];
+                        var m1 = p.match(/[-_](\d+)x(\d+)(?=\.[a-zA-Z0-9]+$)/i);
+                        if(m1) return parseInt(m1[1])*parseInt(m1[2]);
+                        return 0;
+                    } catch(e){ return 0; }
                 };
 
                 var uMap = new Map();
                 function a(s) {
-                    if(!s || s.startsWith('data:')) return;
+                    if(!s || typeof s !== 'string' || s.startsWith('data:')) return;
                     if(s.startsWith('//')) s = 'https:' + s;
                     else if(s.startsWith('/')) s = location.origin + s;
                     try {
@@ -929,6 +952,10 @@
                         if(inr) s = inr;
                     } catch(e) {}
                     
+                    var uL = s.toLowerCase().split('?')[0].split('#')[0];
+                    if (uL.endsWith('.js') || uL.endsWith('.css') || uL.endsWith('.html') || uL.endsWith('.php') || uL.endsWith('.json') || uL.endsWith('.xml') || uL.endsWith('.txt')) return;
+                    if (!uL.match(/\.(jpg|jpeg|png|webp|gif|svg|tiff|heic|ico)$/i)) return;
+
                     var k = cleanK(s);
                     var ex = uMap.get(k);
                     if(!ex) {
@@ -940,19 +967,20 @@
                 }
                 
                 Array.from(document.images).forEach(e => { a(e.src); });
-                Array.from(document.querySelectorAll('*')).forEach(e => {
+                Array.from(document.querySelectorAll('img, a, link, source, div, span, bg')).forEach(e => {
+                    var tag = e.tagName.toLowerCase();
                     var ds = e.getAttribute('data-src') || e.getAttribute('data-original') || e.getAttribute('data-lazy-src') || e.getAttribute('data-srcset');
                     if(ds) {
                         if(ds.includes(',')) ds.split(',').forEach(p => a(p.trim().split(' ')[0]));
                         else a(ds);
                     }
+                    if(tag === 'a' || tag === 'link') {
+                        var h = e.getAttribute('href');
+                        if(h) a(h);
+                    }
                     var b = window.getComputedStyle(e).backgroundImage;
                     var m = b.match(/url\(['"]?(.*?)['"]?\)/);
                     if(m) a(m[1]);
-                    if(e.tagName === 'A') {
-                        var h = e.getAttribute('href');
-                        if(h && h.match(/\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i)) a(h);
-                    }
                 });
                 
                 if(uMap.size === 0) {
@@ -976,7 +1004,7 @@
                             '<button id="krt-close" style="background:#f03;color:#fff;border:none;padding:10px 20px;cursor:pointer;border-radius:5px;font-weight:bold;">CLOSE (ปิด)</button>' +
                         '</div>' +
                     '</div>' +
-                    '<h3>พบรูปภาพ (ที่กรองซ้ำแล้ว) ทั้งหมด ' + uMap.size + ' รูป</h3>' +
+                    '<h3>พบรูปภาพทั้งหมด ' + uMap.size + ' รูป</h3>' +
                     '<div id="krt-prog-bg" style="display:none;width:100%;background:#222;border-radius:5px;margin-bottom:15px;overflow:hidden;border:1px solid #444;box-shadow:inset 0 0 10px #000;">' +
                         '<div id="krt-prog" style="width:0%;height:24px;background:#f03;color:#fff;text-align:center;font-size:12px;line-height:24px;font-weight:bold;transition:width 0.3s;">0%</div>' +
                     '</div>' +
@@ -997,7 +1025,7 @@
                 var all = Array.from(uMap.values());
                 
                 async function fetchImg(url) {
-                    const pxs = ['', 'https://api.codetabs.com/v1/proxy?quest=', 'https://corsproxy.io/?', 'https://api.allorigins.win/raw?url='];
+                    const pxs = ['', 'https://api.codetabs.com/v1/proxy?quest=', 'https://corsproxy.io/?'];
                     for (let px of pxs) {
                         try {
                             let tgt = px ? px + encodeURIComponent(url) : url;
@@ -1007,7 +1035,7 @@
                             clearTimeout(tid);
                             if(r.ok) {
                                 let b = await r.blob();
-                                if(b.size > 150 && (b.type.startsWith('image/') || b.type === 'application/octet-stream')) return b;
+                                if(b.size > 150 && !b.type.includes('text/html')) return b;
                             }
                         } catch(e) {}
                     }
@@ -1026,7 +1054,7 @@
                     i.onerror = function() {
                         var orig = this.getAttribute('data-orig');
                         var rts = parseInt(this.getAttribute('data-rts'));
-                        var pxs = ['https://api.codetabs.com/v1/proxy?quest=', 'https://corsproxy.io/?', 'https://api.allorigins.win/raw?url='];
+                        var pxs = ['https://api.codetabs.com/v1/proxy?quest=', 'https://corsproxy.io/?'];
                         if(rts < pxs.length) {
                             this.setAttribute('data-rts', rts+1);
                             this.src = pxs[rts] + encodeURIComponent(orig);
@@ -1034,9 +1062,13 @@
                             this.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ff3333"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>';
                             this.style.opacity = '0.5';
                             this.style.padding = '30px';
-                            this.title = 'โหลดภาพล้มเหลว (อาจติดป้องกัน CORS)';
+                            this.title = 'โหลดภาพล้มเหลว (บล็อกโดยเว็บต้นทาง)';
                             this.style.cursor = 'default';
                         }
+                    };
+                    i.onload = function() {
+                        if(this.src.startsWith('data:image/svg')) return;
+                        if(this.naturalWidth < 30) this.onerror(); 
                     };
 
                     var info = document.createElement('div');
@@ -1072,7 +1104,7 @@
                     };
                     
                     i.onclick = function() {
-                        if(this.src.startsWith('data:')) return; // ห้ามซูมถ้ารูป error
+                        if(this.src.startsWith('data:')) return; 
                         document.getElementById('krt-lb').style.display = 'flex';
                         document.getElementById('krt-lbi').src = s;
                         sc = 1; tx = 0; ty = 0; up();
@@ -1090,6 +1122,16 @@
                 document.getElementById('krt-dl-all').onclick = async function() {
                     var btn = this;
                     if(btn.disabled) return;
+                    
+                    var imgsToDownload = [];
+                    gal.querySelectorAll('img').forEach((imgEl, idx) => {
+                        if(!imgEl.src.startsWith('data:image/svg')) {
+                            imgsToDownload.push({url: imgEl.getAttribute('data-orig') || imgEl.src, idx: idx});
+                        }
+                    });
+                    
+                    if(imgsToDownload.length === 0) return alert('ไม่มีรูปที่โหลดได้');
+
                     var ogTxt = btn.innerText;
                     btn.innerText = 'PREPARING...';
                     btn.disabled = true;
@@ -1107,24 +1149,25 @@
                         var cIndex = 0;
                         
                         async function workerPool() {
-                            while(cIndex < all.length) {
-                                let idx = cIndex++;
-                                let url = all[idx];
-                                let b = await fetchImg(url);
+                            while(cIndex < imgsToDownload.length) {
+                                let item = imgsToDownload[cIndex++];
+                                let b = await fetchImg(item.url);
                                 if(b) {
-                                    var rawFname = url.split('/').pop().split('?')[0];
+                                    var rawFname = item.url.split('/').pop().split('?')[0];
                                     try { rawFname = decodeURIComponent(rawFname); } catch(e){}
                                     var ext = rawFname.split('.').pop().toLowerCase();
                                     if(ext.length > 4 || ext === rawFname.toLowerCase() || !ext) ext = 'jpg';
                                     var base = rawFname.substring(0, rawFname.lastIndexOf('.'));
                                     if(!base) base = 'KIRITO_IMAGE';
-                                    zip.file(base + '_' + (idx+1) + '.' + ext, b);
+                                    
+                                    let padIdx = String(item.idx + 1).padStart(3, '0');
+                                    zip.file(`${base}_${padIdx}.${ext}`, b);
                                     count++;
                                 }
                                 processedCount++;
-                                var pct = Math.round((processedCount / all.length) * 100);
+                                var pct = Math.round((processedCount / imgsToDownload.length) * 100);
                                 pbar.style.width = pct + '%';
-                                pbar.innerText = processedCount + '/' + all.length + ' (' + pct + '%)';
+                                pbar.innerText = processedCount + '/' + imgsToDownload.length + ' (' + pct + '%)';
                                 btn.innerText = 'DOWNLOADING...';
                             }
                         }
@@ -1152,7 +1195,7 @@
                             URL.revokeObjectURL(u2);
                             
                             pbg.style.display = 'none';
-                            btn.innerText = 'SUCCESS! (' + count + '/' + all.length + ')';
+                            btn.innerText = 'SUCCESS! (' + count + '/' + imgsToDownload.length + ')';
                         } catch(e) {
                             btn.innerText = 'ZIP ERROR';
                         }
