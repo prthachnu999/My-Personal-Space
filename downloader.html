@@ -3,14 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KIRITO DOWNLOADER - FINAL SYSTEM</title>
+    <title>KIRITO DOWNLOADER - ULTIMATE MASTERPIECE</title>
     
-    <!-- FAVICON (โลโก้บนแท็บ) -->
+    <!-- FAVICON -->
     <link rel="icon" type="image/jpeg" href="คิริโตะแดง.jpg">
     <link rel="apple-touch-icon" href="คิริโตะแดง.jpg">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <!-- JSZip -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
     <style>
         :root {
@@ -22,343 +25,158 @@
             --font-tech: 'Orbitron', sans-serif;
         }
 
+        /* --- Custom Scrollbar --- */
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: #111; border-left: 1px solid #333; }
+        ::-webkit-scrollbar-thumb { background: var(--primary-red); border-radius: 5px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--glow-red); }
+
         body {
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            margin: 0; padding: 0;
+            background-color: var(--bg-color); color: var(--text-color);
             font-family: var(--font-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            min-height: 100vh; display: flex; flex-direction: column; align-items: center;
             background-image: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('คิริโตะแดง.jpg');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
+            background-size: cover; background-position: center; background-attachment: fixed;
             overflow-x: hidden;
         }
 
         header {
-            width: 100%;
-            padding: 15px;
-            text-align: center;
-            background: rgba(20, 0, 0, 0.95);
-            backdrop-filter: blur(10px);
+            width: 100%; padding: 15px; text-align: center;
+            background: rgba(20, 0, 0, 0.95); backdrop-filter: blur(10px);
             border-bottom: 2px solid var(--primary-red);
             box-shadow: 0 0 20px rgba(255, 0, 51, 0.3);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            position: sticky; top: 0; z-index: 100;
         }
 
         h1 {
-            font-family: var(--font-tech);
-            color: var(--primary-red);
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            margin: 0;
-            font-size: 1.5rem;
+            font-family: var(--font-tech); color: var(--primary-red);
+            text-transform: uppercase; letter-spacing: 3px; margin: 0; font-size: 1.5rem;
             text-shadow: 0 0 10px var(--glow-red);
         }
 
         .control-panel {
-            width: 95%;
-            max-width: 1200px;
-            margin: 20px auto;
-            background: rgba(0, 0, 0, 0.85);
-            border: 1px solid var(--primary-red);
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 30px rgba(255, 0, 51, 0.15);
+            width: 95%; max-width: 1200px; margin: 20px auto;
+            background: rgba(0, 0, 0, 0.85); border: 1px solid var(--primary-red);
+            padding: 20px; border-radius: 10px; box-shadow: 0 0 30px rgba(255, 0, 51, 0.15);
         }
 
         .tab-menu {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #333;
-            padding-bottom: 10px;
-            flex-wrap: wrap;
+            display: flex; gap: 10px; margin-bottom: 20px;
+            border-bottom: 1px solid #333; padding-bottom: 10px; flex-wrap: wrap;
         }
 
         .tab-btn {
-            background: transparent;
-            border: 1px solid #555;
-            color: #aaa;
-            padding: 8px 15px;
-            cursor: pointer;
-            font-family: var(--font-tech);
-            border-radius: 5px;
-            transition: all 0.3s;
-            flex-grow: 1;
+            background: transparent; border: 1px solid #555; color: #aaa;
+            padding: 8px 15px; cursor: pointer; font-family: var(--font-tech);
+            border-radius: 5px; transition: all 0.3s; flex-grow: 1;
         }
 
         .tab-btn.active {
-            background: var(--primary-red);
-            color: white;
-            border-color: var(--primary-red);
-            box-shadow: 0 0 15px rgba(255, 0, 51, 0.4);
+            background: var(--primary-red); color: white;
+            border-color: var(--primary-red); box-shadow: 0 0 15px rgba(255, 0, 51, 0.4);
         }
 
         .input-section { display: none; animation: fadeIn 0.3s ease; }
         .input-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .input-label {
-            font-size: 0.9rem;
-            color: var(--glow-red);
-            margin-bottom: 5px;
-            display: block;
-            font-weight: bold;
-        }
-
+        .input-label { font-size: 0.9rem; color: var(--glow-red); margin-bottom: 5px; display: block; font-weight: bold; }
         input[type="text"], textarea {
-            width: 100%;
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid #555;
-            color: #fff;
-            border-radius: 5px;
-            font-family: monospace;
-            outline: none;
-            box-sizing: border-box;
-            margin-bottom: 10px;
+            width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #555; color: #fff; border-radius: 5px; font-family: monospace;
+            outline: none; box-sizing: border-box; margin-bottom: 10px;
         }
-
-        textarea {
-            height: 100px;
-            resize: vertical;
-            font-size: 0.8rem;
-            white-space: pre;
-        }
-
-        input[type="text"]:focus, textarea:focus {
-            border-color: var(--primary-red);
-            box-shadow: 0 0 10px rgba(255, 0, 51, 0.3);
-        }
+        textarea { height: 100px; resize: vertical; font-size: 0.8rem; white-space: pre; }
+        input[type="text"]:focus, textarea:focus { border-color: var(--primary-red); box-shadow: 0 0 10px rgba(255, 0, 51, 0.3); }
 
         .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-family: var(--font-tech);
-            font-weight: bold;
-            text-transform: uppercase;
-            color: white;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
+            padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;
+            font-family: var(--font-tech); font-weight: bold; text-transform: uppercase;
+            color: white; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;
+            gap: 8px; width: 100%;
         }
-
-        .btn-scan {
-            background: linear-gradient(45deg, #990000, var(--primary-red));
-            box-shadow: 0 0 15px rgba(255, 0, 51, 0.4);
-        }
+        .btn-scan { background: linear-gradient(45deg, #990000, var(--primary-red)); box-shadow: 0 0 15px rgba(255, 0, 51, 0.4); }
         .btn-scan:hover { transform: scale(1.02); box-shadow: 0 0 25px rgba(255, 0, 51, 0.7); }
 
-        /* Filter Section Style */
-        .filter-section {
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px dashed #444;
-        }
-        
-        .filter-label {
-            font-size: 0.8rem;
-            color: #aaa;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .filter-group {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-
+        .filter-section { margin-top: 20px; padding-top: 15px; border-top: 1px dashed #444; }
+        .filter-label { font-size: 0.8rem; color: #aaa; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
+        .filter-group { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
         .filter-btn {
-            padding: 6px 12px;
-            font-size: 0.75rem;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid #444;
-            border-radius: 20px;
-            color: #ccc;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-family: var(--font-tech);
+            padding: 6px 12px; font-size: 0.75rem; background: rgba(255,255,255,0.05);
+            border: 1px solid #444; border-radius: 20px; color: #ccc; cursor: pointer;
+            transition: all 0.2s; font-family: var(--font-tech);
         }
-
-        .filter-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: #666;
-        }
-
+        .filter-btn:hover { background: rgba(255, 255, 255, 0.1); border-color: #666; }
         .filter-btn.active {
-            background: var(--primary-red);
-            color: white;
-            border-color: var(--primary-red);
+            background: var(--primary-red); color: white; border-color: var(--primary-red);
             box-shadow: 0 0 10px rgba(255, 0, 51, 0.3);
         }
 
-        /* Global Actions Bar */
         .global-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #333;
-            flex-wrap: wrap;
-            align-items: center;
+            display: flex; gap: 10px; margin-top: 15px; padding-top: 15px;
+            border-top: 1px solid #333; flex-wrap: wrap; align-items: center;
         }
-
         .btn-action {
-            flex: 1;
-            padding: 8px 15px;
-            font-size: 0.8rem;
-            background: #222;
-            border: 1px solid #444;
-            border-radius: 4px;
-            color: #ccc;
-            cursor: pointer;
-            white-space: nowrap;
+            flex: 1; padding: 8px 15px; font-size: 0.8rem; background: #222;
+            border: 1px solid #444; border-radius: 4px; color: #ccc; cursor: pointer; white-space: nowrap;
         }
         .btn-action:hover { background: #333; color: white; border-color: #666; }
         .btn-danger:hover { background: #500; border-color: #f00; color: #fff; }
-        
         .toggle-container {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #ccc;
-            font-size: 0.85rem;
-            cursor: pointer;
-            background: rgba(0,0,0,0.3);
-            padding: 5px 10px;
-            border-radius: 4px;
-            border: 1px solid #333;
+            display: flex; align-items: center; gap: 8px; color: #ccc; font-size: 0.85rem; cursor: pointer;
+            background: rgba(0,0,0,0.3); padding: 5px 10px; border-radius: 4px; border: 1px solid #333;
         }
-        .toggle-container input { margin: 0; width: auto; }
+        .toggle-container input { margin: 0; width: auto; cursor: pointer; }
+
+        /* Progress Bar */
+        #progress-container {
+            display: none; width: 100%; background: #222; border-radius: 5px;
+            margin-top: 15px; overflow: hidden; border: 1px solid #444; box-shadow: inset 0 0 10px #000;
+        }
+        #progress-bar {
+            width: 0%; height: 26px; background: linear-gradient(45deg, #990000, var(--primary-red));
+            transition: width 0.2s ease; text-align: center; color: white; font-size: 13px;
+            line-height: 26px; font-family: var(--font-tech); font-weight: bold; text-shadow: 0 0 5px #000;
+        }
 
         /* Gallery */
         .gallery {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 15px;
-            width: 95%;
-            max-width: 1400px;
-            margin-bottom: 50px;
-            padding-right: 5px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px; width: 95%; max-width: 1400px; margin-bottom: 50px; padding-right: 5px;
         }
-
         .img-card {
-            background: #111;
-            border: 1px solid #333;
-            border-radius: 8px;
-            overflow: hidden;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            align-items: center;
-            transition: all 0.3s;
-            padding-bottom: 40px;
+            background: #111; border: 1px solid #333; border-radius: 8px; overflow: hidden;
+            position: relative; display: flex; flex-direction: column; justify-content: flex-start;
+            align-items: center; transition: all 0.3s; padding-bottom: 40px; 
         }
-
         .img-card.hidden-by-filter { display: none !important; }
-
         .img-card:hover {
-            border-color: var(--primary-red);
-            transform: translateY(-3px);
-            z-index: 10;
+            border-color: var(--primary-red); transform: translateY(-3px); z-index: 10;
             box-shadow: 0 5px 15px rgba(255, 0, 51, 0.2);
         }
-
-        .img-container {
-            width: 100%;
-            height: 150px;
-            background: #050505;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-        }
-
-        .img-card img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-            cursor: zoom-in;
-        }
+        .img-container { width: 100%; height: 150px; background: #050505; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        .img-card img { max-width: 100%; max-height: 100%; object-fit: contain; cursor: zoom-in; user-select: none; -webkit-user-drag: none; }
 
         /* Single Line Info Style */
         .img-info {
-            width: 100%;
-            padding: 8px 10px;
-            background: rgba(0,0,0,0.8);
-            color: #aaa;
-            font-size: 0.7rem;
-            text-align: left;
-            border-top: 1px solid #333;
-            box-sizing: border-box;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: flex;
-            justify-content: space-between; 
-            align-items: center;
-            font-family: var(--font-tech);
+            width: 100%; padding: 8px 10px; background: rgba(0,0,0,0.8); color: #aaa;
+            font-size: 0.7rem; text-align: left; border-top: 1px solid #333; box-sizing: border-box;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex;
+            justify-content: space-between; align-items: center; font-family: var(--font-tech);
         }
-
-        .img-info span.name {
-            flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            margin-right: 10px;
-            color: #fff;
-        }
-
-        .img-info span.meta {
-            color: var(--primary-red);
-            font-size: 0.65rem;
-            flex-shrink: 0;
-            font-weight: bold;
-        }
+        .img-info span.name { flex: 1; overflow: hidden; text-overflow: ellipsis; margin-right: 10px; color: #fff; }
+        .img-info span.meta { color: var(--primary-red); font-size: 0.65rem; flex-shrink: 0; font-weight: bold; }
 
         .img-actions {
-            position: absolute;
-            bottom: 0; left: 0; width: 100%;
-            background: rgba(20,20,20,0.95);
-            padding: 5px;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            opacity: 0;
-            transition: opacity 0.2s;
-            height: 40px;
-            align-items: center;
-            border-top: 1px solid var(--primary-red);
+            position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(20,20,20,0.95);
+            padding: 5px; display: flex; justify-content: center; gap: 10px; opacity: 0; transition: opacity 0.2s;
+            height: 40px; align-items: center; border-top: 1px solid var(--primary-red);
         }
-
         .img-card:hover .img-actions { opacity: 1; }
-
         .btn-icon {
-            width: 32px; height: 32px;
-            border-radius: 4px;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 0.9rem;
+            width: 32px; height: 32px; border-radius: 4px; border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; color: white; font-size: 0.9rem;
             transition: transform 0.1s;
         }
         .btn-icon:hover { transform: scale(1.1); filter: brightness(1.2); }
@@ -368,94 +186,46 @@
 
         /* Lightbox */
         #lightbox {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            touch-action: none;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 2000; justify-content: center; align-items: center;
+            overflow: hidden; touch-action: none;
         }
-        #lightbox img {
-            max-width: 90%;
-            max-height: 90%;
-            transition: transform 0.1s ease-out;
-            cursor: grab;
-            user-select: none;
-            -webkit-user-drag: none;
-        }
+        #lightbox img { max-width: 90%; max-height: 90%; transition: transform 0.1s ease-out; cursor: grab; user-select: none; -webkit-user-drag: none; }
         #lightbox img:active { cursor: grabbing; }
         .lb-close {
-            position: absolute;
-            top: 20px; right: 20px;
-            color: white;
-            font-size: 2rem;
-            cursor: pointer;
-            z-index: 2001;
+            position: absolute; top: 20px; right: 20px; color: white; font-size: 2rem; cursor: pointer;
+            z-index: 2001; background: rgba(0,0,0,0.5); width: 40px; height: 40px; text-align: center;
+            line-height: 40px; border-radius: 50%;
         }
         .lb-controls {
-            position: absolute;
-            bottom: 20px;
-            background: rgba(0,0,0,0.5);
-            padding: 10px;
-            border-radius: 20px;
-            display: flex;
-            gap: 15px;
-            color: #fff;
+            position: absolute; bottom: 20px; background: rgba(0,0,0,0.5); padding: 10px 20px;
+            border-radius: 20px; display: flex; gap: 15px; color: #fff; font-size: 0.8rem;
         }
-
-        .status-msg {
-            color: var(--glow-red);
-            text-align: center;
-            margin: 10px 0;
-            font-size: 0.9rem;
-            min-height: 20px;
-        }
+        .status-msg { color: var(--glow-red); text-align: center; margin: 10px 0; font-size: 0.9rem; min-height: 20px; font-weight:bold; }
         .loader {
-            display: none;
-            width: 30px; height: 30px;
-            border: 3px solid #333;
-            border-top: 3px solid var(--primary-red);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 10px auto;
+            display: none; width: 30px; height: 30px; border: 3px solid #333; border-top: 3px solid var(--primary-red);
+            border-radius: 50%; animation: spin 1s linear infinite; margin: 10px auto;
         }
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
         .back-nav { margin-top: 20px; text-align: center; }
         .btn-home {
-            background: transparent;
-            border: 1px solid var(--primary-red);
-            color: var(--primary-red);
-            padding: 8px 20px;
-            text-decoration: none;
-            border-radius: 5px;
-            font-size: 0.8rem;
+            background: transparent; border: 1px solid var(--primary-red); color: var(--primary-red);
+            padding: 8px 20px; text-decoration: none; border-radius: 5px; font-size: 0.8rem;
+            transition: all 0.3s;
         }
         .btn-home:hover { background: var(--primary-red); color: white; }
 
         .bookmarklet-box {
-            background: #111;
-            padding: 15px;
-            border: 1px dashed #555;
-            border-radius: 5px;
-            text-align: center;
-            margin-top: 20px;
+            background: #111; padding: 15px; border: 1px dashed #555; border-radius: 5px;
+            text-align: center; margin-top: 20px; box-shadow: inset 0 0 10px #000;
         }
         .bookmark-link {
-            background: #444;
-            color: #fff;
-            padding: 5px 10px;
-            border-radius: 4px;
-            text-decoration: none;
-            font-weight: bold;
-            cursor: move;
-            border: 1px solid #777;
-            display: inline-block;
+            background: #444; color: #fff; padding: 5px 10px; border-radius: 4px;
+            text-decoration: none; font-weight: bold; cursor: move; border: 1px solid #777; display: inline-block;
+            transition: all 0.3s;
         }
-        .bookmark-link:hover { background: var(--primary-red); border-color: white; }
+        .bookmark-link:hover { background: var(--primary-red); border-color: white; box-shadow: 0 0 15px var(--glow-red); }
 
     </style>
 </head>
@@ -463,7 +233,7 @@
 
     <header>
         <h1>KIRITO DOWNLOADER</h1>
-        <div style="font-size: 0.7rem; color: #aaa;">FINAL REALITY COUNT EDITION</div>
+        <div style="font-size: 0.7rem; color: #aaa;">THE ULTIMATE MASTERPIECE EDITION</div>
     </header>
 
     <div class="control-panel">
@@ -491,17 +261,18 @@
         <div id="tab-tool" class="input-section">
             <div style="text-align:center;">
                 <div class="bookmarklet-box">
-                    <a class="bookmark-link" href="javascript:(function()%7Bvar%20i%3D%5B%5D%2Cu%3Dnew%20Set()%3Bfunction%20a(s)%7Bif(s%26%26!s.startsWith('data%3A'))%7Bif(s.startsWith('%2F%2F'))s%3D'https%3A'%2Bs%3Belse%20if(s.startsWith('%2F'))s%3Dlocation.origin%2Bs%3Btry%7Bs%3DdecodeURIComponent(s)%3Bif(s.includes('url%3D'))%7Bvar%20d%3Dnew%20URL(s%2C'http%3A%2F%2Fd')%3Bvar%20inr%3Dd.searchParams.get('url')%3Bif(inr)s%3Dinr%7D%7Dcatch(e)%7B%7Du.add(s)%7D%7DArray.from(document.images).forEach(e%3D%3Ea(e.src)%7C%7Ca(e.dataset.src))%3BArray.from(document.querySelectorAll('link%5Bas%3Dimage%5D')).forEach(e%3D%3E%7Ba(e.href)%3Bif(e.imagesrcset)e.imagesrcset.split('%2C').forEach(p%3D%3Ea(p.trim().split('%20')%5B0%5D))%7D)%3BArray.from(document.querySelectorAll('*')).forEach(e%3D%3E%7Bvar%20b%3DgetComputedStyle(e).backgroundImage%3Bvar%20m%3Db.match(%2Furl%5C(%5B'%22%5D%3F(.*%3F)%5B'%22%5D%3F%5C)%2F)%3Bif(m)a(m%5B1%5D)%7D)%3Bif(u.size%3D%3D%3D0)%7Balert('%E0%B9%84%E0%B8%A1%E0%B9%88%E0%B8%9E%E0%B8%9A%E0%B8%A3%E0%B8%B9%E0%B8%9B%E0%B8%A0%E0%B8%B2%E0%B8%9E')%3Breturn%7Dvar%20w%3Dwindow.open(''%2C'_blank')%3Bw.document.write('%3Chtml%3E%3Chead%3E%3Ctitle%3EKIRITO%20PULL%3C%2Ftitle%3E%3Cstyle%3Ebody%7Bbackground%3A%23111%3Bcolor%3A%23fff%3Bfont-family%3Asans-serif%3Bpadding%3A20px%7D.g%7Bdisplay%3Agrid%3Bgrid-template-columns%3Arepeat(auto-fill%2Cminmax(150px%2C1fr))%3Bgap%3A10px%7Dimg%7Bwidth%3A100%25%3Bborder%3A1px%20solid%20%23333%3Bheight%3A150px%3Bobject-fit%3Acontain%7D%3C%2Fstyle%3E%3C%2Fhead%3E%3Cbody%3E%3Ch1%3EFound%20'%2Bu.size%2B'%20images%3C%2Fh1%3E%3Cdiv%20class%3D%22g%22%3E')%3Bu.forEach(s%3D%3Ew.document.write('%3Cdiv%3E%3Cimg%20src%3D%22'%2Bs%2B'%22%3E%3C%2Fdiv%3E'))%3Bw.document.write('%3C%2Fdiv%3E%3C%2Fbody%3E%3C%2Fhtml%3E')%3Bw.document.close()%7D)()">
+                    <a id="bookmarklet-ui-link" class="bookmark-link" href="#">
                         <i class="fas fa-bookmark"></i> KIRITO PULL
                     </a>
                 </div>
+                <p style="font-size:0.8rem; color:#888; margin-top:10px;">ลากปุ่มนี้ไปใส่แถบบุคมาร์ก เพื่อใช้ดึงรูปจากเว็บที่ป้องกันสูง (เวอร์ชันมาสเตอร์พีซ โหลดเร็วทะลุขีดจำกัด!)</p>
             </div>
         </div>
 
         <div class="filter-section">
             <div class="filter-label"><i class="fas fa-expand"></i> ขนาดภาพ (Size Filter):</div>
             <div class="filter-group" id="sizeFilters">
-                <button class="filter-btn active" onclick="setSizeFilter('all', this)">ทั้งหมด (All)</button>
+                <button class="filter-btn active" onclick="setSizeFilter('all', this)">ทั้งหมด</button>
                 <button class="filter-btn" onclick="setSizeFilter('small', this)">เล็ก (&lt;500px)</button>
                 <button class="filter-btn" onclick="setSizeFilter('medium', this)">กลาง (500-1200px)</button>
                 <button class="filter-btn" onclick="setSizeFilter('large', this)">ใหญ่ (&gt;1200px)</button>
@@ -522,12 +293,17 @@
         <div id="loader" class="loader"></div>
         <div id="status" class="status-msg">พร้อมทำงาน...</div>
 
+        <!-- Progress Bar HTML -->
+        <div id="progress-container">
+            <div id="progress-bar">0%</div>
+        </div>
+
         <div class="global-actions">
             <label class="toggle-container">
                 <input type="checkbox" id="allowDuplicates"> แสดงรูปซ้ำ (Duplicates)
             </label>
-            <button class="btn-action" onclick="copyAllLinks()"><i class="fas fa-link"></i> คัดลอก Link ทั้งหมด</button>
-            <button class="btn-action" onclick="downloadAll()"><i class="fas fa-cloud-download-alt"></i> บันทึกภาพทั้งหมด</button>
+            <button class="btn-action" onclick="copyAllLinks()" id="btn-copy-all"><i class="fas fa-link"></i> คัดลอก Link ทั้งหมด</button>
+            <button class="btn-action" onclick="downloadAll()" id="btn-dl-all"><i class="fas fa-cloud-download-alt"></i> บันทึกเป็น ZIP ทั้งหมด</button>
             <button class="btn-action btn-danger" onclick="clearGallery()"><i class="fas fa-trash"></i> ล้างทั้งหมด</button>
         </div>
     </div>
@@ -542,13 +318,39 @@
         <div class="lb-close" onclick="closeLightbox()">&times;</div>
         <img id="lb-img" src="" alt="Full View">
         <div class="lb-controls">
-            <span><i class="fas fa-mouse"></i> ใช้ลูกกลิ้งเพื่อซูม</span>
+            <span><i class="fas fa-mouse"></i> กลิ้งเมาส์เพื่อซูม</span>
             <span><i class="fas fa-hand-paper"></i> ลากเพื่อเลื่อน</span>
         </div>
     </div>
 
     <script>
-        let allScannedImages = []; // Stores ALL raw strings
+        // --- ฟังก์ชันช่วยเหลือสำหรับเปลี่ยนไอคอน/ข้อความปุ่มชั่วคราว (ใช้แทน Alert 100%) ---
+        function showTempSuccess(btnId, tempHtml, originalHtml, time = 2500) {
+            const btn = document.getElementById(btnId);
+            if(!btn) return;
+            btn.innerHTML = tempHtml;
+            btn.style.color = '#0f0';
+            btn.style.borderColor = '#0f0';
+            setTimeout(() => {
+                btn.innerHTML = originalHtml;
+                btn.style.color = '';
+                btn.style.borderColor = '';
+            }, time);
+        }
+
+        function showTempIcon(btn, tempIconClass, origIconClass) {
+            const icon = btn.querySelector('i');
+            if(icon) {
+                icon.className = tempIconClass;
+                icon.style.color = '#0f0';
+                setTimeout(() => {
+                    icon.className = origIconClass;
+                    icon.style.color = '';
+                }, 2000);
+            }
+        }
+
+        let allScannedImages = []; 
         let currentSizeFilter = 'all';
         let currentTypeFilter = 'all';
 
@@ -559,7 +361,6 @@
             document.getElementById(`tab-${mode}`).classList.add('active');
         }
 
-        // --- Filter Logic ---
         function setSizeFilter(size, btn) {
             currentSizeFilter = size;
             document.querySelectorAll('#sizeFilters .filter-btn').forEach(b => b.classList.remove('active'));
@@ -576,35 +377,27 @@
 
         function applyVisualFilters() {
             const cards = document.querySelectorAll('.img-card');
-            
             cards.forEach(card => {
                 const width = parseInt(card.getAttribute('data-width') || 0);
                 let show = true;
-
                 if (currentSizeFilter === 'small' && width >= 500) show = false;
                 if (currentSizeFilter === 'medium' && (width < 500 || width > 1200)) show = false;
                 if (currentSizeFilter === 'large' && width <= 1200) show = false;
-
+                
                 if (show) card.classList.remove('hidden-by-filter');
                 else card.classList.add('hidden-by-filter');
             });
-            
             updateStatusText();
         }
 
         function updateStatusText() {
-            // Count REAL visible cards in DOM
             const visibleCards = document.querySelectorAll('.img-card:not(.hidden-by-filter)');
             const allowDupes = document.getElementById('allowDuplicates').checked;
-            
-            // This is the number user actually sees
             let status = `พบทั้งหมด ${visibleCards.length} รูป`;
-            
             if (currentSizeFilter !== 'all' || currentTypeFilter !== 'all') {
                 status += ` (แสดงผล ${visibleCards.length} รูปตามตัวกรอง)`;
             }
             status += allowDupes ? ' [โหมดแสดงซ้ำ]' : ' [โหมดกรองซ้ำ]';
-            
             document.getElementById('status').innerText = status;
         }
 
@@ -612,7 +405,6 @@
             if (filter === 'all') return true;
             const u = url.toLowerCase().split('?')[0];
             const hasExt = u.match(/\.(jpg|jpeg|png|gif|webp|svg|tiff|heic|raw)$/);
-            
             if (filter === 'jpg' && (u.endsWith('.jpg') || u.endsWith('.jpeg'))) return true;
             if (filter === 'png' && u.endsWith('.png')) return true;
             if (filter === 'gif' && u.endsWith('.gif')) return true;
@@ -626,7 +418,7 @@
             return false;
         }
 
-        // --- Core Extraction (STORAGE MODE) ---
+        // --- Core Extraction (ทะลวง Lazy Load 100%) ---
         function extractImagesFromHtml(html, baseUrl) {
             let foundRaw = []; 
             let text = html.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&').replace(/\\"/g, '"').replace(/\\u002F/g, "/");
@@ -635,7 +427,7 @@
                 if (!url || url.startsWith('data:')) return;
                 try {
                     url = url.trim();
-                    if (url.includes('%')) url = decodeURIComponent(url);
+                    if (url.includes('%')) { try { url = decodeURIComponent(url); } catch(e){} }
                     
                     if (url.startsWith('//')) url = 'https:' + url;
                     else if (url.startsWith('/')) {
@@ -643,7 +435,6 @@
                         url = new URL(url, base.origin).href;
                     }
                     else if (!url.startsWith('http')) {
-                         // Robust relative path handling
                         let base = baseUrl;
                         if (!base.endsWith('/') && !base.split('/').pop().includes('.')) base += '/';
                         if (base.split('/').pop().includes('.')) base = base.substring(0, base.lastIndexOf('/') + 1);
@@ -653,28 +444,25 @@
                     if (url.includes('url=')) {
                         let dummy = new URL(url, 'http://d');
                         let inner = dummy.searchParams.get('url');
-                        if (inner) { add(inner, isFromDOM); }
+                        if (inner) { add(inner, isFromDOM); return; }
                     }
 
                     if (isFromDOM || isImage(url)) foundRaw.push(url);
                 } catch(e) {}
             };
 
-            const regex = /(https?:\/\/[^"'\s<>,;)]+)|(\/[^"'\s<>,;)]+\.(jpg|jpeg|png|gif|webp))/gi;
+            const regex = /(https?:\/\/[^"'\s<>,;)]+)|(\/[^"'\s<>,;)]+\.(jpg|jpeg|png|gif|webp|svg|ico))/gi;
             let match;
             while ((match = regex.exec(text)) !== null) add(match[0], false);
-
-            const encodedRegex = /(https?%3A%2F%2F[^"'\s&,;]+)/gi;
-            while ((match = encodedRegex.exec(text)) !== null) add(match[0], false);
 
             try {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 doc.querySelectorAll('*').forEach(el => {
-                    ['src', 'data-src', 'href', 'srcset', 'imagesrcset'].forEach(attr => {
+                    ['src', 'data-src', 'data-original', 'data-lazy-src', 'data-srcset', 'href', 'srcset', 'imagesrcset'].forEach(attr => {
                         let val = el.getAttribute(attr);
                         if (val) {
-                            if (attr.includes('srcset')) val.split(',').forEach(p => add(p.trim().split(/\s+/)[0], true));
+                            if (val.includes(',')) val.split(',').forEach(p => add(p.trim().split(' ')[0], true));
                             else add(val, true);
                         }
                     });
@@ -692,42 +480,50 @@
         function getCleanKey(url) {
             try {
                 let u = new URL(url);
-                u.searchParams.delete('w');
-                u.searchParams.delete('q');
-                u.searchParams.delete('width');
-                u.searchParams.delete('height');
+                u.searchParams.delete('w'); u.searchParams.delete('q');
+                u.searchParams.delete('width'); u.searchParams.delete('height');
                 return u.href;
             } catch(e) { return url; }
         }
 
         function isImage(url) {
             const u = url.toLowerCase();
-            return (u.includes('.jpg') || u.includes('.jpeg') || u.includes('.png') || u.includes('.webp') || u.includes('.gif') || u.includes('.svg') || u.includes('.tiff') || u.includes('.heic')) && !u.includes('analytics');
+            return (u.includes('.jpg') || u.includes('.jpeg') || u.includes('.png') || u.includes('.webp') || u.includes('.gif') || u.includes('.svg') || u.includes('.tiff') || u.includes('.heic') || u.includes('.ico')) && !u.includes('analytics');
+        }
+
+        async function fetchHtmlSafe(url) {
+            const proxies = ['', 'https://corsproxy.io/?', 'https://api.allorigins.win/raw?url=', 'https://api.codetabs.com/v1/proxy?quest='];
+            for (let p of proxies) {
+                try {
+                    const targetUrl = p ? p + encodeURIComponent(url) : url;
+                    const controller = new AbortController();
+                    const id = setTimeout(() => controller.abort(), 8000);
+                    const res = await fetch(targetUrl, { signal: controller.signal });
+                    clearTimeout(id);
+                    if (res.ok) { return await res.text(); }
+                } catch(e) {}
+            }
+            throw new Error("Target blocked or unreachable.");
         }
 
         async function startAutoScan() {
             const url = document.getElementById('targetUrl').value;
-            if (!url) return alert("กรุณาใส่ลิงก์");
-            runScan(url, async () => {
-                const res = await fetch('https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url));
-                if (!res.ok) throw new Error("Proxy Error");
-                return await res.text();
-            });
+            if (!url) return;
+            runScan(url, async () => { return await fetchHtmlSafe(url); });
         }
 
         function startManualScan() {
             const url = document.getElementById('manualUrl').value;
             const code = document.getElementById('sourceCode').value;
-            if (!url || !code) return alert("กรุณาใส่ข้อมูลให้ครบ");
+            if (!url || !code) return;
             runScan(url, async () => code);
         }
 
         async function runScan(baseUrl, fetcher) {
             const loader = document.getElementById('loader');
-            
             document.getElementById('gallery').innerHTML = '';
             loader.style.display = 'block';
-            document.getElementById('status').innerText = "กำลังประมวลผล...";
+            document.getElementById('status').innerText = "กำลังประมวลผลระบบสุดยอดความเร็ว...";
 
             try {
                 const html = await fetcher();
@@ -735,9 +531,8 @@
                 renderGallery();
                 loader.style.display = 'none';
             } catch (e) {
-                console.error(e);
                 loader.style.display = 'none';
-                document.getElementById('status').innerText = "Error: " + e.message;
+                document.getElementById('status').innerText = "Error: ไม่สามารถเชื่อมต่อเป้าหมายได้ (ตรวจสอบลิงก์)";
             }
         }
 
@@ -746,28 +541,20 @@
             const allowDupes = document.getElementById('allowDuplicates').checked;
             
             gallery.innerHTML = '';
-            
             let imagesToShow = [];
 
             if (allowDupes) {
-                // Show RAW Array (Distinct Strings Only)
                 imagesToShow = [...new Set(allScannedImages)]; 
             } else {
-                // Clean Deduplication
                 let uniqueMap = new Map();
                 allScannedImages.forEach(url => {
                     let cleanKey = getCleanKey(url);
-                    if (!uniqueMap.has(cleanKey)) {
-                        uniqueMap.set(cleanKey, url);
-                    }
+                    if (!uniqueMap.has(cleanKey)) uniqueMap.set(cleanKey, url);
                 });
                 imagesToShow = Array.from(uniqueMap.values());
             }
 
-            // Apply Type Filter BEFORE creating elements
             imagesToShow = imagesToShow.filter(url => checkFileType(url, currentTypeFilter));
-            
-            // Set initial text (will update as images load)
             document.getElementById('status').innerText = "กำลังเรนเดอร์ภาพ...";
 
             imagesToShow.forEach(src => {
@@ -792,7 +579,7 @@
                         this.src = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(src);
                     } else {
                         card.remove(); 
-                        setTimeout(updateStatusText, 100); // Update count after removal
+                        setTimeout(updateStatusText, 100); 
                     }
                 };
                 
@@ -806,17 +593,11 @@
                     if (currentSizeFilter === 'small' && w >= 500) show = false;
                     if (currentSizeFilter === 'medium' && (w < 500 || w > 1200)) show = false;
                     if (currentSizeFilter === 'large' && w <= 1200) show = false;
-                    
                     if(!show) card.classList.add('hidden-by-filter');
                     
-                    // Format Info (Single Line - Decode Thai)
                     let rawFilename = src.split('/').pop().split(/[#?]/)[0];
                     let filenameFull;
-                    try {
-                        filenameFull = decodeURIComponent(rawFilename); // Decode Thai characters
-                    } catch(e) {
-                        filenameFull = rawFilename;
-                    }
+                    try { filenameFull = decodeURIComponent(rawFilename); } catch(e) { filenameFull = rawFilename; }
                     
                     let filename = filenameFull;
                     if(filename.length > 20) filename = filename.substring(0, 15) + '...';
@@ -833,9 +614,9 @@
                 actions.className = 'img-actions';
                 
                 actions.innerHTML = `
-                    <button class="btn-icon btn-dl" title="ดาวน์โหลด" onclick="downloadImage('${src}')"><i class="fas fa-download"></i></button>
-                    <button class="btn-icon btn-copy-link" title="คัดลอกลิงก์" onclick="copyLink('${src}')"><i class="fas fa-link"></i></button>
-                    <button class="btn-icon btn-copy-img" title="คัดลอกรูปภาพ" onclick="copyImageToClipboard('${src}')"><i class="fas fa-copy"></i></button>
+                    <button class="btn-icon btn-dl" title="ดาวน์โหลด" onclick="downloadSingleImage('${src}', this)"><i class="fas fa-download"></i></button>
+                    <button class="btn-icon btn-copy-link" title="คัดลอกลิงก์" onclick="copyLink('${src}', this)"><i class="fas fa-link"></i></button>
+                    <button class="btn-icon btn-copy-img" title="คัดลอกรูปภาพ" onclick="copyImageToClipboard('${src}', this)"><i class="fas fa-copy"></i></button>
                 `;
 
                 imgContainer.appendChild(img);
@@ -846,68 +627,91 @@
             });
         }
 
-        async function downloadImage(url) {
+        // --- ระบบ Fetch รูปที่แข็งแกร่ง (ต่อตรงก่อน -> Proxy สำรอง) ข้ามไฟล์เสีย 100% ---
+        async function fetchImageSafe(url) {
             const proxies = [
-                'https://api.codetabs.com/v1/proxy?quest=',
-                'https://api.allorigins.win/raw?url='
+                '', 
+                'https://corsproxy.io/?', 
+                'https://api.allorigins.win/raw?url=', 
+                'https://api.codetabs.com/v1/proxy?quest='
             ];
-            
             for (const proxy of proxies) {
                 try {
-                    const res = await fetch(proxy + encodeURIComponent(url));
-                    if (!res.ok) continue;
-                    const blob = await res.blob();
-                    const a = document.createElement('a');
-                    a.href = URL.createObjectURL(blob);
-                    a.download = `KIRITO_${Date.now()}.jpg`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    return;
-                } catch (e) {}
+                    const targetUrl = proxy ? proxy + encodeURIComponent(url) : url;
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 5000); // ตัดจบ 5 วิ
+                    const res = await fetch(targetUrl, { signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    
+                    if (res.ok) {
+                        const blob = await res.blob();
+                        if (blob.size > 200 && !blob.type.includes('text/html')) {
+                            return blob;
+                        }
+                    }
+                } catch (e) {
+                    // Ignore and try next proxy
+                }
             }
-            window.open(url, '_blank');
+            return null; // ล้มเหลวทุกช่องทาง
         }
 
-        function copyLink(url) {
+        async function downloadSingleImage(url, btnElement) {
+            let blob = await fetchImageSafe(url);
+            if(blob) {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `KIRITO_${Date.now()}.jpg`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                if(btnElement) showTempIcon(btnElement, 'fas fa-check', 'fas fa-download');
+            } else {
+                window.open(url, '_blank');
+            }
+        }
+
+        function copyLink(url, btnElement) {
             const textArea = document.createElement("textarea");
             textArea.value = url;
-            textArea.style.position = "fixed";
-            textArea.style.left = "-9999px";
+            textArea.style.position = "fixed"; textArea.style.left = "-9999px";
             document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            try { document.execCommand('copy'); alert("คัดลอกลิงก์แล้ว!"); } catch (err) {}
+            textArea.focus(); textArea.select();
+            try { 
+                document.execCommand('copy'); 
+                if(btnElement) showTempIcon(btnElement, 'fas fa-check', 'fas fa-link');
+            } catch (err) {}
             document.body.removeChild(textArea);
         }
 
         function copyAllLinks() {
-            if(allScannedImages.length === 0) return;
             const visibleCards = Array.from(document.querySelectorAll('.img-card:not(.hidden-by-filter) img'));
             const links = visibleCards.map(img => img.src).join('\n');
-            if(!links) return alert("ไม่มีรูปภาพตามตัวกรองที่เลือก");
+            if(!links) return;
 
             const textArea = document.createElement("textarea");
             textArea.value = links;
-            textArea.style.position = "fixed";
-            textArea.style.left = "-9999px";
+            textArea.style.position = "fixed"; textArea.style.left = "-9999px";
             document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            try { document.execCommand('copy'); alert(`คัดลอก ${visibleCards.length} ลิงก์แล้ว!`); } catch (err) {}
+            textArea.focus(); textArea.select();
+            try { 
+                document.execCommand('copy'); 
+                const btn = document.getElementById('btn-copy-all');
+                const og = btn.innerHTML;
+                showTempSuccess('btn-copy-all', '<i class="fas fa-check"></i> คัดลอกสำเร็จ!', og);
+            } catch (err) {}
             document.body.removeChild(textArea);
         }
 
-        async function copyImageToClipboard(url) {
+        async function copyImageToClipboard(url, btnElement) {
             try {
                 if (!navigator.clipboard || !navigator.clipboard.write) throw new Error("Blocked");
-                const res = await fetch('https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url));
-                const blob = await res.blob();
-                await navigator.clipboard.write([new ClipboardItem({[blob.type]: blob})]);
-                alert("คัดลอกรูปภาพแล้ว!");
-            } catch (e) { 
-                alert("Browser ป้องกันการคัดลอกรูปภาพ (CORS) ใช้ปุ่มดาวน์โหลดแทนนะครับ"); 
-            }
+                let blob = await fetchImageSafe(url);
+                if(blob) {
+                    await navigator.clipboard.write([new ClipboardItem({[blob.type]: blob})]);
+                    if(btnElement) showTempIcon(btnElement, 'fas fa-check', 'fas fa-copy');
+                }
+            } catch (e) { }
         }
 
         function clearGallery() {
@@ -918,21 +722,94 @@
             }
         }
 
-        function downloadAll() {
+        // --- THE ULTIMATE SPEED: ระบบโหลดคู่ขนานแบบ Worker Pool (8 Threads) ---
+        async function downloadAll() {
             const visibleCards = Array.from(document.querySelectorAll('.img-card:not(.hidden-by-filter) img'));
             const images = visibleCards.map(img => img.src);
 
-            if(images.length === 0) return alert("ไม่มีรูปภาพตามตัวกรองปัจจุบัน");
-            if(!confirm(`ต้องการดาวน์โหลด ${images.length} รูป?`)) return;
+            if(images.length === 0) return;
             
-            let i = 0;
-            const interval = setInterval(() => {
-                if(i >= images.length) clearInterval(interval);
-                else {
-                    downloadImage(images[i]);
-                    i++;
+            const btn = document.getElementById('btn-dl-all');
+            const originalText = btn.innerHTML;
+            const progContainer = document.getElementById('progress-container');
+            const progBar = document.getElementById('progress-bar');
+            
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> PREPARING...`;
+            btn.style.pointerEvents = 'none';
+            
+            progContainer.style.display = 'block';
+            progBar.style.width = '0%';
+            progBar.innerText = `0 / ${images.length} (0%)`;
+
+            try {
+                const zip = new JSZip();
+                let successCount = 0;
+                let processedCount = 0;
+                let currentIndex = 0;
+                
+                // ให้ทำงานพร้อมกัน 8 ตัว (Worker Pool)
+                const MAX_WORKERS = 8;
+                
+                const worker = async () => {
+                    while (currentIndex < images.length) {
+                        const idx = currentIndex++;
+                        const url = images[idx];
+                        
+                        let blob = await fetchImageSafe(url);
+                        if (blob) {
+                            let rawFilename = url.split('/').pop().split(/[#?]/)[0];
+                            let decodedFilename;
+                            try { decodedFilename = decodeURIComponent(rawFilename); } catch(e) { decodedFilename = rawFilename; }
+                            
+                            let ext = decodedFilename.split('.').pop().toLowerCase();
+                            if(ext.length > 4 || ext === decodedFilename.toLowerCase() || !ext) ext = 'jpg';
+                            let base = decodedFilename.substring(0, decodedFilename.lastIndexOf('.'));
+                            if(!base) base = 'KIRITO_IMAGE';
+                            
+                            zip.file(`${base}_${idx+1}.${ext}`, blob);
+                            successCount++;
+                        }
+                        
+                        processedCount++;
+                        let percent = Math.round((processedCount / images.length) * 100);
+                        progBar.style.width = percent + '%';
+                        progBar.innerText = `${processedCount} / ${images.length} (${percent}%)`;
+                        btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> DOWNLOADING...`;
+                    }
+                };
+
+                // เรียกคนงาน 8 คนมาทำพร้อมกัน
+                const workers = Array(MAX_WORKERS).fill(0).map(() => worker());
+                await Promise.all(workers);
+
+                if(successCount === 0) {
+                    progContainer.style.display = 'none';
+                    showTempSuccess('btn-dl-all', `<i class="fas fa-times"></i> โหลดไม่สำเร็จ (โดนบล็อก)`, originalText, 3000);
+                    btn.style.pointerEvents = 'auto';
+                    return;
                 }
-            }, 500); 
+
+                btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> PACKING ZIP...`;
+                progBar.innerText = `กำลังสร้างไฟล์ ZIP...`;
+                
+                const content = await zip.generateAsync({type:"blob"});
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(content);
+                link.download = `KIRITO_PACK_${Date.now()}.zip`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                progContainer.style.display = 'none';
+                showTempSuccess('btn-dl-all', `<i class="fas fa-check"></i> โหลดสำเร็จ (${successCount}/${images.length})`, originalText, 4000);
+                btn.style.pointerEvents = 'auto';
+
+            } catch(e) {
+                console.error(e);
+                progContainer.style.display = 'none';
+                showTempSuccess('btn-dl-all', `<i class="fas fa-times"></i> เกิดข้อผิดพลาด`, originalText, 3000);
+                btn.style.pointerEvents = 'auto';
+            }
         }
 
         let scale = 1, isDragging = false, startX, startY, translateX = 0, translateY = 0;
@@ -953,10 +830,10 @@
         
         lbImg.addEventListener('wheel', (e) => {
             e.preventDefault();
-            scale += e.deltaY * -0.001;
-            scale = Math.min(Math.max(0.5, scale), 5);
+            const delta = e.deltaY * -0.001;
+            scale = Math.min(Math.max(0.5, scale + delta), 8);
             updateTransform();
-        });
+        }, { passive: false });
 
         lbImg.addEventListener('mousedown', (e) => {
             e.preventDefault();
@@ -966,7 +843,7 @@
             lbImg.style.cursor = 'grabbing';
         });
 
-        window.addEventListener('mouseup', () => { isDragging = false; lbImg.style.cursor = 'grab'; });
+        window.addEventListener('mouseup', () => { isDragging = false; if(lbImg) lbImg.style.cursor = 'grab'; });
 
         window.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
@@ -976,7 +853,266 @@
             updateTransform();
         });
 
-        document.getElementById('allowDuplicates').addEventListener('change', renderGallery);
+        // --- BOOKMARKLET GENERATOR SCRIPT (รื้อระบบสร้างใหม่ให้สมบูรณ์) ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const bookmarkletLogic = function() {
+                if(document.getElementById('krt-sys')) document.getElementById('krt-sys').remove();
+                var u = new Set();
+                function a(s) {
+                    if(!s || s.startsWith('data:')) return;
+                    if(s.startsWith('//')) s = 'https:' + s;
+                    else if(s.startsWith('/')) s = location.origin + s;
+                    try {
+                        s = decodeURIComponent(s);
+                        var d = new URL(s, 'http://d');
+                        var inr = d.searchParams.get('url');
+                        if(inr) s = inr;
+                    } catch(e) {}
+                    u.add(s);
+                }
+                
+                // ขุดทุกซอกทุกมุมของ DOM รวมถึง Lazy Load
+                Array.from(document.images).forEach(e => { a(e.src); });
+                Array.from(document.querySelectorAll('*')).forEach(e => {
+                    var ds = e.getAttribute('data-src') || e.getAttribute('data-original') || e.getAttribute('data-lazy-src') || e.getAttribute('data-srcset');
+                    if(ds) {
+                        if(ds.includes(',')) ds.split(',').forEach(p => a(p.trim().split(' ')[0]));
+                        else a(ds);
+                    }
+                    var b = window.getComputedStyle(e).backgroundImage;
+                    var m = b.match(/url\(['"]?(.*?)['"]?\)/);
+                    if(m) a(m[1]);
+                    if(e.tagName === 'A') {
+                        var h = e.getAttribute('href');
+                        if(h && h.match(/\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i)) a(h);
+                    }
+                });
+                
+                if(u.size === 0) {
+                    var btn = document.createElement('div');
+                    btn.style.cssText = 'position:fixed;top:20px;right:20px;background:#f03;color:#fff;padding:10px 20px;z-index:999999;border-radius:5px;font-family:sans-serif;box-shadow:0 0 10px #000;';
+                    btn.innerText = 'ไม่พบรูปภาพ (KIRITO SYSTEM)';
+                    document.body.appendChild(btn);
+                    setTimeout(() => btn.remove(), 3000);
+                    return;
+                }
+
+                var sys = document.createElement('div');
+                sys.id = 'krt-sys';
+                sys.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(5,0,0,0.95);z-index:9999999;overflow-y:auto;font-family:sans-serif;padding:20px;box-sizing:border-box;color:#fff;';
+                
+                var h = '<div style="max-width:1200px;margin:0 auto;">' +
+                    '<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #f03;padding-bottom:10px;margin-bottom:20px;flex-wrap:wrap;gap:10px;">' +
+                        '<h1 style="color:#f03;margin:0;text-shadow:0 0 10px #f03;font-size:24px;">KIRITO PULL SYSTEM</h1>' +
+                        '<div style="display:flex;gap:10px;">' +
+                            '<button id="krt-dl-all" style="background:#28a745;color:#fff;border:none;padding:10px 20px;cursor:pointer;border-radius:5px;font-weight:bold;">DOWNLOAD ALL (ZIP)</button>' +
+                            '<button id="krt-close" style="background:#f03;color:#fff;border:none;padding:10px 20px;cursor:pointer;border-radius:5px;font-weight:bold;">CLOSE (ปิด)</button>' +
+                        '</div>' +
+                    '</div>' +
+                    '<h3>พบรูปภาพทั้งหมด ' + u.size + ' รูป</h3>' +
+                    '<div id="krt-prog-bg" style="display:none;width:100%;background:#222;border-radius:5px;margin-bottom:15px;overflow:hidden;border:1px solid #444;box-shadow:inset 0 0 10px #000;">' +
+                        '<div id="krt-prog" style="width:0%;height:24px;background:#f03;color:#fff;text-align:center;font-size:12px;line-height:24px;font-weight:bold;transition:width 0.3s;">0%</div>' +
+                    '</div>' +
+                    '<div id="krt-gal" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:15px;"></div>' +
+                '</div>' +
+                '<div id="krt-lb" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.95);z-index:10000000;justify-content:center;align-items:center;overflow:hidden;touch-action:none;">' +
+                    '<div id="krt-lbc" style="position:absolute;top:20px;right:20px;color:#fff;font-size:2rem;cursor:pointer;z-index:10000001;background:rgba(0,0,0,0.5);width:40px;height:40px;text-align:center;line-height:40px;border-radius:50%;">&times;</div>' +
+                    '<img id="krt-lbi" style="max-width:90%;max-height:90%;transition:transform 0.1s ease-out;cursor:grab;user-select:none;-webkit-user-drag:none;">' +
+                    '<div style="position:absolute;bottom:20px;background:rgba(0,0,0,0.5);padding:10px 20px;border-radius:20px;display:flex;gap:15px;color:#fff;font-size:0.8rem;">' +
+                        '<span>กลิ้งเมาส์: ซูม</span><span>ลาก: เลื่อน</span>' +
+                    '</div>' +
+                '</div>';
+                
+                sys.innerHTML = h;
+                document.body.appendChild(sys);
+
+                var gal = document.getElementById('krt-gal');
+                var all = Array.from(u);
+                
+                async function fetchImg(url) {
+                    const pxs = ['', 'https://corsproxy.io/?', 'https://api.allorigins.win/raw?url=', 'https://api.codetabs.com/v1/proxy?quest='];
+                    for (let px of pxs) {
+                        try {
+                            let tgt = px ? px + encodeURIComponent(url) : url;
+                            let ctrl = new AbortController();
+                            let tid = setTimeout(() => ctrl.abort(), 5000);
+                            let r = await fetch(tgt, {signal: ctrl.signal});
+                            clearTimeout(tid);
+                            if(r.ok) {
+                                let b = await r.blob();
+                                if(b.size > 200 && !b.type.includes('text/html')) return b;
+                            }
+                        } catch(e) {}
+                    }
+                    return null;
+                }
+
+                all.forEach(function(s, idx) {
+                    var c = document.createElement('div');
+                    c.style.cssText = 'background:#111;border:1px solid #333;border-radius:5px;padding:10px;text-align:center;display:flex;flex-direction:column;justify-content:space-between;';
+                    var i = document.createElement('img');
+                    i.src = s;
+                    i.style.cssText = 'width:100%;height:120px;object-fit:contain;margin-bottom:10px;background:#000;cursor:zoom-in;';
+                    
+                    var info = document.createElement('div');
+                    info.style.cssText = 'color:#aaa;font-size:10px;margin-bottom:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+                    var fname = s.split('/').pop().split('?')[0];
+                    try { fname = decodeURIComponent(fname); } catch(e) {}
+                    info.innerText = fname || 'image';
+
+                    var d = document.createElement('button');
+                    d.innerText = 'ดาวน์โหลด';
+                    d.style.cssText = 'display:block;width:100%;background:#f03;color:#fff;border:none;padding:8px;border-radius:3px;font-size:12px;font-weight:bold;margin-top:auto;cursor:pointer;';
+                    
+                    d.onclick = async function(e) {
+                        e.preventDefault();
+                        var ogD = d.innerText;
+                        d.innerText = 'กำลังโหลด...';
+                        d.style.pointerEvents = 'none';
+                        let b = await fetchImg(s);
+                        if(b) {
+                            var u2 = URL.createObjectURL(b);
+                            var a2 = document.createElement('a');
+                            a2.href = u2;
+                            a2.download = 'KIRITO_' + Date.now() + '.jpg';
+                            a2.click();
+                            URL.revokeObjectURL(u2);
+                            d.innerText = 'สำเร็จ!';
+                            d.style.background = '#28a745';
+                        } else {
+                            window.open(s, '_blank');
+                            d.innerText = 'ล้มเหลว';
+                        }
+                        setTimeout(() => { d.innerText=ogD; d.style.background='#f03'; d.style.pointerEvents='auto'; }, 2000);
+                    };
+                    
+                    i.onclick = function() {
+                        document.getElementById('krt-lb').style.display = 'flex';
+                        document.getElementById('krt-lbi').src = s;
+                        sc = 1; tx = 0; ty = 0; up();
+                    };
+                    
+                    c.appendChild(i);
+                    c.appendChild(info);
+                    c.appendChild(d);
+                    gal.appendChild(c);
+                });
+
+                document.getElementById('krt-close').onclick = function() { sys.remove(); };
+                document.getElementById('krt-lbc').onclick = function() { document.getElementById('krt-lb').style.display = 'none'; };
+                
+                document.getElementById('krt-dl-all').onclick = async function() {
+                    var btn = this;
+                    if(btn.disabled) return;
+                    var ogTxt = btn.innerText;
+                    btn.innerText = 'PREPARING...';
+                    btn.disabled = true;
+                    btn.style.background = '#555';
+                    
+                    var pbg = document.getElementById('krt-prog-bg');
+                    var pbar = document.getElementById('krt-prog');
+                    pbg.style.display = 'block';
+                    pbar.style.width = '0%';
+                    pbar.innerText = '0%';
+                    
+                    async function doZip() {
+                        var zip = new JSZip();
+                        var count = 0; var processedCount = 0;
+                        var cIndex = 0;
+                        
+                        async function workerPool() {
+                            while(cIndex < all.length) {
+                                let idx = cIndex++;
+                                let url = all[idx];
+                                let b = await fetchImg(url);
+                                if(b) {
+                                    var rawFname = url.split('/').pop().split('?')[0];
+                                    try { rawFname = decodeURIComponent(rawFname); } catch(e){}
+                                    var ext = rawFname.split('.').pop().toLowerCase();
+                                    if(ext.length > 4 || ext === rawFname.toLowerCase() || !ext) ext = 'jpg';
+                                    var base = rawFname.substring(0, rawFname.lastIndexOf('.'));
+                                    if(!base) base = 'KIRITO_IMAGE';
+                                    zip.file(base + '_' + (idx+1) + '.' + ext, b);
+                                    count++;
+                                }
+                                processedCount++;
+                                var pct = Math.round((processedCount / all.length) * 100);
+                                pbar.style.width = pct + '%';
+                                pbar.innerText = processedCount + '/' + all.length + ' (' + pct + '%)';
+                                btn.innerText = 'DOWNLOADING...';
+                            }
+                        }
+                        
+                        var workers = Array(8).fill(0).map(() => workerPool());
+                        await Promise.all(workers);
+                        
+                        if(count === 0) {
+                            pbg.style.display = 'none';
+                            btn.innerText = 'FAILED (โดนบล็อก)';
+                            setTimeout(function(){ btn.innerText = ogTxt; btn.disabled = false; btn.style.background = '#28a745'; }, 3000);
+                            return;
+                        }
+                        
+                        pbar.innerText = 'ZIPPING...';
+                        btn.innerText = 'PACKING ZIP...';
+                        
+                        try {
+                            var content = await zip.generateAsync({type:'blob'});
+                            var u2 = URL.createObjectURL(content);
+                            var a2 = document.createElement('a');
+                            a2.href = u2;
+                            a2.download = 'KIRITO_PACK_' + Date.now() + '.zip';
+                            a2.click();
+                            URL.revokeObjectURL(u2);
+                            
+                            pbg.style.display = 'none';
+                            btn.innerText = 'SUCCESS! (' + count + '/' + all.length + ')';
+                        } catch(e) {
+                            btn.innerText = 'ZIP ERROR';
+                        }
+                        setTimeout(function(){ btn.innerText = ogTxt; btn.disabled = false; btn.style.background = '#28a745'; pbg.style.display = 'none'; }, 4000);
+                    }
+                    
+                    if(typeof JSZip === 'undefined') {
+                        pbar.innerText = 'LOADING JSZIP...';
+                        var script = document.createElement('script');
+                        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+                        script.onload = doZip;
+                        document.head.appendChild(script);
+                    } else {
+                        doZip();
+                    }
+                };
+
+                var sc = 1, tx = 0, ty = 0, dr = false, sx, sy;
+                function up() {
+                    var li = document.getElementById('krt-lbi');
+                    if(li) li.style.transform = 'translate(' + tx + 'px, ' + ty + 'px) scale(' + sc + ')';
+                }
+                var li = document.getElementById('krt-lbi');
+                li.addEventListener('wheel', function(e){
+                    e.preventDefault();
+                    sc += e.deltaY * -0.001;
+                    sc = Math.min(Math.max(0.5, sc), 8);
+                    up();
+                }, {passive:false});
+                li.addEventListener('mousedown', function(e){
+                    e.preventDefault();
+                    dr = true; sx = e.clientX - tx; sy = e.clientY - ty;
+                    li.style.cursor = 'grabbing';
+                });
+                sys.addEventListener('mouseup', function(){ dr = false; if(li) li.style.cursor = 'grab'; });
+                sys.addEventListener('mousemove', function(e){
+                    if(!dr) return;
+                    e.preventDefault();
+                    tx = e.clientX - sx; ty = e.clientY - sy;
+                    up();
+                });
+            };
+
+            const encodedLogic = 'javascript:(' + encodeURIComponent(bookmarkletLogic.toString()) + ')();';
+            document.getElementById('bookmarklet-ui-link').href = encodedLogic;
+        });
     </script>
 </body>
 </html>
