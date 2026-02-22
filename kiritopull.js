@@ -1,5 +1,5 @@
 // ==========================================
-// KIRITO PULL SYSTEM - ULTIMATE GITHUB EDITION
+// KIRITO PULL SYSTEM - ULTIMATE GITHUB EDITION (Pinch Zoom Fix)
 // ==========================================
 (function() {
     if(document.getElementById('krt-sys-wrapper')) {
@@ -71,53 +71,37 @@
     shadow.innerHTML = `
         <style>
             * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-            
-            /* Glassmorphism Background */
             .container { position: absolute; top:0; left:0; width: 100%; height: 100%; background: rgba(15, 15, 15, 0.75); overflow-y: auto; padding: 25px; color: #fff; pointer-events: auto; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
-            
-            /* Custom Scrollbar */
             .container::-webkit-scrollbar { width: 8px; }
             .container::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
             .container::-webkit-scrollbar-thumb { background: rgba(255, 0, 51, 0.5); border-radius: 10px; }
             .container::-webkit-scrollbar-thumb:hover { background: rgba(255, 0, 51, 0.8); }
-
             .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 15px; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
             h1 { color: #ff3333; margin: 0; text-shadow: 0 2px 10px rgba(255, 51, 51, 0.3); font-size: 26px; font-weight: 800; letter-spacing: 1px; }
             .btn-group { display: flex; gap: 12px; }
-            
             button { border: none; padding: 10px 22px; cursor: pointer; border-radius: 8px; font-weight: 600; color: #fff; transition: all 0.2s ease; font-size: 14px; display: flex; align-items: center; justify-content: center; }
             button:active { transform: scale(0.95); }
             button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-            
             .btn-zip { background: linear-gradient(135deg, #28a745, #208838); box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3); }
             .btn-zip:hover { background: linear-gradient(135deg, #218838, #1e7e34); box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4); }
-            
             .btn-close { background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid rgba(255, 255, 255, 0.2); backdrop-filter: blur(5px); }
             .btn-close:hover { background: rgba(255, 51, 51, 0.8); border-color: transparent; }
-            
             .info-text { color: #ccc; font-size: 14px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
             .status-badge { background: rgba(255, 51, 51, 0.2); color: #ff3333; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; border: 1px solid rgba(255, 51, 51, 0.3); }
-            
-            /* Grid & Cards */
             .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 20px; }
             .card { background: rgba(30, 30, 30, 0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.2); transition: transform 0.3s ease, box-shadow 0.3s ease; }
             .card:hover { transform: translateY(-5px); box-shadow: 0 12px 25px rgba(0,0,0,0.4); border-color: rgba(255, 51, 51, 0.3); }
-            
             .img-container { width: 100%; height: 130px; border-radius: 8px; overflow: hidden; margin-bottom: 12px; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; }
             .card img { max-width: 100%; max-height: 100%; object-fit: contain; cursor: zoom-in; transition: transform 0.3s ease; }
             .card:hover img { transform: scale(1.05); }
-            
             .filename { color: #fff; font-size: 11px; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
             .dimensions { color: #888; font-size: 10px; margin-bottom: 12px; font-weight: 400; background: rgba(0,0,0,0.3); padding: 3px 0; border-radius: 4px; }
-            
             .btn-dl { background: rgba(255, 51, 51, 0.8); width: 100%; padding: 8px; margin-top: auto; font-size: 12px; border-radius: 6px; }
             .btn-dl:hover { background: #ff3333; }
-            
-            /* Lightbox */
             .lightbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10; align-items: center; justify-content: center; touch-action: none; pointer-events: auto; backdrop-filter: blur(5px); }
             .lb-close { position: absolute; top: 20px; right: 20px; color: #fff; font-size: 30px; cursor: pointer; z-index: 11; width: 44px; height: 44px; text-align: center; line-height: 44px; background: rgba(255,255,255,0.1); border-radius: 50%; transition: all 0.2s; }
             .lb-close:hover { background: #ff3333; transform: rotate(90deg); }
-            .lb-img { max-width: 95%; max-height: 95%; transition: transform 0.1s ease-out; cursor: grab; user-select: none; -webkit-user-drag: none; filter: drop-shadow(0 0 20px rgba(0,0,0,0.5)); }
+            .lb-img { max-width: 95%; max-height: 95%; transition: transform 0.1s ease-out; cursor: grab; user-select: none; -webkit-user-drag: none; filter: drop-shadow(0 0 20px rgba(0,0,0,0.5)); transform-origin: center; }
             .lb-img:active { cursor: grabbing; }
             .lb-hint { position: absolute; bottom: 25px; background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 30px; display: flex; gap: 20px; color: #ddd; font-size: 13px; z-index: 11; pointer-events: none; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(4px); }
         </style>
@@ -142,7 +126,7 @@
             <img id="lb-img" class="lb-img">
             <div class="lb-hint">
                 <span>🖱️ กลิ้งเมาส์: ซูม</span>
-                <span>👆 ลาก/ทัช: เลื่อน</span>
+                <span>✌️ ซูมนิ้ว / 👆 ลากเลื่อน</span>
             </div>
         </div>
     `;
@@ -185,10 +169,9 @@
         
         let dimInfo = document.createElement('div');
         dimInfo.className = 'dimensions';
-        dimInfo.innerText = 'กำลังคำนวณขนาด...';
+        dimInfo.innerText = 'กำลังคำนวณ...';
 
         img.onload = function() {
-            // ดึงค่าความกว้าง และ ความยาวของรูปภาพมาแสดงผล
             if(this.naturalWidth && this.naturalHeight) {
                 dimInfo.innerText = `กว้าง: ${this.naturalWidth}px | ยาว: ${this.naturalHeight}px`;
             } else {
@@ -255,8 +238,15 @@
     shadow.getElementById('btn-close').onclick = () => wrapper.remove();
     shadow.getElementById('lb-close').onclick = () => lightbox.style.display = 'none';
 
+    // === อัปเกรดระบบ Touch & Zoom (Mouse + Mobile Pinch) ===
     let isDragging = false, startX, startY;
+    let initDist = 0;
+    let initScale = 1;
+
+    // ฟังก์ชันคำนวณระยะห่างระหว่าง 2 นิ้ว
+    const getDist = (touches) => Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
     
+    // สำหรับเมาส์บน PC
     lbImg.addEventListener('wheel', (e) => {
         e.preventDefault();
         sc += e.deltaY * -0.001;
@@ -280,23 +270,48 @@
         updateTransform();
     });
 
+    // สำหรับทัชสกรีนบนมือถือ (แก้บัคเพิ่ม Pinch-to-zoom)
     lbImg.addEventListener('touchstart', (e) => {
         if(e.touches.length === 1) {
             isDragging = true;
             startX = e.touches[0].clientX - tx;
             startY = e.touches[0].clientY - ty;
+        } else if (e.touches.length === 2) {
+            isDragging = false; // หยุดโหมดลากเมื่อเริ่มถ่างนิ้ว
+            initDist = getDist(e.touches);
+            initScale = sc;
         }
     }, {passive: false});
     
-    lightbox.addEventListener('touchend', () => isDragging = false);
+    lightbox.addEventListener('touchend', (e) => {
+        if(e.touches.length === 0) isDragging = false;
+        if(e.touches.length === 1) {
+            // เซ็ตค่าพิกัดใหม่เผื่อลากต่อด้วยนิ้วเดียว
+            isDragging = true;
+            startX = e.touches[0].clientX - tx;
+            startY = e.touches[0].clientY - ty;
+        }
+    });
+    
     lightbox.addEventListener('touchmove', (e) => {
-        if(!isDragging || e.touches.length !== 1) return;
-        e.preventDefault();
-        tx = e.touches[0].clientX - startX;
-        ty = e.touches[0].clientY - startY;
-        updateTransform();
+        e.preventDefault(); // ป้องกันหน้าเว็บเลื่อนตาม
+        if(isDragging && e.touches.length === 1) {
+            // โหมดลากนิ้วเดียว (Pan)
+            tx = e.touches[0].clientX - startX;
+            ty = e.touches[0].clientY - startY;
+            updateTransform();
+        } else if (e.touches.length === 2) {
+            // โหมดถ่างซูม 2 นิ้ว (Pinch Zoom)
+            let currDist = getDist(e.touches);
+            if (initDist > 0) {
+                let nScale = initScale * (currDist / initDist);
+                sc = Math.min(Math.max(0.5, nScale), 8); // ลิมิตซูมได้สูงสุด 8 เท่า
+                updateTransform();
+            }
+        }
     }, {passive: false});
 
+    // ระบบ ZIP (คงเดิม)
     shadow.getElementById('btn-zip').onclick = function() {
         let btn = this;
         btn.disabled = true;
