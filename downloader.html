@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KIRITO DOWNLOADER - ULTIMATE BYPASS</title>
+    <title>KIRITO DOWNLOADER - ULTIMATE MEDIA BYPASS</title>
     
     <!-- FAVICON -->
     <link rel="icon" type="image/jpeg" href="คิริโตะแดง.jpg">
@@ -25,7 +25,6 @@
             --font-tech: 'Orbitron', sans-serif;
         }
 
-        /* --- Custom Scrollbar --- */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-left: 1px solid rgba(255,255,255,0.05); }
         ::-webkit-scrollbar-thumb { background: var(--primary-red); border-radius: 5px; }
@@ -57,8 +56,8 @@
 
         .control-panel {
             width: 95%; max-width: 1200px; margin: 25px auto;
-            background: rgba(15, 15, 15, 0.55); border: 1px solid rgba(255, 51, 51, 0.3);
-            padding: 25px; border-radius: 12px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+            background: rgba(15, 15, 15, 0.65); border: 1px solid rgba(255, 51, 51, 0.3);
+            padding: 25px; border-radius: 12px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
         }
 
@@ -72,7 +71,6 @@
             padding: 10px 15px; cursor: pointer; font-family: var(--font-tech);
             border-radius: 6px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); flex-grow: 1; font-weight: bold;
         }
-
         .tab-btn:hover { background: rgba(255,255,255,0.1); }
         .tab-btn.active {
             background: var(--primary-red); color: white;
@@ -83,7 +81,6 @@
         .input-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-        .input-label { font-size: 0.9rem; color: var(--glow-red); margin-bottom: 5px; display: block; font-weight: bold; }
         input[type="text"], textarea {
             width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.4);
             border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 6px; font-family: monospace;
@@ -101,16 +98,24 @@
         .btn-scan { background: linear-gradient(135deg, #990000, var(--primary-red)); box-shadow: 0 5px 15px rgba(255, 0, 51, 0.3); }
         .btn-scan:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255, 0, 51, 0.5); }
 
+        /* --- ระบบกรอง (2 ชั้น) --- */
         .filter-section { margin-top: 20px; padding-top: 15px; border-top: 1px dashed rgba(255,255,255,0.1); }
-        .filter-label { font-size: 0.85rem; color: #ddd; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
-        .filter-group { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .filter-label { font-size: 0.85rem; color: #ddd; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; font-weight: bold; }
+        .filter-group { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
         .filter-btn {
             padding: 6px 14px; font-size: 0.8rem; background: rgba(0,0,0,0.4);
             border: 1px solid rgba(255,255,255,0.15); border-radius: 20px; color: #ccc; cursor: pointer;
-            transition: all 0.2s; font-family: var(--font-tech);
+            transition: all 0.2s; font-family: var(--font-tech); display: flex; align-items: center; gap: 5px;
         }
         .filter-btn:hover { background: rgba(255, 255, 255, 0.1); border-color: #777; }
         .filter-btn.active { background: var(--primary-red); color: white; border-color: var(--primary-red); box-shadow: 0 0 12px rgba(255, 0, 51, 0.4); }
+
+        .sub-filter-container {
+            display: none; padding: 10px 15px; background: rgba(255,255,255,0.03); 
+            border-left: 3px solid var(--primary-red); border-radius: 0 8px 8px 0; margin-bottom: 15px;
+            animation: fadeInDown 0.2s ease-out;
+        }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
         .global-actions {
             display: flex; gap: 12px; margin-top: 15px; padding-top: 15px;
@@ -118,7 +123,7 @@
         }
         .btn-action {
             flex: 1; padding: 10px 15px; font-size: 0.85rem; background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: #eee; cursor: pointer; white-space: nowrap; transition: 0.2s; font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: #eee; cursor: pointer; white-space: nowrap; transition: 0.2s; font-weight: 600; display:flex; align-items:center; justify-content:center; gap:5px;
         }
         .btn-action:hover { background: rgba(255,255,255,0.2); color: white; }
         .btn-success { background: rgba(40,167,69,0.2); color: #4CAF50; border-color: #28a745; }
@@ -138,74 +143,76 @@
         /* Gallery */
         .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 18px; width: 95%; max-width: 1400px; margin-bottom: 50px; }
         
-        .img-card {
+        .media-card {
             background: rgba(20, 20, 20, 0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden;
             position: relative; display: flex; flex-direction: column; transition: all 0.3s ease; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             backdrop-filter: blur(5px);
         }
-        .img-card.hidden-by-filter { display: none !important; }
-        .img-card:hover { border-color: var(--primary-red); transform: translateY(-5px); box-shadow: 0 10px 25px rgba(255, 0, 51, 0.4); z-index: 10; background: rgba(30, 30, 30, 0.8); }
+        .media-card.hidden-by-filter { display: none !important; }
+        .media-card:hover { border-color: var(--primary-red); transform: translateY(-5px); box-shadow: 0 10px 25px rgba(255, 0, 51, 0.4); z-index: 10; background: rgba(30, 30, 30, 0.8); }
         
         .card-checkbox { position: absolute; top: 12px; left: 12px; z-index: 5; width: 22px; height: 22px; cursor: pointer; accent-color: var(--primary-red); filter: drop-shadow(0 0 5px rgba(0,0,0,0.5)); }
+        
+        .type-badge { position: absolute; top: 12px; right: 12px; z-index: 5; background: rgba(0,0,0,0.7); color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; font-family: var(--font-tech); border: 1px solid rgba(255,255,255,0.2); pointer-events: none; }
 
-        .img-container { width: 100%; height: 160px; background: rgba(0,0,0,0.4); display: flex; justify-content: center; align-items: center; overflow: hidden; cursor: zoom-in; }
-        .img-card img { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.3s ease; }
-        .img-card:hover img { transform: scale(1.08); }
+        .media-container { width: 100%; height: 160px; background: rgba(0,0,0,0.4); display: flex; justify-content: center; align-items: center; overflow: hidden; cursor: pointer; position: relative; }
+        .media-card img, .media-card video { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.3s ease; }
+        .media-card:hover .media-container img, .media-card:hover .media-container video { transform: scale(1.08); }
 
-        .img-info { width: 100%; padding: 12px 10px; background: rgba(0,0,0,0.5); color: #ccc; font-size: 0.75rem; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; font-family: var(--font-tech); }
-        .img-info span.name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px; color: #fff; font-weight: 500; }
-        .img-info span.meta { color: var(--glow-red); font-size: 0.7rem; font-weight: bold; background: rgba(255,0,51,0.1); padding: 3px 6px; border-radius: 4px; }
+        .play-overlay { position: absolute; font-size: 3rem; color: rgba(255,255,255,0.7); pointer-events: none; text-shadow: 0 0 10px rgba(0,0,0,0.8); transition: 0.3s; opacity: 1; }
+        .media-card:hover .play-overlay { color: var(--primary-red); transform: scale(1.1); }
 
-        .img-actions { padding: 10px; background: rgba(10,10,10,0.8); display: flex; justify-content: center; gap: 8px; border-top: 1px solid rgba(255,51,51,0.2); }
+        .media-info { width: 100%; padding: 12px 10px; background: rgba(0,0,0,0.5); color: #ccc; font-size: 0.75rem; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; font-family: var(--font-tech); }
+        .media-info span.name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px; color: #fff; font-weight: 500; }
+        .media-info span.meta { color: var(--glow-red); font-size: 0.7rem; font-weight: bold; background: rgba(255,0,51,0.1); padding: 3px 6px; border-radius: 4px; white-space: nowrap; }
+
+        .media-actions { padding: 10px; background: rgba(10,10,10,0.8); display: flex; justify-content: center; gap: 8px; border-top: 1px solid rgba(255,51,51,0.2); }
         .btn-icon { flex: 1; height: 36px; border-radius: 6px; border: none; cursor: pointer; color: white; font-size: 0.95rem; transition: 0.2s; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); }
         .btn-icon:hover { transform: translateY(-3px); }
         .btn-dl { background: rgba(255,0,51,0.7); } .btn-dl:hover { background: var(--primary-red); box-shadow: 0 0 10px rgba(255,0,51,0.5); }
         .btn-copy-link { background: rgba(0,123,255,0.7); } .btn-copy-link:hover { background: #007bff; box-shadow: 0 0 10px rgba(0,123,255,0.5); }
         .btn-copy-img { background: rgba(40,167,69,0.7); } .btn-copy-img:hover { background: #28a745; box-shadow: 0 0 10px rgba(40,167,69,0.5); }
         
-        /* Lightbox - ระบบอัปเกรดทัชใหม่ 100% */
-        #lightbox {
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 2000;
-            justify-content: center; align-items: center; overflow: hidden; touch-action: none; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-        }
-        #lb-img { max-width: 90%; max-height: 90%; transition: transform 0.15s ease-out; cursor: grab; user-select: none; -webkit-user-drag: none; filter: drop-shadow(0 10px 30px rgba(0,0,0,0.6)); transform-origin: center; }
-        #lb-img.grabbing { cursor: grabbing; transition: none; }
+        /* Lightbox */
+        #lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 2000; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; touch-action: none; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        #lb-content-wrapper { position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
+        .lb-media { max-width: 90%; max-height: 85%; transition: transform 0.15s ease-out; filter: drop-shadow(0 10px 30px rgba(0,0,0,0.6)); outline: none; }
+        .lb-media.grabbing { cursor: grabbing; transition: none; }
+        img.lb-media { cursor: grab; user-select: none; -webkit-user-drag: none; }
         
         .lb-close { position: absolute; top: 20px; right: 20px; color: white; font-size: 2.5rem; cursor: pointer; z-index: 2005; background: rgba(255,255,255,0.1); width: 50px; height: 50px; text-align: center; line-height: 50px; border-radius: 50%; transition: 0.2s; }
         .lb-close:hover { background: var(--primary-red); transform: rotate(90deg); box-shadow: 0 0 15px rgba(255,0,51,0.5); }
-        
         .lb-nav { position: absolute; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.5); font-size: 3rem; cursor: pointer; z-index: 2002; padding: 20px 10px; transition: 0.3s; background: rgba(0,0,0,0.2); }
         .lb-nav:hover { color: white; background: rgba(255,0,51,0.4); }
         .lb-prev { left: 0; border-radius: 0 10px 10px 0; }
         .lb-next { right: 0; border-radius: 10px 0 0 10px; }
-
-        .lb-controls { position: absolute; bottom: 30px; background: rgba(0,0,0,0.6); padding: 12px 25px; border-radius: 30px; display: flex; gap: 20px; color: #ddd; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px); pointer-events: none; }
+        .lb-controls { position: absolute; bottom: 30px; background: rgba(0,0,0,0.6); padding: 12px 25px; border-radius: 30px; display: flex; gap: 20px; color: #ddd; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px); pointer-events: none; z-index: 2003; }
         
         .status-msg { color: var(--glow-red); text-align: center; margin: 15px 0; font-size: 1rem; font-weight:bold; line-height: 1.5; }
         .loader { display: none; width: 35px; height: 35px; border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--primary-red); border-radius: 50%; animation: spin 1s linear infinite; margin: 15px auto; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        .back-nav { margin-top: 20px; text-align: center; }
-        .btn-home {
-            background: rgba(0,0,0,0.5); border: 1px solid var(--primary-red); color: var(--primary-red);
-            padding: 8px 20px; text-decoration: none; border-radius: 5px; font-size: 0.9rem;
-            transition: all 0.3s; backdrop-filter: blur(5px); display: inline-block; font-weight: bold;
-        }
-        .btn-home:hover { background: var(--primary-red); color: white; box-shadow: 0 0 15px rgba(255,0,51,0.5); }
-
         .bookmarklet-box { background: rgba(0,0,0,0.4); padding: 25px; border: 1px dashed rgba(255,51,51,0.5); border-radius: 10px; text-align: center; margin-top: 20px; }
         .bookmark-link { background: rgba(255,255,255,0.1); color: #fff; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; cursor: move; border: 1px solid rgba(255,255,255,0.2); display: inline-block; transition: all 0.3s; font-family: var(--font-tech); }
         .bookmark-link:hover { background: var(--primary-red); border-color: var(--primary-red); box-shadow: 0 0 20px var(--glow-red); transform: translateY(-2px); }
-        
         .mobile-copy-btn { background: rgba(0,123,255,0.1); border: 1px solid #007bff; color: #4da3ff; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.95rem; margin-top: 15px; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; font-weight: bold; }
         .mobile-copy-btn:hover { background: #007bff; color: white; box-shadow: 0 0 15px rgba(0,123,255,0.5); transform: translateY(-2px); }
+
+        /* --- Scroll to Top Button --- */
+        #scrollTopBtn {
+            display: none; position: fixed; bottom: 30px; right: 30px; z-index: 99;
+            font-size: 1.5rem; border: none; outline: none; background-color: var(--primary-red);
+            color: white; cursor: pointer; padding: 15px; border-radius: 50%;
+            box-shadow: 0 4px 15px rgba(255,0,51,0.5); transition: 0.3s; width: 55px; height: 55px;
+        }
+        #scrollTopBtn:hover { background-color: var(--glow-red); transform: translateY(-5px); box-shadow: 0 6px 20px rgba(255,0,51,0.7); }
     </style>
 </head>
 <body>
 
     <header>
         <h1>KIRITO DOWNLOADER</h1>
-        <div style="font-size: 0.75rem; color: #ccc; letter-spacing: 2px;">THE ULTIMATE BYPASS EDITION</div>
+        <div style="font-size: 0.75rem; color: #ccc; letter-spacing: 2px;">ULTIMATE MEDIA & BYPASS EDITION</div>
     </header>
 
     <div class="control-panel">
@@ -217,13 +224,13 @@
 
         <div id="tab-auto" class="input-section active">
             <input type="text" id="targetUrl" placeholder="ใส่ลิงก์เว็บไซต์เป้าหมาย (เช่น https://example.com)">
-            <button class="btn btn-scan" onclick="startAutoScan()"><i class="fas fa-radar"></i> START SCAN</button>
-            <p style="font-size:0.8rem; color:#aaa; margin-top:10px; text-align:center;">*หมายเหตุ: เว็บโซเชียลที่มีระบบป้องกันสูง (เช่น Facebook, IG, Pinterest) ไม่สามารถสแกนตรงๆได้ กรุณาใช้ Bookmarklet ที่เมนู Setup Tools แทนครับ</p>
+            <button class="btn btn-scan" onclick="startAutoScan()"><i class="fas fa-radar"></i> START SCAN MEDIA</button>
+            <p style="font-size:0.8rem; color:#aaa; margin-top:10px; text-align:center;">*สำหรับเว็บ Social (FB/IG/Pinterest/Tiktok) แนะนำให้ใช้เครื่องมือ Bookmarklet ด้านบนแทนครับ</p>
         </div>
 
         <div id="tab-manual" class="input-section">
-            <input type="text" id="manualUrl" placeholder="ลิงก์โดเมนต้นทาง (สำคัญมาก! เพื่อดึงรูปที่ติด Relative Path ให้สมบูรณ์)">
-            <textarea id="sourceCode" placeholder="วาง Source Code HTML หรือ โค้ด JSON รกๆ ไว้ที่นี่ ระบบจะสแกนหาทุกลิงก์ให้เอง..."></textarea>
+            <input type="text" id="manualUrl" placeholder="ลิงก์โดเมนต้นทาง (สำคัญมาก! เพื่อดึงไฟล์ที่ติด Relative Path ให้สมบูรณ์)">
+            <textarea id="sourceCode" placeholder="วาง Source Code HTML, โค้ด JSON, หรือข้อความรกๆ ไว้ที่นี่ ระบบจะแสกนหาทุกลิงก์ให้เอง..."></textarea>
             <button class="btn btn-scan" onclick="startManualScan()"><i class="fas fa-microchip"></i> DECODE & EXTRACT</button>
         </div>
 
@@ -238,26 +245,58 @@
                         <i class="fas fa-mobile-alt"></i> คัดลอก Loader Code (สำหรับมือถือ)
                     </button>
                 </div>
-                <p style="font-size:0.85rem; color:#aaa; margin-top:15px;">📌 เครื่องมือนี้คือ "กุญแจหลัก" ในการดูดรูปจากเว็บที่บล็อก Auto Scan อย่าง Facebook และ Pinterest ระบบถูกอัปเกรดให้เชื่อมต่อ GitHub อัตโนมัติ 100%</p>
+                <p style="font-size:0.85rem; color:#aaa; margin-top:15px;">📌 เครื่องมือนี้คือ "กุญแจหลัก" ในการดูดรูปจากเว็บที่บล็อก Auto Scan อย่าง Facebook และ Pinterest</p>
             </div>
         </div>
 
         <div class="filter-section">
-            <div class="filter-label"><i class="fas fa-expand"></i> ขนาดภาพ (Size Filter):</div>
+            <div class="filter-label"><i class="fas fa-cubes"></i> หมวดหมู่หลัก (Category):</div>
+            <div class="filter-group" id="mainTypeFilters">
+                <button class="filter-btn active" onclick="setMainType('all', this)">ทั้งหมด (All)</button>
+                <button class="filter-btn" onclick="setMainType('image', this)"><i class="fas fa-image"></i> รูปภาพ (Image)</button>
+                <button class="filter-btn" onclick="setMainType('video', this)"><i class="fas fa-video"></i> วิดีโอ (Video)</button>
+                <button class="filter-btn" onclick="setMainType('audio', this)"><i class="fas fa-music"></i> เสียง (Audio)</button>
+            </div>
+
+            <!-- Sub Filter Container -->
+            <div id="subFiltersContainer" class="sub-filter-container">
+                <div class="filter-group" id="subType_image" style="display: none; margin: 0;">
+                    <button class="filter-btn active" onclick="setSubType('all', this)">รูปทั้งหมด</button>
+                    <button class="filter-btn" onclick="setSubType('jpg', this)">JPG</button>
+                    <button class="filter-btn" onclick="setSubType('png', this)">PNG</button>
+                    <button class="filter-btn" onclick="setSubType('gif', this)">GIF</button>
+                    <button class="filter-btn" onclick="setSubType('webp', this)">WebP</button>
+                    <button class="filter-btn" onclick="setSubType('svg', this)">SVG</button>
+                    <button class="filter-btn" onclick="setSubType('other_img', this)">อื่นๆ</button>
+                </div>
+                <div class="filter-group" id="subType_video" style="display: none; margin: 0;">
+                    <button class="filter-btn active" onclick="setSubType('all', this)">วิดีโอทั้งหมด</button>
+                    <button class="filter-btn" onclick="setSubType('mp4', this)">MP4</button>
+                    <button class="filter-btn" onclick="setSubType('webm', this)">WebM</button>
+                    <button class="filter-btn" onclick="setSubType('other_vid', this)">อื่นๆ (MOV, OGG...)</button>
+                </div>
+                <div class="filter-group" id="subType_audio" style="display: none; margin: 0;">
+                    <button class="filter-btn active" onclick="setSubType('all', this)">เสียงทั้งหมด</button>
+                    <button class="filter-btn" onclick="setSubType('mp3', this)">MP3</button>
+                    <button class="filter-btn" onclick="setSubType('wav', this)">WAV</button>
+                    <button class="filter-btn" onclick="setSubType('other_aud', this)">อื่นๆ (M4A, AAC...)</button>
+                </div>
+            </div>
+            
+            <div class="filter-label"><i class="fas fa-expand"></i> ขนาดไฟล์ (Resolution) *เฉพาะรูป/คลิป:</div>
             <div class="filter-group" id="sizeFilters">
                 <button class="filter-btn active" onclick="setSizeFilter('all', this)">ทั้งหมด</button>
                 <button class="filter-btn" onclick="setSizeFilter('small', this)">เล็ก (&lt;500px)</button>
                 <button class="filter-btn" onclick="setSizeFilter('medium', this)">กลาง (500-1200px)</button>
                 <button class="filter-btn" onclick="setSizeFilter('large', this)">ใหญ่ (&gt;1200px)</button>
             </div>
-            <div class="filter-label"><i class="fas fa-file-image"></i> ประเภทไฟล์ (File Type):</div>
-            <div class="filter-group" id="typeFilters">
-                <button class="filter-btn active" onclick="setTypeFilter('all', this)">All</button>
-                <button class="filter-btn" onclick="setTypeFilter('jpg', this)">JPG</button>
-                <button class="filter-btn" onclick="setTypeFilter('png', this)">PNG</button>
-                <button class="filter-btn" onclick="setTypeFilter('gif', this)">GIF</button>
-                <button class="filter-btn" onclick="setTypeFilter('webp', this)">WebP</button>
-                <button class="filter-btn" onclick="setTypeFilter('svg', this)">SVG</button>
+
+            <div class="filter-label"><i class="fas fa-clock"></i> ระยะเวลา (Duration) *เฉพาะคลิป/เสียง:</div>
+            <div class="filter-group" id="durationFilters">
+                <button class="filter-btn active" onclick="setDurationFilter('all', this)">ทั้งหมด</button>
+                <button class="filter-btn" onclick="setDurationFilter('short', this)">สั้น (&lt; 30 วิ)</button>
+                <button class="filter-btn" onclick="setDurationFilter('medium', this)">กลาง (30 วิ - 3 นาที)</button>
+                <button class="filter-btn" onclick="setDurationFilter('long', this)">ยาว (&gt; 3 นาที)</button>
             </div>
         </div>
 
@@ -266,39 +305,67 @@
         <div id="progress-container"><div id="progress-bar">0%</div></div>
 
         <div class="global-actions">
-            <label class="toggle-container" title="แสดงรูปซ้ำทั้งหมด">
-                <input type="checkbox" id="allowDuplicates"> ปิดระบบลบรูปซ้ำ
+            <label class="toggle-container" title="แสดงไฟล์ซ้ำทั้งหมด">
+                <input type="checkbox" id="allowDuplicates"> ปิดระบบลบไฟล์ซ้ำ
             </label>
-            <button class="btn-action" onclick="selectAllImages()"><i class="fas fa-check-square"></i> เลือกทั้งหมด/ยกเลิก</button>
+            <button class="btn-action" onclick="selectAllMedia()"><i class="fas fa-check-square"></i> เลือกทั้งหมดบนจอ</button>
             <button class="btn-action btn-success" onclick="downloadAll()" id="btn-dl-all"><i class="fas fa-box-open"></i> ดาวน์โหลด ZIP ที่เลือก</button>
-            <button class="btn-action btn-danger" onclick="clearGallery()"><i class="fas fa-trash"></i> ล้างข้อมูล</button>
+            <button class="btn-action btn-danger" onclick="clearGallery()"><i class="fas fa-trash"></i> ล้างหน้าจอ</button>
         </div>
     </div>
 
     <div class="gallery" id="gallery"></div>
     
-    <div class="back-nav" style="margin-bottom: 30px;">
-        <a href="index.html" class="btn-home"><i class="fas fa-home"></i> กลับหน้าหลัก</a>
+    <div style="margin: 20px 0 40px 0; text-align: center;">
+        <a href="index.html" style="background: rgba(0,0,0,0.5); border: 1px solid var(--primary-red); color: var(--primary-red); padding: 8px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; transition: 0.3s;"><i class="fas fa-home"></i> กลับหน้าหลัก</a>
     </div>
 
+    <!-- ปุ่มเลื่อนขึ้นบนสุด -->
+    <button onclick="scrollToTop()" id="scrollTopBtn" title="กลับขึ้นบนสุด"><i class="fas fa-rocket"></i></button>
+
+    <!-- Lightbox สำหรับรองรับ Video และ Audio -->
     <div id="lightbox">
         <div class="lb-close" onclick="closeLightbox()">&times;</div>
         <div id="lb-prev" class="lb-nav lb-prev" onclick="navLb(-1)">&#10094;</div>
-        <img id="lb-img" src="">
+        
+        <div id="lb-content-wrapper">
+            <img id="lb-img" class="lb-media" style="display:none;" src="">
+            <video id="lb-vid" class="lb-media" style="display:none; max-width:90%; max-height:85%;" controls></video>
+            <audio id="lb-aud" class="lb-media" style="display:none; width:80%;" controls></audio>
+        </div>
+
         <div id="lb-next" class="lb-nav lb-next" onclick="navLb(1)">&#10095;</div>
         <div class="lb-controls">
-            <span><i class="fas fa-search-plus"></i> ซูม/ลากรูป</span>
-            <span><i class="fas fa-arrows-alt-h"></i> ปัด/ลูกศร เปลี่ยนรูป</span>
+            <span><i class="fas fa-search-plus"></i> ซูม/ลาก (เฉพาะรูป)</span>
+            <span><i class="fas fa-arrows-alt-h"></i> ปัด/ลูกศร เปลี่ยนไฟล์</span>
         </div>
     </div>
 
     <script>
-        let allScannedImages = []; 
-        let globalImagesToShow = []; 
+        let allScannedMedia = []; 
+        let globalMediaToShow = []; 
         let currentLbIndex = 0;
-        let currentSizeFilter = 'all', currentTypeFilter = 'all';
+        
+        let currentMainType = 'all';
+        let currentSubType = 'all';
+        let currentSizeFilter = 'all';
+        let currentDurationFilter = 'all';
 
-        // --- ระบบแจ้งเตือนปุ่ม UI ให้มีความเสถียร ---
+        // --- ระบบ Scroll To Top ---
+        window.onscroll = function() {
+            let topBtn = document.getElementById("scrollTopBtn");
+            if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+                topBtn.style.display = "block";
+            } else {
+                topBtn.style.display = "none";
+            }
+        };
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- UI Feedback ---
         function showTempSuccess(btnId, tempHtml, originalHtml, time = 2500) {
             const btn = document.getElementById(btnId);
             if(!btn) return;
@@ -327,6 +394,36 @@
             document.getElementById(`tab-${mode}`).classList.add('active');
         }
 
+        // --- ระบบฟิลเตอร์ 2 ชั้น ---
+        function setMainType(type, btn) {
+            currentMainType = type;
+            currentSubType = 'all'; 
+
+            document.querySelectorAll('#mainTypeFilters .filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const subContainer = document.getElementById('subFiltersContainer');
+            document.querySelectorAll('[id^="subType_"]').forEach(el => el.style.display = 'none');
+
+            if (type === 'all') {
+                subContainer.style.display = 'none';
+            } else {
+                subContainer.style.display = 'block';
+                document.getElementById('subType_' + type).style.display = 'flex';
+                document.querySelectorAll('#subType_' + type + ' .filter-btn').forEach(b => b.classList.remove('active'));
+                document.querySelector('#subType_' + type + ' .filter-btn').classList.add('active');
+            }
+            applyVisualFilters();
+        }
+
+        function setSubType(subtype, btn) {
+            currentSubType = subtype;
+            const group = btn.parentElement;
+            group.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            applyVisualFilters();
+        }
+
         function setSizeFilter(size, btn) {
             currentSizeFilter = size;
             document.querySelectorAll('#sizeFilters .filter-btn').forEach(b => b.classList.remove('active'));
@@ -334,21 +431,51 @@
             applyVisualFilters();
         }
 
-        function setTypeFilter(type, btn) {
-            currentTypeFilter = type;
-            document.querySelectorAll('#typeFilters .filter-btn').forEach(b => b.classList.remove('active'));
+        function setDurationFilter(duration, btn) {
+            currentDurationFilter = duration;
+            document.querySelectorAll('#durationFilters .filter-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            renderGallery();
+            applyVisualFilters();
         }
 
         function applyVisualFilters() {
-            const cards = document.querySelectorAll('.img-card');
+            const cards = document.querySelectorAll('.media-card');
             cards.forEach(card => {
                 const width = parseInt(card.getAttribute('data-width') || 0);
+                const duration = parseFloat(card.getAttribute('data-duration') || 0);
+                const mediaType = card.getAttribute('data-type'); 
+                const url = card.querySelector('.chk-select').getAttribute('data-url').toLowerCase();
+                const ext = url.split('.').pop().split('?')[0];
+                
                 let show = true;
-                if (currentSizeFilter === 'small' && width >= 500) show = false;
-                if (currentSizeFilter === 'medium' && (width < 500 || width > 1200)) show = false;
-                if (currentSizeFilter === 'large' && width <= 1200) show = false;
+
+                if (currentMainType !== 'all' && mediaType !== currentMainType) show = false;
+
+                if (show && currentSubType !== 'all') {
+                    if (currentSubType === 'jpg' && !['jpg', 'jpeg'].includes(ext)) show = false;
+                    else if (['png', 'gif', 'webp', 'svg', 'mp4', 'webm', 'mp3', 'wav'].includes(currentSubType) && ext !== currentSubType) show = false;
+                    else if (currentSubType === 'other_img' && ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) show = false;
+                    else if (currentSubType === 'other_vid' && ['mp4', 'webm'].includes(ext)) show = false;
+                    else if (currentSubType === 'other_aud' && ['mp3', 'wav'].includes(ext)) show = false;
+                }
+
+                if (show && currentSizeFilter !== 'all') {
+                    if (mediaType === 'audio') show = false; 
+                    else {
+                        if (currentSizeFilter === 'small' && width >= 500) show = false;
+                        if (currentSizeFilter === 'medium' && (width < 500 || width > 1200)) show = false;
+                        if (currentSizeFilter === 'large' && width <= 1200) show = false;
+                    }
+                }
+
+                if (show && currentDurationFilter !== 'all') {
+                    if (mediaType === 'image') show = false;
+                    else {
+                        if (currentDurationFilter === 'short' && duration >= 30) show = false;
+                        if (currentDurationFilter === 'medium' && (duration < 30 || duration > 180)) show = false;
+                        if (currentDurationFilter === 'long' && duration <= 180) show = false;
+                    }
+                }
                 
                 if (show) card.classList.remove('hidden-by-filter');
                 else card.classList.add('hidden-by-filter');
@@ -357,51 +484,52 @@
         }
 
         function updateStatusText() {
-            const visibleCards = document.querySelectorAll('.img-card:not(.hidden-by-filter)');
-            document.getElementById('status').innerText = `ค้นพบทั้งหมด ${visibleCards.length} รูป (พร้อมดาวน์โหลด)`;
+            const visibleCards = document.querySelectorAll('.media-card:not(.hidden-by-filter)');
+            document.getElementById('status').innerText = `พร้อมแสดงผล ${visibleCards.length} ไฟล์บนหน้าจอ`;
         }
 
-        function checkFileType(url, filter) {
-            const u = url.toLowerCase().split('?')[0];
-            if (u.endsWith('.js') || u.endsWith('.css') || u.endsWith('.html') || u.endsWith('.php')) return false;
-            if (filter === 'all') return true; 
-            if (filter === 'jpg' && (u.endsWith('.jpg') || u.endsWith('.jpeg'))) return true;
-            if (filter === 'png' && u.endsWith('.png')) return true;
-            if (filter === 'gif' && u.endsWith('.gif')) return true;
-            if (filter === 'webp' && u.endsWith('.webp')) return true;
-            if (filter === 'svg' && u.endsWith('.svg')) return true;
-            return false;
+        function getMediaType(url) {
+            const ext = url.split('.').pop().split('?')[0].toLowerCase();
+            if (['mp4', 'webm', 'ogg', 'mov', 'm4v'].includes(ext)) return 'video';
+            if (['mp3', 'wav', 'm4a', 'aac', 'flac'].includes(ext)) return 'audio';
+            return 'image';
         }
 
-        // --- Core Engine อัปเกรด: โหดขึ้น เจาะทะลุ String และ JSON ทุุกรูปแบบ ---
-        function extractImagesFromHtml(html, baseUrl) {
+        function formatTime(seconds) {
+            if(!seconds || isNaN(seconds)) return '0:00';
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${m}:${s.toString().padStart(2, '0')}`;
+        }
+
+        // ระบบจัดระเบียบชื่อไฟล์ให้สะอาด (ตัด Query ปลายทางออก)
+        function cleanFilenameForDisplay(url) {
+            let raw = url.split('/').pop().split(/[#?]/)[0];
+            try{ raw = decodeURIComponent(raw); }catch(e){}
+            if(raw.length > 20) raw = raw.substring(0, 10) + '...' + raw.substring(raw.length - 7);
+            return raw || 'media_file';
+        }
+
+        function extractMediaFromHtml(html, baseUrl) {
             let foundRaw = new Set(); 
-            
-            // Regex 1: เจาะหาลิงก์แบบดิบๆ ไม่สนแท็ก HTML (ทะลวงโค้ดที่ถูกซ่อนในสคริปต์ JSON)
-            // รองรับทั้งลิงก์ที่มี \/ แทน / (เช่นใน JSON ของ Next.js)
-            const urlRegex = /(?:https?:|\\\/\\\/|\/\/)[^\s"'<>;&\\]+\.(?:jpg|jpeg|png|gif|webp|svg|ico|bmp|tiff)(?:\?[^\s"'<>\\]*)?/gi;
+            const urlRegex = /(?:https?:|\\\/\\\/|\/\/)[^\s"'<>;&\\]+\.(?:jpg|jpeg|png|gif|webp|svg|ico|bmp|tiff|mp4|webm|ogg|mov|m4v|mp3|wav|m4a)(?:\?[^\s"'<>\\]*)?/gi;
             let match;
             while ((match = urlRegex.exec(html)) !== null) {
-                let cleanedMatch = match[0].replace(/\\/g, ''); // ลบ Blackslash ออก
-                foundRaw.add(cleanedMatch);
+                foundRaw.add(match[0].replace(/\\/g, ''));
             }
             
-            // Regex 2: เจาะหาผ่าน DOM Parser เผื่อมีอยู่ใน Attribute อื่นๆ
             try {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 doc.querySelectorAll('*').forEach(el => {
-                    ['src', 'data-src', 'data-original', 'data-lazy-src', 'data-srcset', 'href', 'srcset', 'imagesrcset', 'content', 'poster'].forEach(attr => {
+                    ['src', 'data-src', 'data-original', 'data-lazy-src', 'data-srcset', 'href', 'srcset', 'content', 'poster'].forEach(attr => {
                         let val = el.getAttribute(attr);
                         if (val) {
                             if (val.includes(',') && attr.includes('set')) {
                                 val.split(',').forEach(p => foundRaw.add(p.trim().split(/\s+/)[0]));
-                            } else {
-                                foundRaw.add(val);
-                            }
+                            } else foundRaw.add(val);
                         }
                     });
-                    // ควานหาจาก CSS Style ทั่วไป
                     let style = el.getAttribute('style');
                     if (style && style.includes('url(')) {
                         let m = style.match(/url\(['"]?([^'"()]+)['"]?\)/);
@@ -415,19 +543,9 @@
                 if (!url || url.startsWith('data:')) return;
                 try {
                     url = url.trim();
-                    // แก้บัคการเข้ารหัส URL แปลกๆ
-                    if (url.includes('%')) {
-                        try { url = decodeURIComponent(url); } catch(e){}
-                    }
-                    
-                    // เติมเต็ม Relative URL ให้สมบูรณ์
+                    if (url.includes('%')) try { url = decodeURIComponent(url); } catch(e){}
                     if (url.startsWith('//')) url = 'https:' + url;
-                    else if (url.startsWith('/')) { 
-                        if(baseUrl) {
-                            let origin = new URL(baseUrl).origin;
-                            url = origin + url; 
-                        }
-                    }
+                    else if (url.startsWith('/')) { if(baseUrl) url = new URL(url, new URL(baseUrl).origin).href; }
                     else if (!url.startsWith('http')) {
                         if(baseUrl) {
                             let base = baseUrl.endsWith('/') ? baseUrl : baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1);
@@ -435,7 +553,6 @@
                         }
                     }
 
-                    // สกัดลิงก์ที่โดนครอบด้วย Redirect
                     if (url.includes('url=')) {
                         try {
                             let dummy = new URL(url, 'http://d');
@@ -444,22 +561,16 @@
                         } catch(e){}
                     }
 
-                    const uL = url.toLowerCase().split('?')[0];
-                    if (uL.match(/\.(jpg|jpeg|png|webp|gif|svg|tiff|heic|ico)$/i)) {
-                        finalUrls.push(url);
-                    }
+                    const ext = url.toLowerCase().split('.').pop().split('?')[0];
+                    const validExts = ['jpg','jpeg','png','webp','gif','svg','tiff','heic','ico','mp4','webm','ogg','mov','m4v','mp3','wav','m4a'];
+                    if (validExts.includes(ext)) finalUrls.push(url);
                 } catch(e) {}
             });
             return finalUrls;
         }
 
-        // --- ระบบ Proxy Chain ขั้นสูง (Failover) ---
         async function fetchHtmlSafe(url) {
-            const proxies = [
-                'https://api.allorigins.win/raw?url=', // Proxy ที่เจาะทะลุได้ดีที่สุด
-                'https://api.codetabs.com/v1/proxy?quest=', 
-                'https://corsproxy.io/?'
-            ];
+            const proxies = ['https://api.allorigins.win/raw?url=', 'https://api.codetabs.com/v1/proxy?quest=', 'https://corsproxy.io/?'];
             for (let p of proxies) {
                 try {
                     const res = await fetch(p + encodeURIComponent(url), { signal: AbortSignal.timeout(8000) });
@@ -469,12 +580,12 @@
             throw new Error("Blocked");
         }
 
-        async function fetchImageSafe(url) {
+        async function fetchMediaSafe(url) {
             const proxies = ['', 'https://api.codetabs.com/v1/proxy?quest=', 'https://corsproxy.io/?', 'https://api.allorigins.win/raw?url='];
             for (let px of proxies) {
                 try {
                     const target = px ? px + encodeURIComponent(url) : url;
-                    const res = await fetch(target, { signal: AbortSignal.timeout(6000) });
+                    const res = await fetch(target, { signal: AbortSignal.timeout(10000) });
                     if (res.ok) { 
                         let b = await res.blob(); 
                         if(b.size > 150 && !b.type.includes('text/html')) return b; 
@@ -487,38 +598,31 @@
         async function startAutoScan() {
             const url = document.getElementById('targetUrl').value;
             if (!url) return alert('กรุณาใส่ลิงก์เว็บไซต์');
-            
-            // เช็กเตือนล่วงหน้าสำหรับเว็บที่กันเหนียว
-            if(url.includes('facebook.com') || url.includes('pinterest.com') || url.includes('instagram.com')) {
-                const proceed = confirm("เว็บที่คุณใส่มีการบล็อกแบบรุนแรง (Facebook/Pinterest/IG) โหมด Auto Scan มักจะดึงภาพไม่ได้เพราะติดการล็อกอินหรือ SPA \n\nต้องการลองฝืนแสกนต่อหรือไม่?\n(แนะนำให้เปิดเว็บนั้นแล้วกดใช้ KIRITO PULL Bookmarklet แทน)");
-                if(!proceed) return;
-            }
-
             runScan(url, async () => await fetchHtmlSafe(url));
         }
 
         function startManualScan() {
             const url = document.getElementById('manualUrl').value;
             const code = document.getElementById('sourceCode').value;
-            if (!code) return alert('กรุณาวาง Source Code HTML หรือข้อความที่มีลิงก์');
+            if (!code) return alert('กรุณาวาง Source Code หรือข้อความที่มีลิงก์');
             runScan(url, async () => code);
         }
 
         async function runScan(baseUrl, fetcher) {
             document.getElementById('gallery').innerHTML = '';
             document.getElementById('loader').style.display = 'block';
-            document.getElementById('status').innerText = "กำลังเจาะทะลวงระบบและดึงข้อมูลลิงก์...";
+            document.getElementById('status').innerText = "กำลังเจาะระบบและรวบรวมไฟล์มีเดีย...";
             try {
                 const html = await fetcher();
-                allScannedImages = extractImagesFromHtml(html, baseUrl);
+                allScannedMedia = extractMediaFromHtml(html, baseUrl);
                 
-                if(allScannedImages.length === 0) {
-                    document.getElementById('status').innerHTML = "❌ สแกนเสร็จสิ้น แต่ไม่พบรูปภาพ (อาจติดระบบป้องกัน SPA/React)<br>👉 กรุณาใช้ปุ่ม Bookmarklet แทนครับ";
+                if(allScannedMedia.length === 0) {
+                    document.getElementById('status').innerHTML = "❌ สแกนเสร็จ แต่ไม่พบไฟล์ (อาจติดระบบป้องก้น)<br>👉 กรุณาใช้ Bookmarklet แทนครับ";
                 } else {
                     renderGallery();
                 }
             } catch (e) {
-                document.getElementById('status').innerHTML = "❌ ล้มเหลว: เซิร์ฟเวอร์เป้าหมายปฏิเสธการเชื่อมต่อ (CORS Blocked)<br>👉 กรุณาใช้ปุ่ม Bookmarklet แทนการใส่ลิงก์ตรงๆ ครับ";
+                document.getElementById('status').innerHTML = "❌ ล้มเหลว: เซิร์ฟเวอร์เป้าหมายปฏิเสธการเชื่อมต่อ";
             }
             document.getElementById('loader').style.display = 'none';
         }
@@ -536,22 +640,25 @@
             const allowDupes = document.getElementById('allowDuplicates').checked; 
             gallery.innerHTML = '';
             
-            if (allowDupes) globalImagesToShow = [...new Set(allScannedImages)]; 
+            if (allowDupes) globalMediaToShow = [...new Set(allScannedMedia)]; 
             else {
                 let uMap = new Map();
-                allScannedImages.forEach(url => {
+                allScannedMedia.forEach(url => {
                     let k = getCleanKey(url);
                     let ex = uMap.get(k);
                     if (!ex || getResolutionScore(url) > getResolutionScore(ex)) uMap.set(k, url);
                 });
-                globalImagesToShow = Array.from(uMap.values());
+                globalMediaToShow = Array.from(uMap.values());
             }
-
-            globalImagesToShow = globalImagesToShow.filter(url => checkFileType(url, currentTypeFilter));
             
-            globalImagesToShow.forEach((src, idx) => {
+            document.getElementById('status').innerText = "กำลังจัดเตรียมผลลัพธ์...";
+
+            globalMediaToShow.forEach((src, idx) => {
+                const mediaType = getMediaType(src);
+                
                 const card = document.createElement('div');
-                card.className = 'img-card';
+                card.className = 'media-card';
+                card.setAttribute('data-type', mediaType);
                 
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
@@ -559,99 +666,171 @@
                 checkbox.checked = true;
                 checkbox.setAttribute('data-url', src);
 
-                const imgContainer = document.createElement('div');
-                imgContainer.className = 'img-container';
-                imgContainer.onclick = () => openLightbox(idx);
+                const typeBadge = document.createElement('div');
+                typeBadge.className = 'type-badge';
 
-                const img = document.createElement('img');
-                img.src = src; img.loading = "lazy";
-                img.onerror = function() {
-                    if(!this.retried) { this.retried = true; this.src = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(src); }
-                    else { card.style.display = 'none'; } // ซ่อนรูปที่ดึงไม่ได้จริงๆ ทิ้งไป
-                };
-                img.onload = function() {
-                    card.setAttribute('data-width', this.naturalWidth);
-                    applyVisualFilters();
-                    let raw = src.split('/').pop().split(/[#?]/)[0];
-                    let fname = raw; try{ fname = decodeURIComponent(raw); }catch(e){}
-                    if(fname.length > 15) fname = fname.substring(0, 15) + '...';
-                    info.innerHTML = `<span class="name">${fname}</span><span class="meta">${this.naturalWidth}x${this.naturalHeight}</span>`;
-                };
+                const mediaContainer = document.createElement('div');
+                mediaContainer.className = 'media-container';
+                mediaContainer.onclick = () => openLightbox(idx);
 
                 const info = document.createElement('div');
-                info.className = 'img-info';
+                info.className = 'media-info';
+                
+                let fname = cleanFilenameForDisplay(src);
+
+                if (mediaType === 'video') {
+                    typeBadge.innerText = 'VIDEO';
+                    const vid = document.createElement('video');
+                    vid.src = src;
+                    vid.preload = 'metadata'; 
+                    vid.muted = true; // บังคับปิดเสียงตอน Hover
+                    
+                    const playIcon = document.createElement('i');
+                    playIcon.className = "fas fa-play-circle play-overlay";
+
+                    vid.onloadedmetadata = function() {
+                        card.setAttribute('data-width', this.videoWidth);
+                        card.setAttribute('data-duration', this.duration);
+                        applyVisualFilters(); 
+                        info.innerHTML = `<span class="name" title="${fname}">${fname}</span><span class="meta">${this.videoWidth}x${this.videoHeight} | ${formatTime(this.duration)}</span>`;
+                    };
+                    vid.onerror = function() { card.style.display = 'none'; }; 
+                    
+                    // --- ระบบเล่นวิดีโอตอน Hover เมาส์ชี้ ---
+                    card.onmouseenter = () => { 
+                        let playPromise = vid.play();
+                        if (playPromise !== undefined) {
+                            playPromise.then(_ => { playIcon.style.opacity = '0'; }).catch(e => {});
+                        }
+                    };
+                    card.onmouseleave = () => { vid.pause(); playIcon.style.opacity = '1'; };
+
+                    info.innerHTML = `<span class="name" title="${fname}">${fname}</span><span class="meta">Video...</span>`;
+                    mediaContainer.append(vid, playIcon);
+
+                } else if (mediaType === 'audio') {
+                    typeBadge.innerText = 'AUDIO';
+                    typeBadge.style.background = 'rgba(0, 123, 255, 0.7)';
+                    
+                    const aud = document.createElement('audio');
+                    aud.src = src;
+                    aud.preload = 'metadata';
+                    
+                    const musicIcon = document.createElement('i');
+                    musicIcon.className = "fas fa-music";
+                    musicIcon.style.fontSize = "4rem";
+                    musicIcon.style.color = "var(--primary-red)";
+                    musicIcon.style.transition = "0.3s";
+                    
+                    aud.onloadedmetadata = function() {
+                        card.setAttribute('data-width', 0);
+                        card.setAttribute('data-duration', this.duration);
+                        applyVisualFilters();
+                        info.innerHTML = `<span class="name" title="${fname}">${fname}</span><span class="meta">${formatTime(this.duration)}</span>`;
+                    };
+                    aud.onerror = function() { card.style.display = 'none'; };
+
+                    info.innerHTML = `<span class="name" title="${fname}">${fname}</span><span class="meta">Audio...</span>`;
+                    card.appendChild(aud); 
+                    mediaContainer.appendChild(musicIcon);
+                    
+                    card.onmouseover = () => { musicIcon.style.transform = 'scale(1.2)'; };
+                    card.onmouseout = () => { musicIcon.style.transform = 'scale(1)'; };
+
+                } else {
+                    typeBadge.innerText = 'IMG';
+                    typeBadge.style.background = 'rgba(40, 167, 69, 0.7)';
+
+                    const img = document.createElement('img');
+                    img.src = src; img.loading = "lazy";
+                    img.onerror = function() {
+                        if(!this.retried) { this.retried = true; this.src = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(src); }
+                        else { card.style.display = 'none'; }
+                    };
+                    img.onload = function() {
+                        if(this.naturalWidth < 30) { this.onerror(); return; }
+                        card.setAttribute('data-width', this.naturalWidth);
+                        applyVisualFilters();
+                        info.innerHTML = `<span class="name" title="${fname}">${fname}</span><span class="meta">${this.naturalWidth}x${this.naturalHeight}</span>`;
+                    };
+                    
+                    info.innerHTML = `<span class="name" title="${fname}">${fname}</span><span class="meta">Image...</span>`;
+                    mediaContainer.appendChild(img);
+                }
+
                 const actions = document.createElement('div');
-                actions.className = 'img-actions';
+                actions.className = 'media-actions';
                 
                 actions.innerHTML = `
-                    <button class="btn-icon btn-dl" title="โหลดภาพ" onclick="downloadSingle('${src}', this)"><i class="fas fa-download"></i></button>
+                    <button class="btn-icon btn-dl" title="ดาวน์โหลด" onclick="downloadSingle('${src}', this)"><i class="fas fa-download"></i></button>
                     <button class="btn-icon btn-copy-link" title="ก็อปปี้ลิงก์" onclick="copyText('${src}', this)"><i class="fas fa-link"></i></button>
-                    <button class="btn-icon btn-copy-img" title="ก็อปปี้รูป" onclick="copyImageToClipboard('${src}', this)"><i class="fas fa-copy"></i></button>
+                    <button class="btn-icon btn-copy-img" title="ก็อปปี้รูปลงเครื่อง" onclick="copyImageToClipboard('${src}', '${mediaType}', this)"><i class="fas fa-copy"></i></button>
                 `;
 
-                imgContainer.appendChild(img);
-                card.append(checkbox, imgContainer, info, actions);
+                card.append(checkbox, typeBadge, mediaContainer, info, actions);
                 gallery.appendChild(card);
             });
-            updateStatusText();
+            
+            setTimeout(applyVisualFilters, 200);
         }
 
-        // --- ฟังก์ชันแก้ไขปุ่มที่กดไม่ติด ---
+        // --- ระบบดาวน์โหลดแก้ Memory Leak ---
         async function downloadSingle(url, btnElement) {
-            let blob = await fetchImageSafe(url);
+            let blob = await fetchMediaSafe(url);
             if(blob) {
-                const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-                a.download = `KIRITO_${Date.now()}.jpg`; a.click();
+                const u = URL.createObjectURL(blob);
+                const a = document.createElement('a'); 
+                a.href = u;
+                const ext = url.split('.').pop().split('?')[0].toLowerCase();
+                a.download = `KIRITO_MEDIA_${Date.now()}.${ext}`; 
+                a.click();
                 if(btnElement) showTempIcon(btnElement, 'fas fa-check', 'fas fa-download');
-            } else {
-                // ถ้าโหลดแบบแอบๆ ไม่ได้ ให้เด้งไปหน้าใหม่ให้ผู้ใช้เซฟเอง
-                window.open(url, '_blank');
-            }
+                // คืนค่าแรมให้เบราว์เซอร์
+                setTimeout(() => URL.revokeObjectURL(u), 1000);
+            } else window.open(url, '_blank');
         }
 
         function copyText(txt, btnElement) {
             navigator.clipboard.writeText(txt).then(() => {
                 if(btnElement) showTempIcon(btnElement, 'fas fa-check', 'fas fa-link');
             }).catch(err => {
-                // เผื่อเบราว์เซอร์เก่า
                 const t = document.createElement("textarea"); t.value = txt; 
+                t.style.position = 'fixed'; t.style.left = '-9999px';
                 document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t);
                 if(btnElement) showTempIcon(btnElement, 'fas fa-check', 'fas fa-link');
             });
         }
         
-        async function copyImageToClipboard(url, btnElement) {
+        async function copyImageToClipboard(url, type, btnElement) {
+            if (type !== 'image') return alert("คลิปวิดีโอและเสียงไม่สามารถก็อปปี้ลงคลิปบอร์ดได้ กรุณากดปุ่มโหลดแทนครับ");
             try {
                 if (!navigator.clipboard || !navigator.clipboard.write) throw new Error("Blocked");
-                let blob = await fetchImageSafe(url);
+                let blob = await fetchMediaSafe(url);
                 if(blob) {
                     await navigator.clipboard.write([new ClipboardItem({[blob.type]: blob})]);
                     if(btnElement) showTempIcon(btnElement, 'fas fa-check', 'fas fa-copy');
-                } else {
-                    alert("โดนบล็อกการดึงข้อมูลรูปภาพ กรุณาใช้วิธีดาวน์โหลดแทนครับ");
-                }
-            } catch (e) { alert("เบราว์เซอร์ไม่รองรับการคัดลอกรูปภาพโดยตรง กรุณาใช้ปุ่มโหลดแทน"); }
+                } else alert("โดนบล็อกการดึงข้อมูล");
+            } catch (e) { alert("เบราว์เซอร์ไม่รองรับการคัดลอกรูปนี้"); }
         }
 
         let isAllSelected = true;
-        function selectAllImages() {
+        function selectAllMedia() {
             isAllSelected = !isAllSelected;
-            document.querySelectorAll('.chk-select').forEach(cb => cb.checked = isAllSelected);
+            document.querySelectorAll('.media-card:not(.hidden-by-filter) .chk-select').forEach(cb => cb.checked = isAllSelected);
         }
 
         function clearGallery() {
             if(confirm("ยืนยันการล้างข้อมูลทั้งหมดบนหน้าจอ?")) {
                 document.getElementById('gallery').innerHTML = '';
-                allScannedImages = []; globalImagesToShow = []; updateStatusText();
+                allScannedMedia = []; globalMediaToShow = []; updateStatusText();
             }
         }
 
-        // --- ระบบดาวน์โหลด ZIP ที่ทนทาน ---
         async function downloadAll() {
-            const checkedBoxes = Array.from(document.querySelectorAll('.chk-select:checked'));
-            if(checkedBoxes.length === 0) return alert('กรุณาเลือกรูปภาพอย่างน้อย 1 รูป');
+            const checkedBoxes = Array.from(document.querySelectorAll('.media-card:not(.hidden-by-filter) .chk-select:checked'));
+            if(checkedBoxes.length === 0) return alert('ไม่มีไฟล์บนหน้าจอที่ถูกเลือกไว้เลยครับ');
 
-            const images = checkedBoxes.map(cb => cb.getAttribute('data-url'));
+            const urls = checkedBoxes.map(cb => cb.getAttribute('data-url'));
             const btn = document.getElementById('btn-dl-all');
             const originalText = btn.innerHTML;
             const progBar = document.getElementById('progress-bar');
@@ -666,39 +845,42 @@
                 let successCount = 0;
 
                 const worker = async (url, idx) => {
-                    let blob = await fetchImageSafe(url);
-                    if (blob) { // ถ้าดึงรูปได้ ค่อยใส่ ZIP (แก้บัค ZIP ค้าง)
+                    let blob = await fetchMediaSafe(url);
+                    if (blob) { 
                         let fname = url.split('/').pop().split(/[#?]/)[0];
                         try { fname = decodeURIComponent(fname); } catch(e){}
                         let ext = fname.split('.').pop().toLowerCase();
-                        if(ext.length > 4 || !ext) ext = 'jpg';
+                        if(!['jpg','jpeg','png','gif','webp','svg','mp4','webm','ogg','mov','m4v','mp3','wav','m4a'].includes(ext)) {
+                            ext = 'file'; 
+                        }
                         zip.file(`KIRITO_${Date.now()}_${idx.toString().padStart(3,'0')}.${ext}`, blob);
                         successCount++;
                     }
-                    // อัปเดต Progress Bar
                     let processed = idx + 1;
-                    let pct = Math.round((processed / images.length) * 100);
+                    let pct = Math.round((processed / urls.length) * 100);
                     progBar.style.width = pct + '%';
-                    progBar.innerText = `บรรจุไฟล์: ${successCount} / ${images.length} (${pct}%)`;
+                    progBar.innerText = `บรรจุไฟล์: ${successCount} / ${urls.length} (${pct}%)`;
                 };
 
-                // จำกัดความเร็วโหลดพร้อมกัน 5 ไฟล์ต่อชุด กัน Proxy โดนแบน
-                for (let i = 0; i < images.length; i += 5) {
-                    const chunk = images.slice(i, i + 5);
+                for (let i = 0; i < urls.length; i += 5) {
+                    const chunk = urls.slice(i, i + 5);
                     await Promise.all(chunk.map((url, indexOffset) => worker(url, i + indexOffset)));
                 }
 
                 if(successCount > 0) {
-                    progBar.innerText = 'กำลังสร้างไฟล์ ZIP สุดท้าย...';
+                    progBar.innerText = 'กำลังสร้างไฟล์ ZIP ขั้นสุดท้าย...';
                     const content = await zip.generateAsync({type:"blob"});
+                    const u = URL.createObjectURL(content);
                     const a = document.createElement('a');
-                    a.href = URL.createObjectURL(content); a.download = `KIRITO_PACK_${Date.now()}.zip`; a.click();
-                    showTempSuccess('btn-dl-all', `<i class="fas fa-check"></i> สำเร็จ (${successCount} รูป)`, originalText, 4000);
-                } else alert('ล้มเหลว: โดนระบบป้องกันของเว็บต้นทางบล็อกทั้งหมด');
+                    a.href = u; a.download = `KIRITO_PACK_${Date.now()}.zip`; a.click();
+                    showTempSuccess('btn-dl-all', `<i class="fas fa-check"></i> สำเร็จ (${successCount} ไฟล์)`, originalText, 4000);
+                    // คืนค่าแรมให้เบราว์เซอร์
+                    setTimeout(() => URL.revokeObjectURL(u), 2000);
+                } else alert('ล้มเหลว: โดนบล็อกหรือไฟล์ใหญ่เกินไป');
                 
-            } catch(e) { alert('ZIP ERROR: มีปัญหาขัดข้องขณะแพ็กไฟล์'); }
+            } catch(e) { alert('ZIP ERROR: เบราว์เซอร์อาจแรมเต็ม แนะนำให้โหลดแยกครับ'); }
 
-            setTimeout(() => { document.getElementById('progress-container').style.display = 'none'; }, 2000);
+            setTimeout(() => { document.getElementById('progress-container').style.display = 'none'; }, 3000);
             btn.innerHTML = originalText; btn.style.pointerEvents = 'auto';
         }
 
@@ -707,128 +889,127 @@
             navigator.clipboard.writeText(shortCode).then(() => {
                 showTempSuccess('btn-copy-mobile', '<i class="fas fa-check"></i> คัดลอกแล้ว นำไปวางในบุคมาร์กได้เลย', '<i class="fas fa-mobile-alt"></i> คัดลอก Loader Code (สำหรับมือถือ)', 4000);
             }).catch(err => {
-                const t = document.createElement("textarea"); t.value = shortCode; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t);
+                const t = document.createElement("textarea"); t.value = shortCode; t.style.position = 'fixed'; t.style.left = '-9999px'; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t);
                 showTempSuccess('btn-copy-mobile', '<i class="fas fa-check"></i> คัดลอกแล้ว', '<i class="fas fa-mobile-alt"></i> คัดลอก Loader Code (สำหรับมือถือ)', 4000);
             });
         }
 
-        // ==========================================
-        // SMART TOUCH 2.0 (แก้บัครูปลอย + ระบบปัดสุดสมูท)
-        // ==========================================
+        // === SMART TOUCH & LIGHTBOX ===
         let scale = 1, isDragging = false, startX, startY, tx = 0, ty = 0;
         let initialPinchDist = null, initialPinchScale = 1;
         let startTouchX = 0, isSwiping = false;
-        const lbImg = document.getElementById('lb-img');
+        
         const lightbox = document.getElementById('lightbox');
+        const lbContentWrapper = document.getElementById('lb-content-wrapper');
+        const lbImg = document.getElementById('lb-img');
+        const lbVid = document.getElementById('lb-vid');
+        const lbAud = document.getElementById('lb-aud');
+        let activeLbElement = null; 
 
         function openLightbox(index) {
-            currentLbIndex = index;
-            lbImg.src = globalImagesToShow[index];
-            lightbox.style.display = 'flex';
+            let visibleCards = document.querySelectorAll('.media-card:not(.hidden-by-filter)');
+            if(visibleCards.length === 0) return;
+            
+            const targetUrl = visibleCards[index].querySelector('.chk-select').getAttribute('data-url');
+            currentLbIndex = globalMediaToShow.indexOf(targetUrl);
+            
+            const src = globalMediaToShow[currentLbIndex];
+            const type = getMediaType(src);
+
+            lbImg.style.display = 'none'; lbVid.style.display = 'none'; lbAud.style.display = 'none';
+            lbVid.pause(); lbVid.src = ''; lbAud.pause(); lbAud.src = '';
             scale = 1; tx = 0; ty = 0; 
+
+            if (type === 'video') {
+                lbVid.src = src; lbVid.style.display = 'block'; lbVid.play().catch(e=>{}); activeLbElement = lbVid;
+            } else if (type === 'audio') {
+                lbAud.src = src; lbAud.style.display = 'block'; lbAud.play().catch(e=>{}); activeLbElement = lbAud;
+            } else {
+                lbImg.src = src; lbImg.style.display = 'block'; activeLbElement = lbImg;
+            }
+
             updateTransform();
+            lightbox.style.display = 'flex';
         }
 
-        function closeLightbox() { lightbox.style.display = 'none'; }
+        function closeLightbox() { lightbox.style.display = 'none'; lbVid.pause(); lbAud.pause(); }
         
         function navLb(dir) {
-            currentLbIndex += dir;
-            if(currentLbIndex < 0) currentLbIndex = globalImagesToShow.length - 1;
-            if(currentLbIndex >= globalImagesToShow.length) currentLbIndex = 0;
-            openLightbox(currentLbIndex);
+            let visibleCards = Array.from(document.querySelectorAll('.media-card:not(.hidden-by-filter)'));
+            if(visibleCards.length === 0) return;
+            
+            const currentUrl = globalMediaToShow[currentLbIndex];
+            let visibleIndex = visibleCards.findIndex(card => card.querySelector('.chk-select').getAttribute('data-url') === currentUrl);
+            
+            if(visibleIndex === -1) visibleIndex = 0;
+            
+            visibleIndex += dir;
+            if(visibleIndex < 0) visibleIndex = visibleCards.length - 1;
+            if(visibleIndex >= visibleCards.length) visibleIndex = 0;
+            
+            openLightbox(visibleIndex);
         }
 
         function updateTransform() { 
-            // แก้บัครูปลอย: ถ้าขนาดปกติ ให้ล็อกพิกัดไว้ตรงกลางเป๊ะๆ ห้ามขยับ
             if(scale <= 1) { scale = 1; tx = 0; ty = 0; }
-            lbImg.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`; 
+            if(activeLbElement) {
+                if(activeLbElement === lbAud) activeLbElement.style.transform = `translate(0px, 0px) scale(1)`;
+                else activeLbElement.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`; 
+            }
         }
         
-        // --- เมาส์ (PC) ---
-        lbImg.addEventListener('wheel', (e) => {
-            e.preventDefault(); 
-            scale += (e.deltaY * -0.002); 
-            updateTransform();
+        lbContentWrapper.addEventListener('wheel', (e) => {
+            if(activeLbElement === lbAud) return; 
+            e.preventDefault(); scale += (e.deltaY * -0.002); updateTransform();
         }, { passive: false });
 
-        lbImg.addEventListener('mousedown', (e) => {
+        lbContentWrapper.addEventListener('mousedown', (e) => {
+            if(e.target === lbVid || e.target === lbAud) return; 
             e.preventDefault(); 
             if(scale > 1) {
-                isDragging = true; 
-                startX = e.clientX - tx; 
-                startY = e.clientY - ty; 
-                lbImg.classList.add('grabbing');
-            } else {
-                startTouchX = e.clientX; 
-                isSwiping = true;
-            }
+                isDragging = true; startX = e.clientX - tx; startY = e.clientY - ty; 
+                if(activeLbElement) activeLbElement.classList.add('grabbing');
+            } else { startTouchX = e.clientX; isSwiping = true; }
         });
 
         lightbox.addEventListener('mouseup', (e) => { 
             isDragging = false; 
-            lbImg.classList.remove('grabbing'); 
-            
-            // ปัดเปลี่ยนรูปด้วยเมาส์ (ซ้าย-ขวา)
+            if(activeLbElement) activeLbElement.classList.remove('grabbing'); 
             if(scale === 1 && isSwiping) {
                 let diffX = e.clientX - startTouchX;
-                if(diffX < -70) navLb(1); 
-                else if(diffX > 70) navLb(-1);
+                if(diffX < -70) navLb(1); else if(diffX > 70) navLb(-1);
                 isSwiping = false;
             }
         });
 
         lightbox.addEventListener('mousemove', (e) => {
             if (!isDragging || scale <= 1) return;
-            e.preventDefault();
-            tx = e.clientX - startX;
-            ty = e.clientY - startY;
-            updateTransform();
+            e.preventDefault(); tx = e.clientX - startX; ty = e.clientY - startY; updateTransform();
         });
 
-        // --- ทัชสกรีน (มือถือ) ---
         const getDist = (touches) => Math.hypot(touches[0].pageX - touches[1].pageX, touches[0].pageY - touches[1].pageY);
 
-        lbImg.addEventListener('touchstart', (e) => {
-            if(e.touches.length === 2) {
-                e.preventDefault();
-                isDragging = false;
-                isSwiping = false;
-                initialPinchDist = getDist(e.touches);
-                initialPinchScale = scale;
+        lbContentWrapper.addEventListener('touchstart', (e) => {
+            if(e.target === lbVid || e.target === lbAud) return; 
+            if(e.touches.length === 2 && activeLbElement !== lbAud) {
+                e.preventDefault(); isDragging = false; isSwiping = false;
+                initialPinchDist = getDist(e.touches); initialPinchScale = scale;
             } else if(e.touches.length === 1) {
                 if(scale > 1) {
-                    // โหมดแพนกล้องเมื่อซูม
-                    isDragging = true;
-                    isSwiping = false;
-                    startX = e.touches[0].clientX - tx;
-                    startY = e.touches[0].clientY - ty;
+                    isDragging = true; isSwiping = false;
+                    startX = e.touches[0].clientX - tx; startY = e.touches[0].clientY - ty;
                 } else {
-                    // โหมดปัดเมื่อขนาดปกติ
-                    startTouchX = e.touches[0].clientX;
-                    isSwiping = true;
-                    isDragging = false;
+                    startTouchX = e.touches[0].clientX; isSwiping = true; isDragging = false;
                 }
             }
         }, { passive: false });
 
         lightbox.addEventListener('touchmove', (e) => {
             if(e.touches.length === 2 && initialPinchDist) {
-                // ซูมเข้าออก
                 e.preventDefault();
-                const currentDist = getDist(e.touches);
-                scale = initialPinchScale * (currentDist / initialPinchDist);
-                updateTransform();
-            } else if (e.touches.length === 1) {
-                if (scale > 1 && isDragging) {
-                    // เลื่อนดูรูปที่ซูม
-                    e.preventDefault();
-                    tx = e.touches[0].clientX - startX;
-                    ty = e.touches[0].clientY - startY;
-                    updateTransform();
-                } else if (scale === 1 && isSwiping) {
-                    // บล็อกหน้าจอไม่ให้เลื่อนตามตอนจะปัดซ้ายขวา
-                    e.preventDefault(); 
-                }
+                scale = initialPinchScale * (getDist(e.touches) / initialPinchDist); updateTransform();
+            } else if (e.touches.length === 1 && scale > 1 && isDragging) {
+                e.preventDefault(); tx = e.touches[0].clientX - startX; ty = e.touches[0].clientY - startY; updateTransform();
             }
         }, { passive: false });
 
@@ -836,13 +1017,10 @@
             if(e.touches.length < 2) initialPinchDist = null;
             if(e.touches.length === 0) {
                 if (scale === 1 && isSwiping) {
-                    // ประมวลผลว่าปัดซ้ายหรือขวา ตอนปล่อยนิ้ว
                     let diffX = e.changedTouches[0].clientX - startTouchX;
-                    if(diffX < -50) navLb(1); 
-                    else if(diffX > 50) navLb(-1);
+                    if(diffX < -50) navLb(1); else if(diffX > 50) navLb(-1);
                 }
-                isDragging = false;
-                isSwiping = false;
+                isDragging = false; isSwiping = false;
             }
         });
         
