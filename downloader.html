@@ -265,7 +265,7 @@
                         <i class="fas fa-bookmark"></i> KIRITO PULL
                     </a>
                 </div>
-                <p style="font-size:0.8rem; color:#888; margin-top:10px;">ลากปุ่มนี้ไปใส่แถบบุคมาร์ก (Bookmark Bar) เพื่อดึงรูปจากเว็บที่ป้องกันสูง (แก้บั๊ก .js .css ขยะแล้ว 100%)</p>
+                <p style="font-size:0.8rem; color:#888; margin-top:10px;">ลากปุ่มนี้ไปใส่แถบบุคมาร์ก (Bookmark Bar) หรือกดค้างเพื่อก๊อปปี้ลิงก์ไปใช้บนโทรศัพท์</p>
             </div>
         </div>
 
@@ -318,7 +318,7 @@
         <div class="lb-close" onclick="closeLightbox()">&times;</div>
         <img id="lb-img" src="" alt="Full View">
         <div class="lb-controls">
-            <span><i class="fas fa-mouse"></i> กลิ้งเมาส์เพื่อซูม</span>
+            <span><i class="fas fa-mouse"></i> กลิ้งเมาส์/ถ่างนิ้ว เพื่อซูม</span>
             <span><i class="fas fa-hand-paper"></i> ลากเพื่อเลื่อน</span>
         </div>
     </div>
@@ -875,7 +875,9 @@
             }
         }
 
+        // --- ระบบควบคุม Lightbox หน้าหลัก (รองรับ PC + ทัชสกรีน) ---
         let scale = 1, isDragging = false, startX, startY, translateX = 0, translateY = 0;
+        let initialPinchDist = null, initialPinchScale = 1;
         const lbImg = document.getElementById('lb-img');
 
         function openLightbox(src) {
@@ -892,6 +894,7 @@
             lbImg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
         }
         
+        // [PC] กลิ้งเมาส์ซูม
         lbImg.addEventListener('wheel', (e) => {
             e.preventDefault();
             const delta = e.deltaY * -0.001;
@@ -899,6 +902,7 @@
             updateTransform();
         }, { passive: false });
 
+        // [PC] ลากเมาส์
         lbImg.addEventListener('mousedown', (e) => {
             e.preventDefault();
             isDragging = true;
@@ -917,9 +921,42 @@
             updateTransform();
         });
 
+        // [Mobile] ระบบสัมผัสหน้าหลัก ลาก/ซูม
+        lbImg.addEventListener('touchstart', (e) => {
+            if(e.touches.length === 2) {
+                e.preventDefault();
+                initialPinchDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+                initialPinchScale = scale;
+            } else if(e.touches.length === 1) {
+                isDragging = true;
+                startX = e.touches[0].clientX - translateX;
+                startY = e.touches[0].clientY - translateY;
+            }
+        }, { passive: false });
+
+        window.addEventListener('touchmove', (e) => {
+            if(e.touches.length === 2 && initialPinchDist) {
+                e.preventDefault();
+                const currentDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+                scale = initialPinchScale * (currentDist / initialPinchDist);
+                scale = Math.min(Math.max(0.5, scale), 8);
+                updateTransform();
+            } else if (isDragging && e.touches.length === 1) {
+                e.preventDefault();
+                translateX = e.touches[0].clientX - startX;
+                translateY = e.touches[0].clientY - startY;
+                updateTransform();
+            }
+        }, { passive: false });
+
+        window.addEventListener('touchend', (e) => {
+            if(e.touches.length < 2) initialPinchDist = null;
+            if(e.touches.length === 0) isDragging = false;
+        });
+
         document.getElementById('allowDuplicates').addEventListener('change', renderGallery);
 
-        // --- BOOKMARKLET GENERATOR SCRIPT (อัปเกรดเครื่องยนต์ + กรองซ้ำแบบใหม่ + กัน 1x1 Pixel + ทะลวง 18+) ---
+        // --- BOOKMARKLET GENERATOR SCRIPT (อัปเกรดเครื่องยนต์ + กรองซ้ำแบบใหม่ + กัน 1x1 Pixel + ทะลวง 18+ + รองรับมือถือเต็มระบบ) ---
         document.addEventListener('DOMContentLoaded', () => {
             const bookmarkletLogic = function() {
                 if(document.getElementById('krt-sys')) document.getElementById('krt-sys').remove();
@@ -1014,7 +1051,7 @@
                     '<div id="krt-lbc" style="position:absolute;top:20px;right:20px;color:#fff;font-size:2rem;cursor:pointer;z-index:10000001;background:rgba(0,0,0,0.5);width:40px;height:40px;text-align:center;line-height:40px;border-radius:50%;">&times;</div>' +
                     '<img id="krt-lbi" style="max-width:90%;max-height:90%;transition:transform 0.1s ease-out;cursor:grab;user-select:none;-webkit-user-drag:none;">' +
                     '<div style="position:absolute;bottom:20px;background:rgba(0,0,0,0.5);padding:10px 20px;border-radius:20px;display:flex;gap:15px;color:#fff;font-size:0.8rem;">' +
-                        '<span>กลิ้งเมาส์: ซูม</span><span>ลาก: เลื่อน</span>' +
+                        '<span>กลิ้งเมาส์/ถ่างนิ้ว: ซูม</span><span>ลาก: เลื่อน</span>' +
                     '</div>' +
                 '</div>';
                 
@@ -1213,29 +1250,69 @@
                     }
                 };
 
+                // --- ระบบควบคุม Lightbox ภายใน Bookmarklet (รองรับมือถือ+PC) ---
                 var sc = 1, tx = 0, ty = 0, dr = false, sx, sy;
+                var initialDist = null, initScale = 1; 
+
                 function up() {
-                    var li = document.getElementById('krt-lbi');
-                    if(li) li.style.transform = 'translate(' + tx + 'px, ' + ty + 'px) scale(' + sc + ')';
+                    var lbImg = document.getElementById('krt-lbi');
+                    if(lbImg) lbImg.style.transform = 'translate(' + tx + 'px, ' + ty + 'px) scale(' + sc + ')';
                 }
-                var li = document.getElementById('krt-lbi');
-                li.addEventListener('wheel', function(e){
+                var lbImg = document.getElementById('krt-lbi');
+                
+                // [PC] กลิ้งเมาส์
+                lbImg.addEventListener('wheel', function(e){
                     e.preventDefault();
                     sc += e.deltaY * -0.001;
                     sc = Math.min(Math.max(0.5, sc), 8);
                     up();
                 }, {passive:false});
-                li.addEventListener('mousedown', function(e){
+                
+                // [PC] ลากเมาส์
+                lbImg.addEventListener('mousedown', function(e){
                     e.preventDefault();
                     dr = true; sx = e.clientX - tx; sy = e.clientY - ty;
-                    li.style.cursor = 'grabbing';
+                    lbImg.style.cursor = 'grabbing';
                 });
-                sys.addEventListener('mouseup', function(){ dr = false; if(li) li.style.cursor = 'grab'; });
+                sys.addEventListener('mouseup', function(){ dr = false; if(lbImg) lbImg.style.cursor = 'grab'; });
                 sys.addEventListener('mousemove', function(e){
                     if(!dr) return;
                     e.preventDefault();
-                    tx = e.clientX - sx; ty = e.clientY - sy;
+                    tx = e.clientX - sx; ty = e.clientY - ty;
                     up();
+                });
+
+                // [Mobile] ระบบทัชสกรีน (ลาก + ซูมด้วยสองนิ้ว)
+                lbImg.addEventListener('touchstart', function(e){
+                    if(e.touches.length === 2) {
+                        e.preventDefault();
+                        initialDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+                        initScale = sc;
+                    } else if(e.touches.length === 1) {
+                        dr = true; 
+                        sx = e.touches[0].clientX - tx; 
+                        sy = e.touches[0].clientY - ty;
+                    }
+                }, {passive:false});
+
+                sys.addEventListener('touchmove', function(e){
+                    if(e.touches.length === 2 && initialDist) {
+                        e.preventDefault();
+                        var currentDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+                        sc = initScale * (currentDist / initialDist);
+                        sc = Math.min(Math.max(0.5, sc), 8); 
+                        up();
+                    } else if(dr && e.touches.length === 1) {
+                        e.preventDefault();
+                        tx = e.touches[0].clientX - sx; 
+                        ty = e.touches[0].clientY - sy;
+                        up();
+                    }
+                }, {passive:false});
+
+                sys.addEventListener('touchend', function(e){
+                    if(e.touches.length < 2) initialDist = null;
+                    if(e.touches.length === 0) dr = false;
                 });
             };
 
