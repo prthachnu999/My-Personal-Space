@@ -1,5 +1,5 @@
 // ==========================================
-// KIRITO PULL SYSTEM - ULTIMATE MEDIA EDITION v8 (Facebook Native + Social Deep Scan)
+// KIRITO PULL SYSTEM - ULTIMATE MEDIA EDITION v8.1 (Fix Render Loop & Filter Bugs)
 // ==========================================
 (function() {
     if(document.getElementById('krt-sys-wrapper')) {
@@ -25,26 +25,23 @@
 
     const uMap = new Map();
     
-    // อัปเกรดระบบเดาประเภทไฟล์ ให้รู้จัก Social Media Links
     const guessType = (u) => {
         const ext = u.split('.').pop().split('?')[0].toLowerCase();
         if (['mp4', 'webm', 'ogg', 'mov', 'm4v'].includes(ext)) return 'video';
         if (['mp3', 'wav', 'm4a', 'aac', 'flac'].includes(ext)) return 'audio';
         if (['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'tiff', 'heic', 'ico', 'bmp'].includes(ext)) return 'image';
         
-        // ตรวจจับลิงก์โซเชียลมีเดีย
         if (u.match(/(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)/i)) return 'youtube';
         if (u.match(/(facebook\.com\/.*\/videos\/|tiktok\.com\/|instagram\.com\/reel\/|instagram\.com\/p\/)/i)) return 'social_video';
         if (u.startsWith('data:image/')) return 'image';
         return null; 
     };
 
-    // ฟังก์ชันดึงสื่อแบบดั้งเดิม (ที่เสถียรกับ FB) + อัปเกรด
     const addMedia = function(s, forceType = null, altThumb = null, altTitle = null) {
         if(!s || typeof s !== 'string') return;
         
         const isDataUrl = s.startsWith('data:image/');
-        if(s.startsWith('data:') && !isDataUrl) return; // บล็อก data ประเภทอื่นที่ไม่ใช่รูปภาพ
+        if(s.startsWith('data:') && !isDataUrl) return; 
         
         if(!isDataUrl) {
             if(s.startsWith('//')) s = 'https:' + s;
@@ -61,13 +58,11 @@
         
         let uL = s.toLowerCase().split('?')[0].split('#')[0];
         
-        // ป้องกันดึงไฟล์ขยะ (เหมือนเวอร์ชันดั้งเดิม)
         if(uL.endsWith('.js') || uL.endsWith('.css') || uL.endsWith('.html') || uL.endsWith('.php') || uL.endsWith('.json') || uL.endsWith('.xml') || uL.endsWith('.txt')) return;
         
         let type = forceType || guessType(uL);
-        // อนุโลมให้ดึงถ้าเป็นนามสกุลรูปปกติ หรือเป็นประเภทที่บังคับมา (เพื่อให้ FB ที่เข้ารหัสหลุดรอดมาได้บ้าง)
         if(!type && !uL.match(/\.(jpg|jpeg|png|webp|gif|svg|tiff|heic|ico)$/i)) return;
-        if(!type) type = 'image'; // Default to image if still unknown but passed the regex
+        if(!type) type = 'image'; 
         
         let k = isDataUrl ? (s.substring(0, 60) + s.length) : cleanK(s);
         let ex = uMap.get(k);
@@ -83,7 +78,6 @@
         }
     };
 
-    // 1. ดึงจากแท็กมาตรฐาน (แบบดั้งเดิม)
     Array.from(document.images).forEach(e => addMedia(e.src, 'image', null, e.alt));
     
     Array.from(document.querySelectorAll('video')).forEach(e => {
@@ -97,7 +91,6 @@
         Array.from(e.querySelectorAll('source')).forEach(src => addMedia(src.src, 'audio'));
     });
     
-    // 2. ดึงจาก Attributes ทุกรูปแบบ (แบบดั้งเดิม)
     Array.from(document.querySelectorAll('img, a, link, source, div, span, bg')).forEach(e => {
         var tag = e.tagName.toLowerCase();
         var ds = e.getAttribute('data-src') || e.getAttribute('data-original') || e.getAttribute('data-lazy-src') || e.getAttribute('data-srcset') || e.getAttribute('srcset') || e.getAttribute('content');
@@ -120,7 +113,7 @@
                     let title = e.innerText.trim().split('\n')[0] || null;
                     addMedia(h, type, thumb, title);
                 } else {
-                    addMedia(h); // ดึงรูปที่ซ่อนในลิงก์แบบธรรมดา
+                    addMedia(h);
                 }
             }
         }
@@ -130,7 +123,6 @@
         if(m) addMedia(m[1], 'image'); 
     });
     
-    // 3. ทะลวง Source Code / JSON (สำหรับลิงก์ที่ถูกซ่อนมากๆ)
     const htmlCode = document.documentElement.innerHTML;
     const urlRegex = /(?:https?:|\\\/\\\/|\/\/)[^\s"'<>;&\\]+\.(?:jpg|jpeg|png|gif|webp|svg|ico|mp4|webm|ogg|mov|m4v|mp3|wav|m4a)(?:\?[^\s"'<>\\]*)?/gi;
     let match;
@@ -412,6 +404,7 @@
         return raw || 'media_file';
     };
 
+    // --- State ตัวกรอง ---
     let currentMainType = 'all';
     let currentSubType = 'all';
     let currentSizeFilter = 'all';
@@ -478,6 +471,7 @@
         countBadge.innerText = `เลือกไว้ ${checked}/${visible} ไฟล์`;
     };
 
+    // Binding Filter Events
     shadow.querySelectorAll('#mainTypeFilters .filter-btn').forEach(btn => {
         btn.onclick = () => {
             currentMainType = btn.getAttribute('data-type'); currentSubType = 'all';
@@ -529,8 +523,7 @@
         };
     });
 
-    // --- Render Gallery ---
-    // Chunk Rendering เพื่อป้องกันจอค้างเวลาดึงจาก FB (ไฟล์เยอะมาก)
+    // --- Render Gallery (Chunk Mode แก้บัคค้าง) ---
     let cIdx = 0;
     const chnk = 30;
 
@@ -561,8 +554,8 @@
 
             let imgContainer = document.createElement('div');
             imgContainer.className = 'media-container';
-            // ป้องกันการเกิด Closure Loop ใน Event
-            let currentIdx = cIdx; 
+            
+            let currentIdx = cIdx; // แก้ปัญหา Closure Loop
             imgContainer.onclick = () => openLightbox(currentIdx);
             
             let infoContainer = document.createElement('div');
@@ -603,9 +596,8 @@
                     card.setAttribute('data-width', this.videoWidth);
                     card.setAttribute('data-duration', this.duration);
                     infoContainer.innerHTML = `<span class="filename" title="${fname}">${fname}</span><span class="dimensions">${this.videoWidth}x${this.videoHeight} | ${formatTime(this.duration)}</span>`;
-                    applyVisualFilters();
                 };
-                vid.onerror = function() { infoContainer.innerHTML = `<span class="filename" title="${fname}">${fname}</span><span class="dimensions" style="color:#ff3333">Stream Protected</span>`; };
+                vid.onerror = function() { infoContainer.innerHTML = `<span class="filename" title="${fname}">${fname}</span><span class="dimensions" style="color:#ff3333">Protected</span>`; };
                 
                 card.onmouseenter = () => { let p = vid.play(); if(p!==undefined) p.then(()=>playIcon.style.opacity='0').catch(e=>{}); };
                 card.onmouseleave = () => { vid.pause(); playIcon.style.opacity='1'; };
@@ -625,7 +617,6 @@
                     card.setAttribute('data-width', 0);
                     card.setAttribute('data-duration', this.duration);
                     infoContainer.innerHTML = `<span class="filename" title="${fname}">${fname}</span><span class="dimensions">${formatTime(this.duration)}</span>`;
-                    applyVisualFilters();
                 };
                 aud.onerror = function() { card.style.display = 'none'; };
 
@@ -650,15 +641,18 @@
                         this.setAttribute('data-rts', rts + 1);
                         this.src = pxs[rts] + encodeURIComponent(s);
                     } else {
-                        card.style.display = 'none'; // ซ่อนถ้าดึงไม่ได้จริงๆ
+                        // ป้องกันรูปเสียโดยการดึง proxy ไม่สำเร็จ ให้เปลี่ยนเป็น Error Icon เพื่อความสะอาดตา
+                        this.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ff3333"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>';
+                        this.style.opacity = '0.5'; this.style.padding = '30px';
+                        this.title = 'โหลดภาพล้มเหลว';
                     }
                 };
                 
                 img.onload = function() {
+                    if(this.src.startsWith('data:image/svg')) return; // ถ้ารูปพังแล้วเปลี่ยนเป็น svg ไม่ต้องเช็กขนาด
                     if(this.naturalWidth < 30 && !isDataUrl) { this.onerror(); return; }
                     card.setAttribute('data-width', this.naturalWidth);
                     infoContainer.innerHTML = `<span class="filename" title="${fname}">${fname}</span><span class="dimensions">${this.naturalWidth}x${this.naturalHeight}</span>`;
-                    applyVisualFilters();
                 };
                 
                 infoContainer.innerHTML = `<span class="filename" title="${fname}">${fname}</span><span class="dimensions">Image...</span>`;
@@ -730,7 +724,10 @@
             statusText.innerText = `กำลังสร้างการ์ดแสดงผล... ${Math.round((cIdx/mediaArray.length)*100)}%`;
             requestAnimationFrame(renderLoop);
         } else {
-            setTimeout(applyVisualFilters, 300);
+            // เมื่อสร้างเสร็จหมดแล้ว ให้รันฟังก์ชันกรองข้อมูล และหลุดลูปทันที
+            setTimeout(() => {
+                applyVisualFilters(); 
+            }, 300);
         }
     }
     
@@ -785,11 +782,9 @@
         
         let targetCard = null;
         if(index < visibleCards.length && index >= 0) {
-           // ถ้าเรียกจากปุ่มลูกศร index จะเป็นตำแหน่งของ visibleCards
            targetCard = visibleCards[index];
-           currentLbIndex = index; // อัปเดตให้จำว่าอยู่การ์ดที่เท่าไหร่ของหน้าจอ
+           currentLbIndex = index; 
         } else {
-           // ถ้าเรียกจากคลิกที่รูปตรงๆ index คือตำแหน่งจริงจาก mediaArray
            let targetUrl = mediaArray[index].url;
            targetCard = Array.from(visibleCards).find(c => c.querySelector('.chk-select').getAttribute('data-url') === targetUrl);
            if(!targetCard) return; 
@@ -799,7 +794,6 @@
         const src = targetCard.querySelector('.chk-select').getAttribute('data-url');
         const type = targetCard.getAttribute('data-type');
         
-        // หา Item จริงเพื่อเอา Thumb (กรณี Social)
         let item = mediaArray.find(m => m.url === src) || {url: src, type: type, thumb: null};
 
         lbImg.style.display = 'none'; lbVid.style.display = 'none'; lbAud.style.display = 'none'; lbIframe.style.display = 'none';
@@ -917,7 +911,7 @@
         }
     }, {passive: false});
 
-    // === ZIP (ดึงภาพปกสำหรับวิดีโอโซเชียลแทน) ===
+    // === ZIP ===
     shadow.getElementById('btn-zip').onclick = function() {
         let btn = this;
         let selectedCheckboxes = shadow.querySelectorAll('.media-card:not(.hidden-by-filter) .chk-select:checked');
@@ -939,7 +933,7 @@
                 let isDataUrl = s.startsWith('data:image/');
                 let isSocial = type === 'youtube' || type === 'social_video';
                 
-                if(s.startsWith('blob:')) continue; // ข้ามสตรีมมิ่งสด
+                if(s.startsWith('blob:')) continue; 
 
                 let b = null;
                 let ext = 'jpg';
