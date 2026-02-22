@@ -1,5 +1,5 @@
 // ==========================================
-// KIRITO PULL SYSTEM - ULTIMATE GITHUB EDITION v3
+// KIRITO PULL SYSTEM - ULTIMATE GITHUB EDITION v4 (SVG Icons Fix)
 // ==========================================
 (function() {
     if(document.getElementById('krt-sys-wrapper')) {
@@ -23,11 +23,9 @@
 
     const uMap = new Map();
     
-    // --- ฟังก์ชันดึงรูป (อัปเกรด Regex และเจาะ JSON) ---
     const addImg = function(s) {
         if(!s || typeof s !== 'string' || s.startsWith('data:')) return;
         
-        // คลีนข้อมูลและแปลง Path
         s = s.trim().replace(/\\u002F/g, '/').replace(/\\/g, '');
         if(s.startsWith('//')) s = 'https:' + s;
         else if(s.startsWith('/')) s = location.origin + s;
@@ -51,10 +49,8 @@
         }
     };
 
-    // 1. หาจาก Image Tags ปกติ
     Array.from(document.images).forEach(e => addImg(e.src));
     
-    // 2. หาจาก Attributes ยอดฮิตที่เว็บชอบซ่อน
     Array.from(document.querySelectorAll('*')).forEach(e => {
         ['data-src', 'data-original', 'data-lazy-src', 'data-srcset', 'src', 'href', 'srcset', 'content', 'poster'].forEach(attr => {
             let ds = e.getAttribute(attr);
@@ -68,7 +64,6 @@
         if(m) addImg(m[1]);
     });
     
-    // 3. ทะลวงหาจาก Source Code และ Script (ไม้ตายสำหรับ Facebook/Pinterest)
     const htmlCode = document.documentElement.innerHTML;
     const urlRegex = /(?:https?:|\\\/\\\/|\/\/)[^\s"'<>;&\\]+\.(?:jpg|jpeg|png|gif|webp|svg|ico)(?:\?[^\s"'<>\\]*)?/gi;
     let match;
@@ -91,16 +86,27 @@
 
     const shadow = wrapper.attachShadow({mode: 'open'});
     
-    // โหลด Font Awesome เพื่อใช้ไอคอน
-    const fontAwesome = document.createElement('link');
-    fontAwesome.rel = 'stylesheet';
-    fontAwesome.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
-    shadow.appendChild(fontAwesome);
+    // --- ฝัง SVG Icons โดยตรง แก้ปัญหา CSP Blocked ---
+    const SVGs = {
+        dl: '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>',
+        link: '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>',
+        copy: '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>',
+        checkSq: '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>',
+        box: '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>',
+        times: '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>',
+        check: '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+        spin: '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" class="icon-spin"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10"></path></svg>'
+    };
 
     shadow.innerHTML += `
         <style>
             * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
             @keyframes krtFadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+            @keyframes krtSpin { 100% { transform: rotate(360deg); } }
+            
+            svg { display: block; }
+            .icon-spin { animation: krtSpin 1s linear infinite; }
+            
             .container { position: absolute; top:0; left:0; width: 100%; height: 100%; background: rgba(10, 10, 10, 0.65); overflow-y: auto; padding: 25px; color: #fff; pointer-events: auto; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); animation: krtFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
             .container::-webkit-scrollbar { width: 8px; }
             .container::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.1); }
@@ -164,9 +170,9 @@
             <div class="header">
                 <h1>KIRITO SYSTEM</h1>
                 <div class="btn-group">
-                    <button id="btn-select-all" class="btn-select"><i class="fas fa-check-square"></i> เลือกทั้งหมด</button>
-                    <button id="btn-zip" class="btn-zip"><i class="fas fa-box-open"></i> ดาวน์โหลด ZIP</button>
-                    <button id="btn-close" class="btn-close"><i class="fas fa-times"></i> ปิดระบบ</button>
+                    <button id="btn-select-all" class="btn-select">${SVGs.checkSq} เลือกทั้งหมด</button>
+                    <button id="btn-zip" class="btn-zip">${SVGs.box} ดาวน์โหลด ZIP</button>
+                    <button id="btn-close" class="btn-close">${SVGs.times} ปิดระบบ</button>
                 </div>
             </div>
             <div class="info-text">
@@ -194,13 +200,14 @@
     const statusText = shadow.getElementById('status-text');
     const countBadge = shadow.getElementById('count-badge');
 
-    // UI Helper Functions
-    const showTempIcon = (btn, tempIcon, origIcon) => {
-        const i = btn.querySelector('i');
-        if(i) {
-            i.className = tempIcon; btn.style.background = '#28a745';
-            setTimeout(() => { i.className = origIcon; btn.style.background = ''; }, 2000);
-        }
+    // UI Helper Functions (เปลี่ยนมารองรับ SVG)
+    const showTempIcon = (btn, tempSvg, origSvg) => {
+        btn.innerHTML = tempSvg;
+        btn.style.background = '#28a745';
+        setTimeout(() => { 
+            btn.innerHTML = origSvg; 
+            btn.style.background = ''; 
+        }, 2000);
     };
 
     const fetchImg = async (url) => {
@@ -275,7 +282,7 @@
                 this.retried = true;
                 this.src = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(s);
             } else {
-                card.style.display = 'none'; // ซ่อนรูปที่พัง
+                card.style.display = 'none';
             }
         };
 
@@ -292,37 +299,37 @@
         
         let btnDl = document.createElement('button');
         btnDl.className = 'btn-icon btn-dl'; btnDl.title = 'ดาวน์โหลด';
-        btnDl.innerHTML = '<i class="fas fa-download"></i>';
+        btnDl.innerHTML = SVGs.dl;
         btnDl.onclick = async () => {
             let b = await fetchImg(s);
             if(b) {
                 let u2 = URL.createObjectURL(b);
                 let a2 = document.createElement('a'); a2.href = u2; a2.download = 'KIRITO_' + Date.now() + '.jpg';
                 a2.click(); URL.revokeObjectURL(u2);
-                showTempIcon(btnDl, 'fas fa-check', 'fas fa-download');
+                showTempIcon(btnDl, SVGs.check, SVGs.dl);
             } else window.open(s, '_blank');
         };
 
         let btnCopyLink = document.createElement('button');
         btnCopyLink.className = 'btn-icon btn-copy-link'; btnCopyLink.title = 'คัดลอกลิงก์';
-        btnCopyLink.innerHTML = '<i class="fas fa-link"></i>';
+        btnCopyLink.innerHTML = SVGs.link;
         btnCopyLink.onclick = () => {
-            navigator.clipboard.writeText(s).then(() => showTempIcon(btnCopyLink, 'fas fa-check', 'fas fa-link'))
+            navigator.clipboard.writeText(s).then(() => showTempIcon(btnCopyLink, SVGs.check, SVGs.link))
             .catch(()=>{
                 let t = document.createElement('textarea'); t.value = s; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t);
-                showTempIcon(btnCopyLink, 'fas fa-check', 'fas fa-link');
+                showTempIcon(btnCopyLink, SVGs.check, SVGs.link);
             });
         };
 
         let btnCopyImg = document.createElement('button');
         btnCopyImg.className = 'btn-icon btn-copy-img'; btnCopyImg.title = 'คัดลอกรูปภาพ';
-        btnCopyImg.innerHTML = '<i class="fas fa-copy"></i>';
+        btnCopyImg.innerHTML = SVGs.copy;
         btnCopyImg.onclick = async () => {
             try {
                 let b = await fetchImg(s);
                 if(b) {
                     await navigator.clipboard.write([new ClipboardItem({[b.type]: b})]);
-                    showTempIcon(btnCopyImg, 'fas fa-check', 'fas fa-copy');
+                    showTempIcon(btnCopyImg, SVGs.check, SVGs.copy);
                 } else alert("โดนบล็อกการดึงข้อมูลรูปภาพ");
             } catch(e) { alert("เบราว์เซอร์ไม่รองรับการคัดลอกรูปภาพโดยตรง"); }
         };
@@ -335,7 +342,6 @@
     statusText.innerText = 'ระบบพร้อมใช้งาน 100%';
     updateSelectionCount();
 
-    // Event Listeners UI หลัก
     shadow.getElementById('btn-close').onclick = () => {
         wrapper.style.opacity = '0';
         wrapper.style.transition = 'opacity 0.3s';
@@ -349,7 +355,7 @@
         updateSelectionCount();
     };
 
-    // === ระบบเปลี่ยนรูปใน Lightbox ===
+    // === Lightbox ===
     shadow.getElementById('lb-close').onclick = () => lightbox.classList.remove('active');
     
     const navLb = (dir) => {
@@ -361,7 +367,7 @@
     shadow.getElementById('lb-prev').onclick = () => navLb(-1);
     shadow.getElementById('lb-next').onclick = () => navLb(1);
 
-    // === SMART TOUCH 2.0 (แก้บัครูปลอย) ===
+    // === Touch & Mouse ===
     let isDragging = false, startX, startY, initDist = 0, initScale = 1;
     let startTouchX = 0, isSwiping = false;
     const getDist = (touches) => Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
@@ -454,7 +460,7 @@
         }
     }, {passive: false});
 
-    // === ระบบแพ็ก ZIP (เสถียรสุด ทนต่อการโดนบล็อก) ===
+    // === ZIP ===
     shadow.getElementById('btn-zip').onclick = function() {
         let btn = this;
         let selectedCheckboxes = shadow.querySelectorAll('.chk-select:checked');
@@ -462,7 +468,7 @@
 
         btn.disabled = true;
         let origBtnText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> เตรียมแพ็ก ZIP...';
+        btn.innerHTML = `${SVGs.spin} เตรียมแพ็ก ZIP...`;
         statusText.style.color = '#fff';
 
         const doZip = async () => {
@@ -506,7 +512,7 @@
                 URL.revokeObjectURL(u2);
                 statusText.innerText = `โหลด ZIP สำเร็จ (${successCount} รูป)`;
                 statusText.style.color = '#28a745';
-                btn.innerHTML = '<i class="fas fa-check"></i> สำเร็จ!';
+                btn.innerHTML = `${SVGs.check} สำเร็จ!`;
             } catch(e) {
                 statusText.innerText = 'เกิดข้อผิดพลาดในการสร้าง ZIP';
                 statusText.style.color = '#ff3333';
