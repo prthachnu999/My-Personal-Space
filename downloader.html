@@ -26,8 +26,8 @@
         }
 
         /* --- Custom Scrollbar --- */
-        ::-webkit-scrollbar { width: 10px; height: 10px; }
-        ::-webkit-scrollbar-track { background: #111; border-left: 1px solid #333; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-left: 1px solid rgba(255,255,255,0.05); }
         ::-webkit-scrollbar-thumb { background: var(--primary-red); border-radius: 5px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--glow-red); }
 
@@ -36,248 +36,207 @@
             background-color: var(--bg-color); color: var(--text-color);
             font-family: var(--font-main);
             min-height: 100vh; display: flex; flex-direction: column; align-items: center;
-            background-image: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('คิริโตะแดง.jpg');
+            /* ปรับพื้นหลังให้ใสขึ้น และเพิ่มลูกเล่นเบลอ */
+            background-image: linear-gradient(rgba(5,0,0,0.6), rgba(5,0,0,0.75)), url('คิริโตะแดง.jpg');
             background-size: cover; background-position: center; background-attachment: fixed;
-            overflow-x: hidden;
+            overflow-x: hidden; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
         }
 
         header {
             width: 100%; padding: 15px; text-align: center;
-            background: rgba(20, 0, 0, 0.95); backdrop-filter: blur(10px);
-            border-bottom: 2px solid var(--primary-red);
-            box-shadow: 0 0 20px rgba(255, 0, 51, 0.3);
+            background: rgba(5, 0, 0, 0.5); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255, 0, 51, 0.5);
+            box-shadow: 0 4px 25px rgba(255, 0, 51, 0.3);
             position: sticky; top: 0; z-index: 100;
         }
 
         h1 {
             font-family: var(--font-tech); color: var(--primary-red);
-            text-transform: uppercase; letter-spacing: 3px; margin: 0; font-size: 1.5rem;
-            text-shadow: 0 0 10px var(--glow-red);
+            text-transform: uppercase; letter-spacing: 3px; margin: 0; font-size: 1.6rem;
+            text-shadow: 0 0 15px var(--glow-red); font-weight: 900;
         }
 
         .control-panel {
-            width: 95%; max-width: 1200px; margin: 20px auto;
-            background: rgba(0, 0, 0, 0.85); border: 1px solid var(--primary-red);
-            padding: 20px; border-radius: 10px; box-shadow: 0 0 30px rgba(255, 0, 51, 0.15);
+            width: 95%; max-width: 1200px; margin: 25px auto;
+            background: rgba(15, 15, 15, 0.55); border: 1px solid rgba(255, 51, 51, 0.3);
+            padding: 25px; border-radius: 12px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
         }
 
         .tab-menu {
             display: flex; gap: 10px; margin-bottom: 20px;
-            border-bottom: 1px solid #333; padding-bottom: 10px; flex-wrap: wrap;
+            border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; flex-wrap: wrap;
         }
 
         .tab-btn {
-            background: transparent; border: 1px solid #555; color: #aaa;
-            padding: 8px 15px; cursor: pointer; font-family: var(--font-tech);
-            border-radius: 5px; transition: all 0.3s; flex-grow: 1;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #ccc;
+            padding: 10px 15px; cursor: pointer; font-family: var(--font-tech);
+            border-radius: 6px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); flex-grow: 1; font-weight: bold;
         }
 
+        .tab-btn:hover { background: rgba(255,255,255,0.1); }
         .tab-btn.active {
             background: var(--primary-red); color: white;
-            border-color: var(--primary-red); box-shadow: 0 0 15px rgba(255, 0, 51, 0.4);
+            border-color: var(--primary-red); box-shadow: 0 0 20px rgba(255, 0, 51, 0.4); transform: translateY(-2px);
         }
 
-        .input-section { display: none; animation: fadeIn 0.3s ease; }
+        .input-section { display: none; animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
         .input-section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
         .input-label { font-size: 0.9rem; color: var(--glow-red); margin-bottom: 5px; display: block; font-weight: bold; }
         input[type="text"], textarea {
-            width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.05);
-            border: 1px solid #555; color: #fff; border-radius: 5px; font-family: monospace;
-            outline: none; box-sizing: border-box; margin-bottom: 10px;
+            width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 6px; font-family: monospace;
+            outline: none; box-sizing: border-box; margin-bottom: 15px; transition: 0.3s;
         }
-        textarea { height: 100px; resize: vertical; font-size: 0.8rem; white-space: pre; }
-        input[type="text"]:focus, textarea:focus { border-color: var(--primary-red); box-shadow: 0 0 10px rgba(255, 0, 51, 0.3); }
+        textarea { height: 120px; resize: vertical; font-size: 0.85rem; white-space: pre; }
+        input[type="text"]:focus, textarea:focus { border-color: var(--primary-red); box-shadow: 0 0 15px rgba(255, 0, 51, 0.3); background: rgba(0,0,0,0.6); }
 
         .btn {
-            padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;
+            padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer;
             font-family: var(--font-tech); font-weight: bold; text-transform: uppercase;
             color: white; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;
-            gap: 8px; width: 100%;
+            gap: 8px; width: 100%; font-size: 1rem;
         }
-        .btn-scan { background: linear-gradient(45deg, #990000, var(--primary-red)); box-shadow: 0 0 15px rgba(255, 0, 51, 0.4); }
-        .btn-scan:hover { transform: scale(1.02); box-shadow: 0 0 25px rgba(255, 0, 51, 0.7); }
+        .btn-scan { background: linear-gradient(135deg, #990000, var(--primary-red)); box-shadow: 0 5px 15px rgba(255, 0, 51, 0.3); }
+        .btn-scan:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255, 0, 51, 0.5); }
 
-        .filter-section { margin-top: 20px; padding-top: 15px; border-top: 1px dashed #444; }
-        .filter-label { font-size: 0.8rem; color: #aaa; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
-        .filter-group { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+        .filter-section { margin-top: 20px; padding-top: 15px; border-top: 1px dashed rgba(255,255,255,0.1); }
+        .filter-label { font-size: 0.85rem; color: #ddd; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
+        .filter-group { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
         .filter-btn {
-            padding: 6px 12px; font-size: 0.75rem; background: rgba(255,255,255,0.05);
-            border: 1px solid #444; border-radius: 20px; color: #ccc; cursor: pointer;
+            padding: 6px 14px; font-size: 0.8rem; background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.15); border-radius: 20px; color: #ccc; cursor: pointer;
             transition: all 0.2s; font-family: var(--font-tech);
         }
-        .filter-btn:hover { background: rgba(255, 255, 255, 0.1); border-color: #666; }
-        .filter-btn.active {
-            background: var(--primary-red); color: white; border-color: var(--primary-red);
-            box-shadow: 0 0 10px rgba(255, 0, 51, 0.3);
-        }
+        .filter-btn:hover { background: rgba(255, 255, 255, 0.1); border-color: #777; }
+        .filter-btn.active { background: var(--primary-red); color: white; border-color: var(--primary-red); box-shadow: 0 0 12px rgba(255, 0, 51, 0.4); }
 
         .global-actions {
-            display: flex; gap: 10px; margin-top: 15px; padding-top: 15px;
-            border-top: 1px solid #333; flex-wrap: wrap; align-items: center;
+            display: flex; gap: 12px; margin-top: 15px; padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1); flex-wrap: wrap; align-items: center;
         }
         .btn-action {
-            flex: 1; padding: 8px 15px; font-size: 0.8rem; background: #222;
-            border: 1px solid #444; border-radius: 4px; color: #ccc; cursor: pointer; white-space: nowrap;
+            flex: 1; padding: 10px 15px; font-size: 0.85rem; background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: #eee; cursor: pointer; white-space: nowrap; transition: 0.2s; font-weight: 600;
         }
-        .btn-action:hover { background: #333; color: white; border-color: #666; }
-        .btn-danger:hover { background: #500; border-color: #f00; color: #fff; }
+        .btn-action:hover { background: rgba(255,255,255,0.2); color: white; }
+        .btn-success:hover { background: #28a745; border-color: #28a745; }
+        .btn-danger:hover { background: #dc3545; border-color: #dc3545; }
+        
         .toggle-container {
             display: flex; align-items: center; gap: 8px; color: #ccc; font-size: 0.85rem; cursor: pointer;
-            background: rgba(0,0,0,0.3); padding: 5px 10px; border-radius: 4px; border: 1px solid #333;
+            background: rgba(0,0,0,0.5); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); transition: 0.2s;
         }
-        .toggle-container input { margin: 0; width: auto; cursor: pointer; }
+        .toggle-container:hover { background: rgba(0,0,0,0.8); border-color: var(--primary-red); }
 
-        /* Progress Bar */
-        #progress-container {
-            display: none; width: 100%; background: #222; border-radius: 5px;
-            margin-top: 15px; overflow: hidden; border: 1px solid #444; box-shadow: inset 0 0 10px #000;
-        }
-        #progress-bar {
-            width: 0%; height: 26px; background: linear-gradient(45deg, #990000, var(--primary-red));
-            transition: width 0.2s ease; text-align: center; color: white; font-size: 13px;
-            line-height: 26px; font-family: var(--font-tech); font-weight: bold; text-shadow: 0 0 5px #000;
-        }
+        #progress-container { display: none; width: 100%; background: rgba(0,0,0,0.6); border-radius: 6px; margin-top: 20px; overflow: hidden; border: 1px solid #555; }
+        #progress-bar { width: 0%; height: 28px; background: linear-gradient(90deg, #990000, var(--primary-red)); transition: width 0.3s ease; text-align: center; color: white; font-size: 13px; line-height: 28px; font-family: var(--font-tech); font-weight: bold; text-shadow: 0 0 5px #000; }
 
         /* Gallery */
-        .gallery {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 15px; width: 95%; max-width: 1400px; margin-bottom: 50px; padding-right: 5px;
-        }
+        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 18px; width: 95%; max-width: 1400px; margin-bottom: 50px; }
+        
         .img-card {
-            background: #111; border: 1px solid #333; border-radius: 8px; overflow: hidden;
-            position: relative; display: flex; flex-direction: column; justify-content: flex-start;
-            align-items: center; transition: all 0.3s; padding-bottom: 40px; 
+            background: rgba(20, 20, 20, 0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden;
+            position: relative; display: flex; flex-direction: column; transition: all 0.3s ease; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            backdrop-filter: blur(5px);
         }
         .img-card.hidden-by-filter { display: none !important; }
-        .img-card:hover {
-            border-color: var(--primary-red); transform: translateY(-3px); z-index: 10;
-            box-shadow: 0 5px 15px rgba(255, 0, 51, 0.2);
-        }
-        .img-container { width: 100%; height: 150px; background: #050505; display: flex; justify-content: center; align-items: center; overflow: hidden; }
-        .img-card img { max-width: 100%; max-height: 100%; object-fit: contain; cursor: zoom-in; user-select: none; -webkit-user-drag: none; }
+        .img-card:hover { border-color: var(--primary-red); transform: translateY(-5px); box-shadow: 0 10px 25px rgba(255, 0, 51, 0.4); z-index: 10; background: rgba(30, 30, 30, 0.8); }
+        
+        .card-checkbox { position: absolute; top: 12px; left: 12px; z-index: 5; width: 22px; height: 22px; cursor: pointer; accent-color: var(--primary-red); filter: drop-shadow(0 0 5px rgba(0,0,0,0.5)); }
 
-        /* Single Line Info Style */
-        .img-info {
-            width: 100%; padding: 8px 10px; background: rgba(0,0,0,0.8); color: #aaa;
-            font-size: 0.7rem; text-align: left; border-top: 1px solid #333; box-sizing: border-box;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex;
-            justify-content: space-between; align-items: center; font-family: var(--font-tech);
-        }
-        .img-info span.name { flex: 1; overflow: hidden; text-overflow: ellipsis; margin-right: 10px; color: #fff; }
-        .img-info span.meta { color: var(--primary-red); font-size: 0.65rem; flex-shrink: 0; font-weight: bold; }
+        .img-container { width: 100%; height: 160px; background: rgba(0,0,0,0.4); display: flex; justify-content: center; align-items: center; overflow: hidden; cursor: zoom-in; }
+        .img-card img { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.3s ease; }
+        .img-card:hover img { transform: scale(1.08); }
 
-        .img-actions {
-            position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(20,20,20,0.95);
-            padding: 5px; display: flex; justify-content: center; gap: 10px; opacity: 0; transition: opacity 0.2s;
-            height: 40px; align-items: center; border-top: 1px solid var(--primary-red);
-        }
-        .img-card:hover .img-actions { opacity: 1; }
-        .btn-icon {
-            width: 32px; height: 32px; border-radius: 4px; border: none; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; color: white; font-size: 0.9rem;
-            transition: transform 0.1s;
-        }
-        .btn-icon:hover { transform: scale(1.1); filter: brightness(1.2); }
-        .btn-dl { background: var(--primary-red); }
-        .btn-copy-link { background: #007bff; }
-        .btn-copy-img { background: #28a745; }
+        .img-info { width: 100%; padding: 12px 10px; background: rgba(0,0,0,0.5); color: #ccc; font-size: 0.75rem; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; font-family: var(--font-tech); }
+        .img-info span.name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px; color: #fff; font-weight: 500; }
+        .img-info span.meta { color: var(--glow-red); font-size: 0.7rem; font-weight: bold; background: rgba(255,0,51,0.1); padding: 3px 6px; border-radius: 4px; }
 
-        /* Lightbox */
+        .img-actions { padding: 10px; background: rgba(10,10,10,0.8); display: flex; justify-content: center; gap: 8px; border-top: 1px solid rgba(255,51,51,0.2); }
+        .btn-icon { flex: 1; height: 36px; border-radius: 6px; border: none; cursor: pointer; color: white; font-size: 0.95rem; transition: 0.2s; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); }
+        .btn-icon:hover { transform: translateY(-3px); }
+        .btn-dl { background: rgba(255,0,51,0.7); } .btn-dl:hover { background: var(--primary-red); box-shadow: 0 0 10px rgba(255,0,51,0.5); }
+        .btn-copy-link { background: rgba(0,123,255,0.7); } .btn-copy-link:hover { background: #007bff; box-shadow: 0 0 10px rgba(0,123,255,0.5); }
+        .btn-copy-img { background: rgba(40,167,69,0.7); } .btn-copy-img:hover { background: #28a745; box-shadow: 0 0 10px rgba(40,167,69,0.5); }
+        
+        /* Lightbox แก้บัคทัชสกรีน */
         #lightbox {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 2000; justify-content: center; align-items: center;
-            overflow: hidden; touch-action: none;
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 2000;
+            justify-content: center; align-items: center; overflow: hidden; touch-action: none; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
         }
-        #lightbox img { max-width: 90%; max-height: 90%; transition: transform 0.1s ease-out; cursor: grab; user-select: none; -webkit-user-drag: none; }
-        #lightbox img:active { cursor: grabbing; }
-        .lb-close {
-            position: absolute; top: 20px; right: 20px; color: white; font-size: 2rem; cursor: pointer;
-            z-index: 2001; background: rgba(0,0,0,0.5); width: 40px; height: 40px; text-align: center;
-            line-height: 40px; border-radius: 50%;
-        }
-        .lb-controls {
-            position: absolute; bottom: 20px; background: rgba(0,0,0,0.5); padding: 10px 20px;
-            border-radius: 20px; display: flex; gap: 15px; color: #fff; font-size: 0.8rem;
-        }
-        .status-msg { color: var(--glow-red); text-align: center; margin: 10px 0; font-size: 0.9rem; min-height: 20px; font-weight:bold; }
-        .loader {
-            display: none; width: 30px; height: 30px; border: 3px solid #333; border-top: 3px solid var(--primary-red);
-            border-radius: 50%; animation: spin 1s linear infinite; margin: 10px auto;
-        }
+        #lb-img { max-width: 90%; max-height: 90%; transition: transform 0.15s ease-out; cursor: grab; user-select: none; -webkit-user-drag: none; filter: drop-shadow(0 10px 30px rgba(0,0,0,0.6)); transform-origin: center; }
+        #lb-img.grabbing { cursor: grabbing; transition: none; }
+        
+        .lb-close { position: absolute; top: 20px; right: 20px; color: white; font-size: 2.5rem; cursor: pointer; z-index: 2005; background: rgba(255,255,255,0.1); width: 50px; height: 50px; text-align: center; line-height: 50px; border-radius: 50%; transition: 0.2s; }
+        .lb-close:hover { background: var(--primary-red); transform: rotate(90deg); box-shadow: 0 0 15px rgba(255,0,51,0.5); }
+        
+        .lb-nav { position: absolute; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.5); font-size: 3rem; cursor: pointer; z-index: 2002; padding: 20px 10px; transition: 0.3s; background: rgba(0,0,0,0.2); }
+        .lb-nav:hover { color: white; background: rgba(255,0,51,0.4); }
+        .lb-prev { left: 0; border-radius: 0 10px 10px 0; }
+        .lb-next { right: 0; border-radius: 10px 0 0 10px; }
+
+        .lb-controls { position: absolute; bottom: 30px; background: rgba(0,0,0,0.6); padding: 12px 25px; border-radius: 30px; display: flex; gap: 20px; color: #ddd; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px); }
+        
+        .status-msg { color: var(--glow-red); text-align: center; margin: 15px 0; font-size: 1rem; font-weight:bold; }
+        .loader { display: none; width: 35px; height: 35px; border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--primary-red); border-radius: 50%; animation: spin 1s linear infinite; margin: 15px auto; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
         .back-nav { margin-top: 20px; text-align: center; }
         .btn-home {
-            background: transparent; border: 1px solid var(--primary-red); color: var(--primary-red);
-            padding: 8px 20px; text-decoration: none; border-radius: 5px; font-size: 0.8rem;
-            transition: all 0.3s;
+            background: rgba(0,0,0,0.5); border: 1px solid var(--primary-red); color: var(--primary-red);
+            padding: 8px 20px; text-decoration: none; border-radius: 5px; font-size: 0.9rem;
+            transition: all 0.3s; backdrop-filter: blur(5px); display: inline-block; font-weight: bold;
         }
-        .btn-home:hover { background: var(--primary-red); color: white; }
+        .btn-home:hover { background: var(--primary-red); color: white; box-shadow: 0 0 15px rgba(255,0,51,0.5); }
 
-        .bookmarklet-box {
-            background: #111; padding: 15px; border: 1px dashed #555; border-radius: 5px;
-            text-align: center; margin-top: 20px; box-shadow: inset 0 0 10px #000;
-        }
-        .bookmark-link {
-            background: #444; color: #fff; padding: 5px 10px; border-radius: 4px;
-            text-decoration: none; font-weight: bold; cursor: move; border: 1px solid #777; display: inline-block;
-            transition: all 0.3s;
-        }
-        .bookmark-link:hover { background: var(--primary-red); border-color: white; box-shadow: 0 0 15px var(--glow-red); }
+        .bookmarklet-box { background: rgba(0,0,0,0.4); padding: 25px; border: 1px dashed rgba(255,51,51,0.5); border-radius: 10px; text-align: center; margin-top: 20px; }
+        .bookmark-link { background: rgba(255,255,255,0.1); color: #fff; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; cursor: move; border: 1px solid rgba(255,255,255,0.2); display: inline-block; transition: all 0.3s; font-family: var(--font-tech); }
+        .bookmark-link:hover { background: var(--primary-red); border-color: var(--primary-red); box-shadow: 0 0 20px var(--glow-red); transform: translateY(-2px); }
         
-        .mobile-copy-btn {
-            background: transparent; border: 1px solid #007bff; color: #007bff;
-            padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;
-            margin-top: 10px; transition: all 0.3s; display: inline-flex; align-items: center; gap: 5px;
-        }
-        .mobile-copy-btn:hover { background: #007bff; color: white; }
-
+        .mobile-copy-btn { background: rgba(0,123,255,0.1); border: 1px solid #007bff; color: #4da3ff; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.95rem; margin-top: 15px; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; font-weight: bold; }
+        .mobile-copy-btn:hover { background: #007bff; color: white; box-shadow: 0 0 15px rgba(0,123,255,0.5); transform: translateY(-2px); }
     </style>
 </head>
 <body>
 
     <header>
         <h1>KIRITO DOWNLOADER</h1>
-        <div style="font-size: 0.7rem; color: #aaa;">THE ULTIMATE BYPASS EDITION</div>
+        <div style="font-size: 0.75rem; color: #ccc; letter-spacing: 2px;">THE ULTIMATE BYPASS EDITION</div>
     </header>
 
     <div class="control-panel">
         <div class="tab-menu">
             <button class="tab-btn active" onclick="switchTab('auto')"><i class="fas fa-satellite-dish"></i> Auto Scan</button>
             <button class="tab-btn" onclick="switchTab('manual')"><i class="fas fa-code"></i> Manual Code</button>
-            <button class="tab-btn" onclick="switchTab('tool')"><i class="fas fa-wrench"></i> Tools</button>
+            <button class="tab-btn" onclick="switchTab('tool')"><i class="fas fa-wrench"></i> Setup Tools</button>
         </div>
 
         <div id="tab-auto" class="input-section active">
-            <input type="text" id="targetUrl" placeholder="ใส่ลิงก์เว็บไซต์ที่ต้องการ... (เช่น https://esports.freefire.in.th)">
-            <button class="btn btn-scan" onclick="startAutoScan()">
-                <i class="fas fa-radar"></i> START SCAN
-            </button>
+            <input type="text" id="targetUrl" placeholder="ใส่ลิงก์เว็บไซต์เป้าหมาย (เช่น https://pinterest.com/...)">
+            <button class="btn btn-scan" onclick="startAutoScan()"><i class="fas fa-radar"></i> START SCAN</button>
         </div>
 
         <div id="tab-manual" class="input-section">
-            <input type="text" id="manualUrl" placeholder="ลิงก์ต้นทาง (สำคัญ! เพื่อให้รูปขึ้น เช่น https://myweb.com)">
-            <textarea id="sourceCode" placeholder="วาง Source Code (Ctrl+U) ที่นี่..."></textarea>
-            <button class="btn btn-scan" onclick="startManualScan()">
-                <i class="fas fa-microchip"></i> DECODE & EXTRACT
-            </button>
+            <input type="text" id="manualUrl" placeholder="ลิงก์โดเมนต้นทาง (สำคัญ! เพื่อดึงรูปที่ติด Relative Path)">
+            <textarea id="sourceCode" placeholder="วาง Source Code HTML (Ctrl+U) ไว้ที่นี่..."></textarea>
+            <button class="btn btn-scan" onclick="startManualScan()"><i class="fas fa-microchip"></i> DECODE & EXTRACT</button>
         </div>
 
         <div id="tab-tool" class="input-section">
             <div style="text-align:center;">
                 <div class="bookmarklet-box">
-                    <a id="bookmarklet-ui-link" class="bookmark-link" href="#">
-                        <i class="fas fa-bookmark"></i> KIRITO PULL (PC)
+                    <a class="bookmark-link" href="javascript:(function(){var s=document.createElement('script');s.src='https://prthachnu999.github.io/My-Personal-Space/kiritopull.js?v='+Date.now();document.body.appendChild(s);})();">
+                        <i class="fas fa-bookmark"></i> KIRITO PULL (ลากไปวางที่ Bookmark PC)
                     </a>
                     <br>
                     <button id="btn-copy-mobile" class="mobile-copy-btn" onclick="copyMobileCode()">
-                        <i class="fas fa-mobile-alt"></i> คัดลอกโค้ดสำหรับโทรศัพท์
+                        <i class="fas fa-mobile-alt"></i> คัดลอก Loader Code (สำหรับมือถือ)
                     </button>
                 </div>
-                <p style="font-size:0.8rem; color:#888; margin-top:10px;"><b>บน PC:</b> ลากปุ่มแดงไปใส่แถบบุคมาร์ก</p>
-                <p style="font-size:0.8rem; color:#888;"><b>บนมือถือ:</b> กดปุ่มสีฟ้าเพื่อก๊อปปี้โค้ด แล้วนำไปวางแก้ไขใน URL ของบุคมาร์ก</p>
+                <p style="font-size:0.85rem; color:#aaa; margin-top:15px;">ระบบถูกคลีนใหม่ 100% เชื่อมต่อกับ GitHub โดยตรง</p>
             </div>
         </div>
 
@@ -289,7 +248,6 @@
                 <button class="filter-btn" onclick="setSizeFilter('medium', this)">กลาง (500-1200px)</button>
                 <button class="filter-btn" onclick="setSizeFilter('large', this)">ใหญ่ (&gt;1200px)</button>
             </div>
-
             <div class="filter-label"><i class="fas fa-file-image"></i> ประเภทไฟล์ (File Type):</div>
             <div class="filter-group" id="typeFilters">
                 <button class="filter-btn active" onclick="setTypeFilter('all', this)">All</button>
@@ -297,74 +255,54 @@
                 <button class="filter-btn" onclick="setTypeFilter('png', this)">PNG</button>
                 <button class="filter-btn" onclick="setTypeFilter('gif', this)">GIF</button>
                 <button class="filter-btn" onclick="setTypeFilter('webp', this)">WebP</button>
-                <button class="filter-btn" onclick="setTypeFilter('svg', this)">SVG</button>
-                <button class="filter-btn" onclick="setTypeFilter('other', this)">Others</button>
             </div>
         </div>
 
         <div id="loader" class="loader"></div>
-        <div id="status" class="status-msg">พร้อมทำงาน...</div>
-
-        <!-- Progress Bar HTML -->
-        <div id="progress-container">
-            <div id="progress-bar">0%</div>
-        </div>
+        <div id="status" class="status-msg">สแตนด์บายระบบ...</div>
+        <div id="progress-container"><div id="progress-bar">0%</div></div>
 
         <div class="global-actions">
-            <label class="toggle-container" title="ถ้าไม่ติ๊ก ระบบจะลบรูปขนาดเล็กที่ซ้ำกับรูปใหญ่ทิ้งอัตโนมัติ (ไม่ลบรูปหน้าโดจิน)">
-                <input type="checkbox" id="allowDuplicates"> แสดงรูปซ้ำ (ปิด Smart Dedupe)
+            <label class="toggle-container" title="แสดงรูปซ้ำทั้งหมด">
+                <input type="checkbox" id="allowDuplicates"> ปิดระบบลบรูปซ้ำ
             </label>
-            <button class="btn-action" onclick="copyAllLinks()" id="btn-copy-all"><i class="fas fa-link"></i> คัดลอก Link ทั้งหมด</button>
-            <button class="btn-action" onclick="downloadAll()" id="btn-dl-all"><i class="fas fa-cloud-download-alt"></i> บันทึกเป็น ZIP ทั้งหมด</button>
-            <button class="btn-action btn-danger" onclick="clearGallery()"><i class="fas fa-trash"></i> ล้างทั้งหมด</button>
+            <button class="btn-action" onclick="selectAllImages()"><i class="fas fa-check-square"></i> เลือกทั้งหมด/ยกเลิก</button>
+            <button class="btn-action btn-success" onclick="downloadAll()" id="btn-dl-all"><i class="fas fa-box-open"></i> ดาวน์โหลด ZIP ที่เลือก</button>
+            <button class="btn-action btn-danger" onclick="clearGallery()"><i class="fas fa-trash"></i> ล้างข้อมูล</button>
         </div>
     </div>
 
     <div class="gallery" id="gallery"></div>
-
+    
     <div class="back-nav">
         <a href="index.html" class="btn-home"><i class="fas fa-home"></i> กลับหน้าหลัก</a>
     </div>
 
     <div id="lightbox">
         <div class="lb-close" onclick="closeLightbox()">&times;</div>
-        <img id="lb-img" src="" alt="Full View">
+        <div id="lb-prev" class="lb-nav lb-prev" onclick="navLb(-1)">&#10094;</div>
+        <img id="lb-img" src="">
+        <div id="lb-next" class="lb-nav lb-next" onclick="navLb(1)">&#10095;</div>
         <div class="lb-controls">
-            <span><i class="fas fa-mouse"></i> กลิ้งเมาส์/ถ่างนิ้ว เพื่อซูม</span>
-            <span><i class="fas fa-hand-paper"></i> ลากเพื่อเลื่อน</span>
+            <span><i class="fas fa-search-plus"></i> ซูม/ลากรูป</span>
+            <span><i class="fas fa-arrows-alt-h"></i> ปัด/ลูกศร เปลี่ยนรูป</span>
         </div>
     </div>
 
     <script>
-        // --- ฟังก์ชันช่วยเหลือสำหรับเปลี่ยนไอคอน/ข้อความปุ่มชั่วคราว ---
+        let allScannedImages = []; 
+        let globalImagesToShow = []; 
+        let currentLbIndex = 0;
+        let currentSizeFilter = 'all', currentTypeFilter = 'all';
+
         function showTempSuccess(btnId, tempHtml, originalHtml, time = 2500) {
             const btn = document.getElementById(btnId);
             if(!btn) return;
             btn.innerHTML = tempHtml;
-            btn.style.color = '#0f0';
             btn.style.borderColor = '#0f0';
-            setTimeout(() => {
-                btn.innerHTML = originalHtml;
-                btn.style.color = '';
-                btn.style.borderColor = '';
-            }, time);
+            btn.style.color = '#0f0';
+            setTimeout(() => { btn.innerHTML = originalHtml; btn.style.borderColor = ''; btn.style.color = ''; }, time);
         }
-
-        function showTempIcon(btn, tempIconClass, origIconClass) {
-            const icon = btn.querySelector('i');
-            if(icon) {
-                icon.className = tempIconClass;
-                icon.style.color = '#0f0';
-                setTimeout(() => {
-                    icon.className = origIconClass;
-                    icon.style.color = '';
-                }, 2000);
-            }
-        }
-
-        let allScannedImages = []; 
-        let currentSizeFilter = 'all';
-        let currentTypeFilter = 'all';
 
         function switchTab(mode) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -404,39 +342,17 @@
 
         function updateStatusText() {
             const visibleCards = document.querySelectorAll('.img-card:not(.hidden-by-filter)');
-            const allowDupes = document.getElementById('allowDuplicates').checked;
-            let status = `พบทั้งหมด ${visibleCards.length} รูป`;
-            if (currentSizeFilter !== 'all' || currentTypeFilter !== 'all') {
-                status += ` (แสดงผล ${visibleCards.length} รูปตามตัวกรอง)`;
-            }
-            status += allowDupes ? ' [โชว์รูปซ้ำ]' : ' [โหมดกรองซ้ำอัตโนมัติ]';
-            document.getElementById('status').innerText = status;
-        }
-
-        function isImage(url) {
-            if (!url || typeof url !== 'string') return false;
-            const u = url.toLowerCase().split('?')[0].split('#')[0];
-            if (u.endsWith('.js') || u.endsWith('.css') || u.endsWith('.html') || u.endsWith('.php') || u.endsWith('.json') || u.endsWith('.xml') || u.endsWith('.txt')) return false;
-            return (u.match(/\.(jpg|jpeg|png|webp|gif|svg|tiff|heic|ico)$/i)) != null;
+            document.getElementById('status').innerText = `พบทั้งหมด ${visibleCards.length} รูป (พร้อมดาวน์โหลด)`;
         }
 
         function checkFileType(url, filter) {
             const u = url.toLowerCase().split('?')[0];
-            const hasExt = u.match(/\.(jpg|jpeg|png|gif|webp|svg|tiff|heic|raw|ico)$/);
-            
             if (u.endsWith('.js') || u.endsWith('.css') || u.endsWith('.html') || u.endsWith('.php')) return false;
-
             if (filter === 'all') return true; 
             if (filter === 'jpg' && (u.endsWith('.jpg') || u.endsWith('.jpeg'))) return true;
             if (filter === 'png' && u.endsWith('.png')) return true;
             if (filter === 'gif' && u.endsWith('.gif')) return true;
             if (filter === 'webp' && u.endsWith('.webp')) return true;
-            if (filter === 'svg' && u.endsWith('.svg')) return true;
-            if (filter === 'other') {
-                if (!hasExt) return true;
-                const known = ['.jpg','.jpeg','.png','.gif','.webp','.svg'];
-                return !known.some(ext => u.endsWith(ext));
-            }
             return false;
         }
 
@@ -444,25 +360,20 @@
             let foundRaw = new Set(); 
             const regex = /(?:https?:)?\/\/[^\s"'<>;&]+\.(?:jpg|jpeg|png|gif|webp|svg|ico)\b/gi;
             let match;
-            while ((match = regex.exec(html)) !== null) {
-                foundRaw.add(match[0]);
-            }
+            while ((match = regex.exec(html)) !== null) foundRaw.add(match[0]);
             
             try {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 doc.querySelectorAll('img, a, link, source, div, span, bg').forEach(el => {
-                    ['src', 'data-src', 'data-original', 'data-lazy-src', 'data-srcset', 'href', 'srcset', 'imagesrcset', 'content'].forEach(attr => {
+                    ['src', 'data-src', 'data-original', 'data-lazy-src', 'data-srcset', 'href'].forEach(attr => {
                         let val = el.getAttribute(attr);
                         if (val) {
                             if (val.includes(',') && attr.includes('set')) {
                                 val.split(',').forEach(p => foundRaw.add(p.trim().split(' ')[0]));
-                            } else {
-                                foundRaw.add(val);
-                            }
+                            } else foundRaw.add(val);
                         }
                     });
-                    
                     let style = el.getAttribute('style');
                     if (style && style.includes('url')) {
                         let m = style.match(/url\(['"]?([^'"()]+)['"]?\)/);
@@ -476,868 +387,360 @@
                 if (!url || url.startsWith('data:')) return;
                 try {
                     url = url.trim();
-                    if (url.includes('%')) { try { url = decodeURIComponent(url); } catch(e){} }
-                    
+                    if (url.includes('%')) try { url = decodeURIComponent(url); } catch(e){}
                     if (url.startsWith('//')) url = 'https:' + url;
-                    else if (url.startsWith('/')) {
-                        if(baseUrl) url = new URL(url, new URL(baseUrl).origin).href;
-                    }
+                    else if (url.startsWith('/')) { if(baseUrl) url = new URL(url, new URL(baseUrl).origin).href; }
                     else if (!url.startsWith('http')) {
                         if(baseUrl) {
                             let base = baseUrl.endsWith('/') ? baseUrl : baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1);
                             url = new URL(url, base).href;
                         }
                     }
-
-                    if (url.includes('url=')) {
-                        let dummy = new URL(url, 'http://d');
-                        let inner = dummy.searchParams.get('url');
-                        if (inner) url = inner;
-                    }
-
-                    if (isImage(url)) finalUrls.push(url);
+                    finalUrls.push(url);
                 } catch(e) {}
             });
-
             return finalUrls;
         }
 
-        function getCleanKey(urlStr) {
-            try {
-                let u = new URL(urlStr);
-                u.searchParams.delete('w'); u.searchParams.delete('q');
-                u.searchParams.delete('width'); u.searchParams.delete('height');
-                let s = u.origin + u.pathname;
-                s = s.replace(/[-_]\d+x\d+(?=\.[a-zA-Z0-9]+$)/i, '');
-                return s;
-            } catch(e) { 
-                let s = urlStr.split('?')[0].split('#')[0];
-                s = s.replace(/[-_]\d+x\d+(?=\.[a-zA-Z0-9]+$)/i, '');
-                return s; 
-            }
-        }
-
-        function getResolutionScore(urlStr) {
-            try {
-                let u = urlStr.split('?')[0];
-                let m1 = u.match(/[-_](\d+)x(\d+)(?=\.[a-zA-Z0-9]+$)/i);
-                if(m1) return parseInt(m1[1]) * parseInt(m1[2]); 
-                return 0;
-            } catch(e) { return 0; }
-        }
-
         async function fetchHtmlSafe(url) {
-            const proxies = ['', 'https://api.codetabs.com/v1/proxy?quest=', 'https://corsproxy.io/?', 'https://api.allorigins.win/raw?url='];
+            const proxies = ['', 'https://api.codetabs.com/v1/proxy?quest=', 'https://corsproxy.io/?'];
             for (let p of proxies) {
                 try {
-                    const targetUrl = p ? p + encodeURIComponent(url) : url;
-                    const controller = new AbortController();
-                    const id = setTimeout(() => controller.abort(), 8000);
-                    const res = await fetch(targetUrl, { signal: controller.signal });
-                    clearTimeout(id);
-                    if (res.ok) { return await res.text(); }
+                    const res = await fetch(p ? p + encodeURIComponent(url) : url, { signal: AbortSignal.timeout(8000) });
+                    if (res.ok) return await res.text();
                 } catch(e) {}
             }
-            throw new Error("Target blocked or unreachable.");
+            throw new Error("Blocked");
         }
 
         async function startAutoScan() {
             const url = document.getElementById('targetUrl').value;
             if (!url) return;
-            runScan(url, async () => { return await fetchHtmlSafe(url); });
+            runScan(url, async () => await fetchHtmlSafe(url));
         }
 
         function startManualScan() {
             const url = document.getElementById('manualUrl').value;
             const code = document.getElementById('sourceCode').value;
-            if (!url || !code) return;
+            if (!code) return;
             runScan(url, async () => code);
         }
 
         async function runScan(baseUrl, fetcher) {
-            const loader = document.getElementById('loader');
             document.getElementById('gallery').innerHTML = '';
-            loader.style.display = 'block';
-            document.getElementById('status').innerText = "กำลังประมวลผลระบบสุดยอดความเร็ว...";
-
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('status').innerText = "กำลังเจาะระบบและสแกนข้อมูล...";
             try {
                 const html = await fetcher();
                 allScannedImages = extractImagesFromHtml(html, baseUrl);
                 renderGallery();
-                loader.style.display = 'none';
             } catch (e) {
-                loader.style.display = 'none';
-                document.getElementById('status').innerText = "Error: ไม่สามารถเชื่อมต่อเป้าหมายได้ (ตรวจสอบลิงก์)";
+                document.getElementById('status').innerText = "❌ ล้มเหลว: เว็บไซต์มีการป้องกันสูง (แนะนำใช้ผ่าน Bookmarklet แทน)";
             }
+            document.getElementById('loader').style.display = 'none';
+        }
+
+        function getCleanKey(urlStr) {
+            try { let u = urlStr.split('?')[0]; return u.replace(/[-_]\d+x\d+(?=\.[a-zA-Z0-9]+$)/i, ''); } catch(e) { return urlStr; }
+        }
+
+        function getResolutionScore(urlStr) {
+            try { let m = urlStr.split('?')[0].match(/[-_](\d+)x(\d+)(?=\.[a-zA-Z0-9]+$)/i); return m ? parseInt(m[1])*parseInt(m[2]) : 0; } catch(e) { return 0; }
         }
 
         function renderGallery() {
             const gallery = document.getElementById('gallery');
             const allowDupes = document.getElementById('allowDuplicates').checked; 
-            
             gallery.innerHTML = '';
-            let imagesToShow = [];
-
-            if (allowDupes) {
-                imagesToShow = [...new Set(allScannedImages)]; 
-            } else {
-                let uniqueMap = new Map();
+            
+            if (allowDupes) globalImagesToShow = [...new Set(allScannedImages)]; 
+            else {
+                let uMap = new Map();
                 allScannedImages.forEach(url => {
-                    let cleanKey = getCleanKey(url);
-                    let existing = uniqueMap.get(cleanKey);
-                    if (!existing) {
-                        uniqueMap.set(cleanKey, url);
-                    } else {
-                        let newScore = getResolutionScore(url);
-                        let oldScore = getResolutionScore(existing);
-                        if (newScore > oldScore) {
-                            uniqueMap.set(cleanKey, url);
-                        } else if (newScore === oldScore && !url.includes('?') && existing.includes('?')) {
-                            uniqueMap.set(cleanKey, url);
-                        }
-                    }
+                    let k = getCleanKey(url);
+                    let ex = uMap.get(k);
+                    if (!ex || getResolutionScore(url) > getResolutionScore(ex)) uMap.set(k, url);
                 });
-                imagesToShow = Array.from(uniqueMap.values());
+                globalImagesToShow = Array.from(uMap.values());
             }
 
-            imagesToShow = imagesToShow.filter(url => checkFileType(url, currentTypeFilter));
-            document.getElementById('status').innerText = "กำลังเรนเดอร์ภาพ...";
-
-            imagesToShow.forEach(src => {
+            globalImagesToShow = globalImagesToShow.filter(url => checkFileType(url, currentTypeFilter));
+            
+            globalImagesToShow.forEach((src, idx) => {
                 const card = document.createElement('div');
                 card.className = 'img-card';
                 
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'card-checkbox chk-select';
+                checkbox.checked = true;
+                checkbox.setAttribute('data-url', src);
+
                 const imgContainer = document.createElement('div');
                 imgContainer.className = 'img-container';
+                imgContainer.onclick = () => openLightbox(idx);
 
                 const img = document.createElement('img');
-                img.src = src;
-                img.loading = "lazy";
-                img.referrerPolicy = "no-referrer";
-                img.onclick = () => openLightbox(src);
-                
-                img.setAttribute('data-rts', '0');
+                img.src = src; img.loading = "lazy";
                 img.onerror = function() {
-                    let rts = parseInt(this.getAttribute('data-rts'));
-                    const pxs = [
-                        'https://api.codetabs.com/v1/proxy?quest=',
-                        'https://corsproxy.io/?'
-                    ];
-                    
-                    if (rts < pxs.length) {
-                        this.setAttribute('data-rts', (rts + 1).toString());
-                        this.src = pxs[rts] + encodeURIComponent(src);
-                    } else {
-                        this.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ff3333"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>';
-                        this.style.opacity = '0.5';
-                        this.style.padding = '30px';
-                        this.title = 'โหลดภาพล้มเหลว (อาจติดระบบป้องกัน 18+/CORS)';
-                        card.setAttribute('data-width', '500'); 
-                        card.classList.add('error-load');
-                        setTimeout(updateStatusText, 100); 
-                    }
+                    if(!this.retried) { this.retried = true; this.src = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(src); }
+                    else { card.style.display = 'none'; }
                 };
-                
-                img.onload = function() { 
-                    const w = this.naturalWidth;
-                    const h = this.naturalHeight;
-                    
-                    if(!card.classList.contains('error-load')) {
-                        if(w < 30) { 
-                            this.onerror(); 
-                            return; 
-                        }
-                        card.setAttribute('data-width', w);
-                    }
-                    
-                    let show = true;
-                    let cw = parseInt(card.getAttribute('data-width'));
-                    if (currentSizeFilter === 'small' && cw >= 500) show = false;
-                    if (currentSizeFilter === 'medium' && (cw < 500 || cw > 1200)) show = false;
-                    if (currentSizeFilter === 'large' && cw <= 1200) show = false;
-                    if(!show) card.classList.add('hidden-by-filter');
-                    
-                    let rawFilename = src.split('/').pop().split(/[#?]/)[0];
-                    let filenameFull;
-                    try { filenameFull = decodeURIComponent(rawFilename); } catch(e) { filenameFull = rawFilename; }
-                    
-                    let filename = filenameFull;
-                    if(filename.length > 20) filename = filename.substring(0, 15) + '...';
-                    
-                    let ext = filenameFull.split('.').pop();
-                    if(ext === filenameFull || ext.length > 4) ext = 'IMG';
-                    ext = ext.toUpperCase();
-
-                    info.innerHTML = `<span class="name" title="${filenameFull}">${filename}</span><span class="meta">${w}x${h} | ${ext}</span>`;
-                    updateStatusText();
-                }
+                img.onload = function() {
+                    card.setAttribute('data-width', this.naturalWidth);
+                    applyVisualFilters();
+                    let raw = src.split('/').pop().split(/[#?]/)[0];
+                    let fname = raw; try{ fname = decodeURIComponent(raw); }catch(e){}
+                    if(fname.length > 15) fname = fname.substring(0, 15) + '...';
+                    info.innerHTML = `<span class="name">${fname}</span><span class="meta">${this.naturalWidth}x${this.naturalHeight}</span>`;
+                };
 
                 const info = document.createElement('div');
                 info.className = 'img-info';
-
                 const actions = document.createElement('div');
                 actions.className = 'img-actions';
-                
                 actions.innerHTML = `
-                    <button class="btn-icon btn-dl" title="ดาวน์โหลด" onclick="downloadSingleImage('${src}', this)"><i class="fas fa-download"></i></button>
-                    <button class="btn-icon btn-copy-link" title="คัดลอกลิงก์" onclick="copyLink('${src}', this)"><i class="fas fa-link"></i></button>
-                    <button class="btn-icon btn-copy-img" title="คัดลอกรูปภาพ" onclick="copyImageToClipboard('${src}', this)"><i class="fas fa-copy"></i></button>
+                    <button class="btn-icon btn-dl" onclick="downloadSingle('${src}')"><i class="fas fa-download"></i></button>
+                    <button class="btn-icon btn-copy-link" onclick="copyText('${src}')"><i class="fas fa-link"></i></button>
+                    <button class="btn-icon btn-copy-img" onclick="copyImageToClipboard('${src}')"><i class="fas fa-copy"></i></button>
                 `;
 
                 imgContainer.appendChild(img);
-                card.appendChild(imgContainer);
-                card.appendChild(info);
-                card.appendChild(actions);
+                card.append(checkbox, imgContainer, info, actions);
                 gallery.appendChild(card);
             });
+            updateStatusText();
         }
 
         async function fetchImageSafe(url) {
-            const proxies = [
-                '', 
-                'https://api.codetabs.com/v1/proxy?quest=',
-                'https://corsproxy.io/?'
-            ];
-            for (const proxy of proxies) {
+            for (let px of ['', 'https://api.codetabs.com/v1/proxy?quest=', 'https://corsproxy.io/?']) {
                 try {
-                    const targetUrl = proxy ? proxy + encodeURIComponent(url) : url;
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 6000); 
-                    const res = await fetch(targetUrl, { signal: controller.signal });
-                    clearTimeout(timeoutId);
-                    
-                    if (res.ok) {
-                        const blob = await res.blob();
-                        if (blob.size > 150 && !blob.type.includes('text/html')) {
-                            return blob;
-                        }
-                    }
+                    const res = await fetch(px ? px + encodeURIComponent(url) : url, { signal: AbortSignal.timeout(6000) });
+                    if (res.ok) { let b = await res.blob(); if(b.size > 150) return b; }
                 } catch (e) {}
             }
-            return null; 
+            return null;
         }
 
-        async function downloadSingleImage(url, btnElement) {
+        async function downloadSingle(url) {
             let blob = await fetchImageSafe(url);
             if(blob) {
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
-                a.download = `KIRITO_${Date.now()}.jpg`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                if(btnElement) showTempIcon(btnElement, 'fas fa-check', 'fas fa-download');
-            } else {
-                window.open(url, '_blank');
-            }
+                const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+                a.download = `KIRITO_${Date.now()}.jpg`; a.click();
+            } else window.open(url, '_blank');
         }
 
-        function copyLink(url, btnElement) {
-            const textArea = document.createElement("textarea");
-            textArea.value = url;
-            textArea.style.position = "fixed"; textArea.style.left = "-9999px";
-            document.body.appendChild(textArea);
-            textArea.focus(); textArea.select();
-            try { 
-                document.execCommand('copy'); 
-                if(btnElement) showTempIcon(btnElement, 'fas fa-check', 'fas fa-link');
-            } catch (err) {}
-            document.body.removeChild(textArea);
+        function copyText(txt) {
+            const t = document.createElement("textarea"); t.value = txt; document.body.appendChild(t); t.select();
+            try { document.execCommand('copy'); } catch(e){} document.body.removeChild(t);
         }
-
-        function copyAllLinks() {
-            const visibleCards = Array.from(document.querySelectorAll('.img-card:not(.hidden-by-filter) img:not([src^="data:"])'));
-            const links = visibleCards.map(img => img.getAttribute('data-orig') || img.src).join('\n');
-            if(!links) return;
-
-            const textArea = document.createElement("textarea");
-            textArea.value = links;
-            textArea.style.position = "fixed"; textArea.style.left = "-9999px";
-            document.body.appendChild(textArea);
-            textArea.focus(); textArea.select();
-            try { 
-                document.execCommand('copy'); 
-                const btn = document.getElementById('btn-copy-all');
-                const og = btn.innerHTML;
-                showTempSuccess('btn-copy-all', '<i class="fas fa-check"></i> คัดลอกสำเร็จ!', og);
-            } catch (err) {}
-            document.body.removeChild(textArea);
-        }
-
-        async function copyImageToClipboard(url, btnElement) {
+        
+        async function copyImageToClipboard(url) {
             try {
                 if (!navigator.clipboard || !navigator.clipboard.write) throw new Error("Blocked");
                 let blob = await fetchImageSafe(url);
-                if(blob) {
-                    await navigator.clipboard.write([new ClipboardItem({[blob.type]: blob})]);
-                    if(btnElement) showTempIcon(btnElement, 'fas fa-check', 'fas fa-copy');
-                }
+                if(blob) await navigator.clipboard.write([new ClipboardItem({[blob.type]: blob})]);
             } catch (e) { }
         }
 
+        let isAllSelected = true;
+        function selectAllImages() {
+            isAllSelected = !isAllSelected;
+            document.querySelectorAll('.chk-select').forEach(cb => cb.checked = isAllSelected);
+        }
+
         function clearGallery() {
-            if(confirm("ล้างข้อมูลทั้งหมด?")) {
+            if(confirm("ยืนยันการล้างข้อมูลทั้งหมด?")) {
                 document.getElementById('gallery').innerHTML = '';
-                allScannedImages = [];
-                updateStatusText();
+                allScannedImages = []; globalImagesToShow = []; updateStatusText();
             }
         }
 
         async function downloadAll() {
-            const visibleCards = Array.from(document.querySelectorAll('.img-card:not(.hidden-by-filter) img:not([src^="data:"])'));
-            const images = visibleCards.map(img => img.getAttribute('data-orig') || img.src);
+            const checkedBoxes = Array.from(document.querySelectorAll('.chk-select:checked'));
+            if(checkedBoxes.length === 0) return alert('กรุณาเลือกรูปภาพอย่างน้อย 1 รูป');
 
-            if(images.length === 0) return;
-            
+            const images = checkedBoxes.map(cb => cb.getAttribute('data-url'));
             const btn = document.getElementById('btn-dl-all');
             const originalText = btn.innerHTML;
-            const progContainer = document.getElementById('progress-container');
             const progBar = document.getElementById('progress-bar');
             
-            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> PREPARING...`;
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> PACKING ZIP...`;
             btn.style.pointerEvents = 'none';
-            
-            progContainer.style.display = 'block';
+            document.getElementById('progress-container').style.display = 'block';
             progBar.style.width = '0%';
-            progBar.innerText = `0 / ${images.length} (0%)`;
 
             try {
                 const zip = new JSZip();
                 let successCount = 0;
-                let processedCount = 0;
-                let currentIndex = 0;
-                
-                const MAX_WORKERS = 8;
-                
-                const worker = async () => {
-                    while (currentIndex < images.length) {
-                        const idx = currentIndex++;
-                        const url = images[idx];
-                        
-                        let blob = await fetchImageSafe(url);
-                        if (blob) {
-                            let rawFilename = url.split('/').pop().split(/[#?]/)[0];
-                            let decodedFilename;
-                            try { decodedFilename = decodeURIComponent(rawFilename); } catch(e) { decodedFilename = rawFilename; }
-                            
-                            let ext = decodedFilename.split('.').pop().toLowerCase();
-                            if(ext.length > 4 || ext === decodedFilename.toLowerCase() || !ext) ext = 'jpg';
-                            let base = decodedFilename.substring(0, decodedFilename.lastIndexOf('.'));
-                            if(!base) base = 'KIRITO_IMAGE';
-                            
-                            let paddedIdx = String(idx+1).padStart(3, '0');
-                            zip.file(`${base}_${paddedIdx}.${ext}`, blob);
-                            successCount++;
-                        }
-                        
-                        processedCount++;
-                        let percent = Math.round((processedCount / images.length) * 100);
-                        progBar.style.width = percent + '%';
-                        progBar.innerText = `${processedCount} / ${images.length} (${percent}%)`;
-                        btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> DOWNLOADING...`;
+
+                const worker = async (url, idx) => {
+                    let blob = await fetchImageSafe(url);
+                    if (blob) {
+                        let fname = url.split('/').pop().split(/[#?]/)[0];
+                        try { fname = decodeURIComponent(fname); } catch(e){}
+                        let ext = fname.split('.').pop().toLowerCase();
+                        if(ext.length > 4 || !ext) ext = 'jpg';
+                        zip.file(`KIRITO_${Date.now()}_${idx.toString().padStart(3,'0')}.${ext}`, blob);
+                        successCount++;
                     }
+                    let pct = Math.round((successCount / images.length) * 100);
+                    progBar.style.width = pct + '%';
+                    progBar.innerText = `บรรจุไฟล์: ${successCount} / ${images.length} (${pct}%)`;
                 };
 
-                const workers = Array(MAX_WORKERS).fill(0).map(() => worker());
-                await Promise.all(workers);
+                await Promise.all(images.map((url, i) => worker(url, i)));
 
-                if(successCount === 0) {
-                    progContainer.style.display = 'none';
-                    showTempSuccess('btn-dl-all', `<i class="fas fa-times"></i> โหลดไม่สำเร็จ (โดนบล็อกทั้งหมด)`, originalText, 4000);
-                    btn.style.pointerEvents = 'auto';
-                    return;
-                }
-
-                btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> PACKING ZIP...`;
-                progBar.innerText = `กำลังสร้างไฟล์ ZIP...`;
+                if(successCount > 0) {
+                    progBar.innerText = 'กำลังสร้างไฟล์ ZIP...';
+                    const content = await zip.generateAsync({type:"blob"});
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(content); a.download = `KIRITO_PACK_${Date.now()}.zip`; a.click();
+                    showTempSuccess('btn-dl-all', `<i class="fas fa-check"></i> สำเร็จ (${successCount} รูป)`, originalText);
+                } else alert('โดนระบบป้องกันบล็อกการดาวน์โหลดทั้งหมด');
                 
-                const content = await zip.generateAsync({type:"blob"});
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(content);
-                link.download = `KIRITO_PACK_${Date.now()}.zip`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                progContainer.style.display = 'none';
-                showTempSuccess('btn-dl-all', `<i class="fas fa-check"></i> โหลดสำเร็จ (${successCount}/${images.length})`, originalText, 4000);
-                btn.style.pointerEvents = 'auto';
+            } catch(e) { alert('ZIP ERROR'); }
 
-            } catch(e) {
-                console.error(e);
-                progContainer.style.display = 'none';
-                showTempSuccess('btn-dl-all', `<i class="fas fa-times"></i> เกิดข้อผิดพลาด`, originalText, 4000);
-                btn.style.pointerEvents = 'auto';
-            }
+            document.getElementById('progress-container').style.display = 'none';
+            btn.innerHTML = originalText; btn.style.pointerEvents = 'auto';
         }
 
-        let scale = 1, isDragging = false, startX, startY, translateX = 0, translateY = 0;
-        let initialPinchDist = null, initialPinchScale = 1;
-        const lbImg = document.getElementById('lb-img');
+        function copyMobileCode() {
+            const shortCode = `javascript:(function(){var s=document.createElement('script');s.src='https://prthachnu999.github.io/My-Personal-Space/kiritopull.js?v='+Date.now();document.body.appendChild(s);})();`;
+            const t = document.createElement("textarea"); t.value = shortCode; document.body.appendChild(t); t.select();
+            try { 
+                document.execCommand('copy'); 
+                showTempSuccess('btn-copy-mobile', '<i class="fas fa-check"></i> คัดลอก Loader แล้ว', '<i class="fas fa-mobile-alt"></i> คัดลอก Loader Code (สำหรับมือถือ)');
+            } catch (err) {}
+            document.body.removeChild(t);
+        }
 
-        function openLightbox(src) {
-            if(src.startsWith('data:')) return; 
-            document.getElementById('lightbox').style.display = 'flex';
-            lbImg.src = src;
-            scale = 1; translateX = 0; translateY = 0;
+        // ==========================================
+        // อัปเกรดระบบ Touch & Mouse ล่าสุด (แก้บัคการลากรูปลอย)
+        // ==========================================
+        let scale = 1, isDragging = false, startX, startY, tx = 0, ty = 0;
+        let initialPinchDist = null, initialPinchScale = 1;
+        let startTouchX = 0, startTouchY = 0;
+        const lbImg = document.getElementById('lb-img');
+        const lightbox = document.getElementById('lightbox');
+
+        function openLightbox(index) {
+            currentLbIndex = index;
+            lbImg.src = globalImagesToShow[index];
+            lightbox.style.display = 'flex';
+            scale = 1; tx = 0; ty = 0; 
             updateTransform();
         }
 
-        function closeLightbox() { document.getElementById('lightbox').style.display = 'none'; }
+        function closeLightbox() { lightbox.style.display = 'none'; }
+        
+        function navLb(dir) {
+            currentLbIndex += dir;
+            if(currentLbIndex < 0) currentLbIndex = globalImagesToShow.length - 1;
+            if(currentLbIndex >= globalImagesToShow.length) currentLbIndex = 0;
+            openLightbox(currentLbIndex);
+        }
 
-        function updateTransform() {
-            lbImg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+        function updateTransform() { 
+            // ป้องกันการซูมออกให้เล็กกว่าขนาดปกติ เพื่อไม่ให้รูปภาพลอยเคว้ง
+            if(scale <= 1) { scale = 1; tx = 0; ty = 0; }
+            lbImg.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`; 
         }
         
+        // --- ระบบ Mouse (PC) ---
         lbImg.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            const delta = e.deltaY * -0.001;
-            scale = Math.min(Math.max(0.5, scale + delta), 8);
+            e.preventDefault(); 
+            scale += (e.deltaY * -0.002); 
             updateTransform();
         }, { passive: false });
 
         lbImg.addEventListener('mousedown', (e) => {
-            e.preventDefault();
-            isDragging = true;
-            startX = e.clientX - translateX;
-            startY = e.clientY - translateY;
-            lbImg.style.cursor = 'grabbing';
+            e.preventDefault(); 
+            if(scale > 1) {
+                isDragging = true; 
+                startX = e.clientX - tx; 
+                startY = e.clientY - ty; 
+                lbImg.classList.add('grabbing');
+            } else {
+                startTouchX = e.clientX; 
+            }
         });
 
-        window.addEventListener('mouseup', () => { isDragging = false; if(lbImg) lbImg.style.cursor = 'grab'; });
+        lightbox.addEventListener('mouseup', (e) => { 
+            isDragging = false; 
+            lbImg.classList.remove('grabbing'); 
+            
+            // ตรวจจับการลากเมาส์ปัดซ้ายขวา (Swipe) ตอนรูปขนาดปกติ
+            if(scale === 1 && startTouchX !== 0) {
+                let diffX = e.clientX - startTouchX;
+                if(diffX < -50) navLb(1); 
+                else if(diffX > 50) navLb(-1);
+                startTouchX = 0;
+            }
+        });
 
-        window.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
+        lightbox.addEventListener('mousemove', (e) => {
+            if (!isDragging || scale <= 1) return;
             e.preventDefault();
-            translateX = e.clientX - startX;
-            translateY = e.clientY - startY;
+            tx = e.clientX - startX;
+            ty = e.clientY - startY;
             updateTransform();
         });
+
+        // --- ระบบ Touchscreen (มือถือ) แก้บัคเสร็จสมบูรณ์ ---
+        const getDist = (touches) => Math.hypot(touches[0].pageX - touches[1].pageX, touches[0].pageY - touches[1].pageY);
 
         lbImg.addEventListener('touchstart', (e) => {
             if(e.touches.length === 2) {
                 e.preventDefault();
-                initialPinchDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+                isDragging = false;
+                initialPinchDist = getDist(e.touches);
                 initialPinchScale = scale;
             } else if(e.touches.length === 1) {
-                isDragging = true;
-                startX = e.touches[0].clientX - translateX;
-                startY = e.touches[0].clientY - translateY;
+                startTouchX = e.touches[0].clientX;
+                startTouchY = e.touches[0].clientY;
+                if(scale > 1) {
+                    isDragging = true;
+                    startX = e.touches[0].clientX - tx;
+                    startY = e.touches[0].clientY - ty;
+                }
             }
         }, { passive: false });
 
-        window.addEventListener('touchmove', (e) => {
+        lightbox.addEventListener('touchmove', (e) => {
             if(e.touches.length === 2 && initialPinchDist) {
                 e.preventDefault();
-                const currentDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+                const currentDist = getDist(e.touches);
                 scale = initialPinchScale * (currentDist / initialPinchDist);
-                scale = Math.min(Math.max(0.5, scale), 8);
                 updateTransform();
-            } else if (isDragging && e.touches.length === 1) {
-                e.preventDefault();
-                translateX = e.touches[0].clientX - startX;
-                translateY = e.touches[0].clientY - startY;
-                updateTransform();
+            } else if (e.touches.length === 1) {
+                if (scale > 1 && isDragging) {
+                    // แพนรูปขณะซูม
+                    e.preventDefault();
+                    tx = e.touches[0].clientX - startX;
+                    ty = e.touches[0].clientY - startY;
+                    updateTransform();
+                } else if (scale === 1) {
+                    // ป้องกันไม่ให้หน้าเว็บเลื่อนขึ้นลงขณะปัดซ้ายขวา
+                    e.preventDefault(); 
+                }
             }
         }, { passive: false });
 
-        window.addEventListener('touchend', (e) => {
+        lightbox.addEventListener('touchend', (e) => {
             if(e.touches.length < 2) initialPinchDist = null;
-            if(e.touches.length === 0) isDragging = false;
-        });
-
-        document.getElementById('allowDuplicates').addEventListener('change', renderGallery);
-
-        // --- NEW: Copy short code for Mobile ---
-        function copyMobileCode() {
-            // ดึงไฟล์จาก Github Pages ของคุณ
-            const shortCode = `javascript:(function(){var s=document.createElement('script');s.src='https://prthachnu999.github.io/My-Personal-Space/kiritopull.js?v='+Date.now();document.body.appendChild(s);})();`;
-            
-            const textArea = document.createElement("textarea");
-            textArea.value = shortCode;
-            document.body.appendChild(textArea);
-            textArea.select();
-            
-            try { 
-                document.execCommand('copy'); 
-                const btn = document.getElementById('btn-copy-mobile');
-                const orig = btn.innerHTML;
-                btn.innerHTML = `<i class="fas fa-check"></i> คัดลอกสำเร็จ! นำไปวางในมือถือได้เลย`;
-                btn.style.background = '#28a745';
-                btn.style.color = 'white';
-                btn.style.borderColor = '#28a745';
-                
-                setTimeout(() => {
-                    btn.innerHTML = orig;
-                    btn.style.background = 'transparent';
-                    btn.style.color = '#007bff';
-                    btn.style.borderColor = '#007bff';
-                }, 3000);
-            } catch (err) {
-                alert("คัดลอกไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
+            if(e.touches.length === 0) {
+                isDragging = false;
+                // ตรวจจับการปัดนิ้ว (Swipe) ตอนรูปขนาดปกติ
+                if (scale === 1) {
+                    let diffX = e.changedTouches[0].clientX - startTouchX;
+                    if(diffX < -40) navLb(1); 
+                    else if(diffX > 40) navLb(-1);
+                }
             }
-            document.body.removeChild(textArea);
-        }
-
-        // --- OLD PC BOOKMARKLET GENERATOR ---
-        document.addEventListener('DOMContentLoaded', () => {
-            const bookmarkletLogic = function() {
-                if(document.getElementById('krt-sys')) document.getElementById('krt-sys').remove();
-                
-                var cleanK = function(u) {
-                    try {
-                        var p = u.split('?')[0].split('#')[0];
-                        p = p.replace(/[-_]\d+x\d+(?=\.[a-zA-Z0-9]+$)/i, '');
-                        return p;
-                    } catch(e) { return u; }
-                };
-                var getSc = function(u) {
-                    try {
-                        var p = u.split('?')[0];
-                        var m1 = p.match(/[-_](\d+)x(\d+)(?=\.[a-zA-Z0-9]+$)/i);
-                        if(m1) return parseInt(m1[1])*parseInt(m1[2]);
-                        return 0;
-                    } catch(e){ return 0; }
-                };
-
-                var uMap = new Map();
-                function a(s) {
-                    if(!s || typeof s !== 'string' || s.startsWith('data:')) return;
-                    if(s.startsWith('//')) s = 'https:' + s;
-                    else if(s.startsWith('/')) s = location.origin + s;
-                    try {
-                        s = decodeURIComponent(s);
-                        var d = new URL(s, 'http://d');
-                        var inr = d.searchParams.get('url');
-                        if(inr) s = inr;
-                    } catch(e) {}
-                    
-                    var uL = s.toLowerCase().split('?')[0].split('#')[0];
-                    if (uL.endsWith('.js') || uL.endsWith('.css') || uL.endsWith('.html') || uL.endsWith('.php') || uL.endsWith('.json') || uL.endsWith('.xml') || uL.endsWith('.txt')) return;
-                    if (!uL.match(/\.(jpg|jpeg|png|webp|gif|svg|tiff|heic|ico)$/i)) return;
-
-                    var k = cleanK(s);
-                    var ex = uMap.get(k);
-                    if(!ex) {
-                        uMap.set(k, s);
-                    } else {
-                        if(getSc(s) > getSc(ex)) uMap.set(k, s);
-                        else if(getSc(s) === getSc(ex) && !s.includes('?') && ex.includes('?')) uMap.set(k, s);
-                    }
-                }
-                
-                Array.from(document.images).forEach(e => { a(e.src); });
-                Array.from(document.querySelectorAll('img, a, link, source, div, span, bg')).forEach(e => {
-                    var tag = e.tagName.toLowerCase();
-                    var ds = e.getAttribute('data-src') || e.getAttribute('data-original') || e.getAttribute('data-lazy-src') || e.getAttribute('data-srcset');
-                    if(ds) {
-                        if(ds.includes(',')) ds.split(',').forEach(p => a(p.trim().split(' ')[0]));
-                        else a(ds);
-                    }
-                    if(tag === 'a' || tag === 'link') {
-                        var h = e.getAttribute('href');
-                        if(h) a(h);
-                    }
-                    var b = window.getComputedStyle(e).backgroundImage;
-                    var m = b.match(/url\(['"]?(.*?)['"]?\)/);
-                    if(m) a(m[1]);
-                });
-                
-                if(uMap.size === 0) {
-                    var btn = document.createElement('div');
-                    btn.style.cssText = 'position:fixed;top:20px;right:20px;background:#f03;color:#fff;padding:10px 20px;z-index:999999;border-radius:5px;font-family:sans-serif;box-shadow:0 0 10px #000;';
-                    btn.innerText = 'ไม่พบรูปภาพ (KIRITO SYSTEM)';
-                    document.body.appendChild(btn);
-                    setTimeout(() => btn.remove(), 3000);
-                    return;
-                }
-
-                var sys = document.createElement('div');
-                sys.id = 'krt-sys';
-                sys.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(5,0,0,0.95);z-index:9999999;overflow-y:auto;font-family:sans-serif;padding:20px;box-sizing:border-box;color:#fff;';
-                
-                var h = '<div style="max-width:1200px;margin:0 auto;">' +
-                    '<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #f03;padding-bottom:10px;margin-bottom:20px;flex-wrap:wrap;gap:10px;">' +
-                        '<h1 style="color:#f03;margin:0;text-shadow:0 0 10px #f03;font-size:24px;">KIRITO PULL SYSTEM</h1>' +
-                        '<div style="display:flex;gap:10px;">' +
-                            '<button id="krt-dl-all" style="background:#28a745;color:#fff;border:none;padding:10px 20px;cursor:pointer;border-radius:5px;font-weight:bold;">DOWNLOAD ALL (ZIP)</button>' +
-                            '<button id="krt-close" style="background:#f03;color:#fff;border:none;padding:10px 20px;cursor:pointer;border-radius:5px;font-weight:bold;">CLOSE (ปิด)</button>' +
-                        '</div>' +
-                    '</div>' +
-                    '<h3>พบรูปภาพทั้งหมด ' + uMap.size + ' รูป</h3>' +
-                    '<div id="krt-prog-bg" style="display:none;width:100%;background:#222;border-radius:5px;margin-bottom:15px;overflow:hidden;border:1px solid #444;box-shadow:inset 0 0 10px #000;">' +
-                        '<div id="krt-prog" style="width:0%;height:24px;background:#f03;color:#fff;text-align:center;font-size:12px;line-height:24px;font-weight:bold;transition:width 0.3s;">0%</div>' +
-                    '</div>' +
-                    '<div id="krt-gal" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:15px;"></div>' +
-                '</div>' +
-                '<div id="krt-lb" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.95);z-index:10000000;justify-content:center;align-items:center;overflow:hidden;touch-action:none;">' +
-                    '<div id="krt-lbc" style="position:absolute;top:20px;right:20px;color:#fff;font-size:2rem;cursor:pointer;z-index:10000001;background:rgba(0,0,0,0.5);width:40px;height:40px;text-align:center;line-height:40px;border-radius:50%;">&times;</div>' +
-                    '<img id="krt-lbi" style="max-width:90%;max-height:90%;transition:transform 0.1s ease-out;cursor:grab;user-select:none;-webkit-user-drag:none;">' +
-                    '<div style="position:absolute;bottom:20px;background:rgba(0,0,0,0.5);padding:10px 20px;border-radius:20px;display:flex;gap:15px;color:#fff;font-size:0.8rem;">' +
-                        '<span>กลิ้งเมาส์/ถ่างนิ้ว: ซูม</span><span>ลาก: เลื่อน</span>' +
-                    '</div>' +
-                '</div>';
-                
-                sys.innerHTML = h;
-                document.body.appendChild(sys);
-
-                var gal = document.getElementById('krt-gal');
-                var all = Array.from(uMap.values());
-                
-                async function fetchImg(url) {
-                    const pxs = ['', 'https://api.codetabs.com/v1/proxy?quest=', 'https://corsproxy.io/?'];
-                    for (let px of pxs) {
-                        try {
-                            let tgt = px ? px + encodeURIComponent(url) : url;
-                            let ctrl = new AbortController();
-                            let tid = setTimeout(() => ctrl.abort(), 6000);
-                            let r = await fetch(tgt, {signal: ctrl.signal});
-                            clearTimeout(tid);
-                            if(r.ok) {
-                                let b = await r.blob();
-                                if(b.size > 150 && !b.type.includes('text/html')) return b;
-                            }
-                        } catch(e) {}
-                    }
-                    return null;
-                }
-
-                all.forEach(function(s, idx) {
-                    var c = document.createElement('div');
-                    c.style.cssText = 'background:#111;border:1px solid #333;border-radius:5px;padding:10px;text-align:center;display:flex;flex-direction:column;justify-content:space-between;';
-                    var i = document.createElement('img');
-                    i.src = s;
-                    i.style.cssText = 'width:100%;height:120px;object-fit:contain;margin-bottom:10px;background:#000;cursor:zoom-in;';
-                    
-                    i.setAttribute('data-orig', s);
-                    i.setAttribute('data-rts', '0');
-                    i.onerror = function() {
-                        var orig = this.getAttribute('data-orig');
-                        var rts = parseInt(this.getAttribute('data-rts'));
-                        var pxs = ['https://api.codetabs.com/v1/proxy?quest=', 'https://corsproxy.io/?'];
-                        if(rts < pxs.length) {
-                            this.setAttribute('data-rts', rts+1);
-                            this.src = pxs[rts] + encodeURIComponent(orig);
-                        } else {
-                            this.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ff3333"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>';
-                            this.style.opacity = '0.5';
-                            this.style.padding = '30px';
-                            this.title = 'โหลดภาพล้มเหลว (บล็อกโดยเว็บต้นทาง)';
-                            this.style.cursor = 'default';
-                        }
-                    };
-                    i.onload = function() {
-                        if(this.src.startsWith('data:image/svg')) return;
-                        if(this.naturalWidth < 30) this.onerror(); 
-                    };
-
-                    var info = document.createElement('div');
-                    info.style.cssText = 'color:#aaa;font-size:10px;margin-bottom:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
-                    var fname = s.split('/').pop().split('?')[0];
-                    try { fname = decodeURIComponent(fname); } catch(e) {}
-                    info.innerText = fname || 'image';
-
-                    var d = document.createElement('button');
-                    d.innerText = 'ดาวน์โหลด';
-                    d.style.cssText = 'display:block;width:100%;background:#f03;color:#fff;border:none;padding:8px;border-radius:3px;font-size:12px;font-weight:bold;margin-top:auto;cursor:pointer;';
-                    
-                    d.onclick = async function(e) {
-                        e.preventDefault();
-                        var ogD = d.innerText;
-                        d.innerText = 'กำลังโหลด...';
-                        d.style.pointerEvents = 'none';
-                        let b = await fetchImg(s);
-                        if(b) {
-                            var u2 = URL.createObjectURL(b);
-                            var a2 = document.createElement('a');
-                            a2.href = u2;
-                            a2.download = 'KIRITO_' + Date.now() + '.jpg';
-                            a2.click();
-                            URL.revokeObjectURL(u2);
-                            d.innerText = 'สำเร็จ!';
-                            d.style.background = '#28a745';
-                        } else {
-                            window.open(s, '_blank');
-                            d.innerText = 'ล้มเหลว';
-                        }
-                        setTimeout(() => { d.innerText=ogD; d.style.background='#f03'; d.style.pointerEvents='auto'; }, 2000);
-                    };
-                    
-                    i.onclick = function() {
-                        if(this.src.startsWith('data:')) return; 
-                        document.getElementById('krt-lb').style.display = 'flex';
-                        document.getElementById('krt-lbi').src = s;
-                        sc = 1; tx = 0; ty = 0; up();
-                    };
-                    
-                    c.appendChild(i);
-                    c.appendChild(info);
-                    c.appendChild(d);
-                    gal.appendChild(c);
-                });
-
-                document.getElementById('krt-close').onclick = function() { sys.remove(); };
-                document.getElementById('krt-lbc').onclick = function() { document.getElementById('krt-lb').style.display = 'none'; };
-                
-                document.getElementById('krt-dl-all').onclick = async function() {
-                    var btn = this;
-                    if(btn.disabled) return;
-                    
-                    var imgsToDownload = [];
-                    gal.querySelectorAll('img').forEach((imgEl, idx) => {
-                        if(!imgEl.src.startsWith('data:image/svg')) {
-                            imgsToDownload.push({url: imgEl.getAttribute('data-orig') || imgEl.src, idx: idx});
-                        }
-                    });
-                    
-                    if(imgsToDownload.length === 0) return alert('ไม่มีรูปที่โหลดได้');
-
-                    var ogTxt = btn.innerText;
-                    btn.innerText = 'PREPARING...';
-                    btn.disabled = true;
-                    btn.style.background = '#555';
-                    
-                    var pbg = document.getElementById('krt-prog-bg');
-                    var pbar = document.getElementById('krt-prog');
-                    pbg.style.display = 'block';
-                    pbar.style.width = '0%';
-                    pbar.innerText = '0%';
-                    
-                    async function doZip() {
-                        var zip = new JSZip();
-                        var count = 0; var processedCount = 0;
-                        var cIndex = 0;
-                        
-                        async function workerPool() {
-                            while(cIndex < imgsToDownload.length) {
-                                let item = imgsToDownload[cIndex++];
-                                let b = await fetchImg(item.url);
-                                if(b) {
-                                    var rawFname = item.url.split('/').pop().split('?')[0];
-                                    try { rawFname = decodeURIComponent(rawFname); } catch(e){}
-                                    var ext = rawFname.split('.').pop().toLowerCase();
-                                    if(ext.length > 4 || ext === rawFname.toLowerCase() || !ext) ext = 'jpg';
-                                    var base = rawFname.substring(0, rawFname.lastIndexOf('.'));
-                                    if(!base) base = 'KIRITO_IMAGE';
-                                    
-                                    let padIdx = String(item.idx + 1).padStart(3, '0');
-                                    zip.file(`${base}_${padIdx}.${ext}`, b);
-                                    count++;
-                                }
-                                processedCount++;
-                                var pct = Math.round((processedCount / imgsToDownload.length) * 100);
-                                pbar.style.width = pct + '%';
-                                pbar.innerText = processedCount + '/' + imgsToDownload.length + ' (' + pct + '%)';
-                                btn.innerText = 'DOWNLOADING...';
-                            }
-                        }
-                        
-                        var workers = Array(8).fill(0).map(() => workerPool());
-                        await Promise.all(workers);
-                        
-                        if(count === 0) {
-                            pbg.style.display = 'none';
-                            btn.innerText = 'FAILED (โดนบล็อก)';
-                            setTimeout(function(){ btn.innerText = ogTxt; btn.disabled = false; btn.style.background = '#28a745'; }, 4000);
-                            return;
-                        }
-                        
-                        pbar.innerText = 'ZIPPING...';
-                        btn.innerText = 'PACKING ZIP...';
-                        
-                        try {
-                            var content = await zip.generateAsync({type:'blob'});
-                            var u2 = URL.createObjectURL(content);
-                            var a2 = document.createElement('a');
-                            a2.href = u2;
-                            a2.download = 'KIRITO_PACK_' + Date.now() + '.zip';
-                            a2.click();
-                            URL.revokeObjectURL(u2);
-                            
-                            pbg.style.display = 'none';
-                            btn.innerText = 'SUCCESS! (' + count + '/' + imgsToDownload.length + ')';
-                        } catch(e) {
-                            btn.innerText = 'ZIP ERROR';
-                        }
-                        setTimeout(function(){ btn.innerText = ogTxt; btn.disabled = false; btn.style.background = '#28a745'; pbg.style.display = 'none'; }, 4000);
-                    }
-                    
-                    if(typeof JSZip === 'undefined') {
-                        pbar.innerText = 'LOADING JSZIP...';
-                        var script = document.createElement('script');
-                        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
-                        script.onload = doZip;
-                        document.head.appendChild(script);
-                    } else {
-                        doZip();
-                    }
-                };
-
-                var sc = 1, tx = 0, ty = 0, dr = false, sx, sy;
-                var initialDist = null, initScale = 1; 
-
-                function up() {
-                    var lbImg = document.getElementById('krt-lbi');
-                    if(lbImg) lbImg.style.transform = 'translate(' + tx + 'px, ' + ty + 'px) scale(' + sc + ')';
-                }
-                var lbImg = document.getElementById('krt-lbi');
-                
-                lbImg.addEventListener('wheel', function(e){
-                    e.preventDefault();
-                    sc += e.deltaY * -0.001;
-                    sc = Math.min(Math.max(0.5, sc), 8);
-                    up();
-                }, {passive:false});
-                
-                lbImg.addEventListener('mousedown', function(e){
-                    e.preventDefault();
-                    dr = true; sx = e.clientX - tx; sy = e.clientY - ty;
-                    lbImg.style.cursor = 'grabbing';
-                });
-                sys.addEventListener('mouseup', function(){ dr = false; if(lbImg) lbImg.style.cursor = 'grab'; });
-                sys.addEventListener('mousemove', function(e){
-                    if(!dr) return;
-                    e.preventDefault();
-                    tx = e.clientX - sx; ty = e.clientY - ty;
-                    up();
-                });
-
-                lbImg.addEventListener('touchstart', function(e){
-                    if(e.touches.length === 2) {
-                        e.preventDefault();
-                        initialDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
-                        initScale = sc;
-                    } else if(e.touches.length === 1) {
-                        dr = true; 
-                        sx = e.touches[0].clientX - tx; 
-                        sy = e.touches[0].clientY - ty;
-                    }
-                }, {passive:false});
-
-                sys.addEventListener('touchmove', function(e){
-                    if(e.touches.length === 2 && initialDist) {
-                        e.preventDefault();
-                        var currentDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
-                        sc = initScale * (currentDist / initialDist);
-                        sc = Math.min(Math.max(0.5, sc), 8); 
-                        up();
-                    } else if(dr && e.touches.length === 1) {
-                        e.preventDefault();
-                        tx = e.touches[0].clientX - sx; 
-                        ty = e.touches[0].clientY - sy;
-                        up();
-                    }
-                }, {passive:false});
-
-                sys.addEventListener('touchend', function(e){
-                    if(e.touches.length < 2) initialDist = null;
-                    if(e.touches.length === 0) dr = false;
-                });
-            };
-
-            const encodedLogic = 'javascript:(' + encodeURIComponent(bookmarkletLogic.toString()) + ')();';
-            document.getElementById('bookmarklet-ui-link').href = encodedLogic;
         });
+        
+        document.getElementById('allowDuplicates').addEventListener('change', renderGallery);
     </script>
 </body>
 </html>
