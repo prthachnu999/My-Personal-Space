@@ -1,1 +1,326 @@
-if(document.getElementById('krt-sys'))document.getElementById('krt-sys').remove();var cleanK=function(u){try{var p=u.split('?')[0].split('#')[0];p=p.replace(/[-_]\d+x\d+(?=\.[a-zA-Z0-9]+$)/i,'');return p;}catch(e){return u;}};var getSc=function(u){try{var p=u.split('?')[0];var m1=p.match(/[-_](\d+)x(\d+)(?=\.[a-zA-Z0-9]+$)/i);if(m1)return parseInt(m1[1])*parseInt(m1[2]);return 0;}catch(e){return 0;}};var uMap=new Map();function a(s){if(!s||typeof s!=='string'||s.startsWith('data:'))return;if(s.startsWith('//'))s='https:'+s;else if(s.startsWith('/'))s=location.origin+s;try{s=decodeURIComponent(s);var d=new URL(s,'http://d');var inr=d.searchParams.get('url');if(inr)s=inr;}catch(e){}var uL=s.toLowerCase().split('?')[0].split('#')[0];if(uL.endsWith('.js')||uL.endsWith('.css')||uL.endsWith('.html')||uL.endsWith('.php')||uL.endsWith('.json')||uL.endsWith('.xml')||uL.endsWith('.txt'))return;if(!uL.match(/\.(jpg|jpeg|png|webp|gif|svg|tiff|heic|ico)$/i))return;var k=cleanK(s);var ex=uMap.get(k);if(!ex){uMap.set(k,s);}else{if(getSc(s)>getSc(ex))uMap.set(k,s);else if(getSc(s)===getSc(ex)&&!s.includes('?')&&ex.includes('?'))uMap.set(k,s);}}Array.from(document.images).forEach(e=>{a(e.src);});Array.from(document.querySelectorAll('img, a, link, source, div, span, bg')).forEach(e=>{var tag=e.tagName.toLowerCase();var ds=e.getAttribute('data-src')||e.getAttribute('data-original')||e.getAttribute('data-lazy-src')||e.getAttribute('data-srcset');if(ds){if(ds.includes(','))ds.split(',').forEach(p=>a(p.trim().split(' ')[0]));else a(ds);}if(tag==='a'||tag==='link'){var h=e.getAttribute('href');if(h)a(h);}var b=window.getComputedStyle(e).backgroundImage;var m=b.match(/url\(['"]?(.*?)['"]?\)/);if(m)a(m[1]);});if(uMap.size===0){var btn=document.createElement('div');btn.style.cssText='position:fixed;top:20px;right:20px;background:#f03;color:#fff;padding:10px 20px;z-index:999999;border-radius:5px;font-family:sans-serif;box-shadow:0 0 10px #000;';btn.innerText='ไม่พบรูปภาพ (KIRITO SYSTEM)';document.body.appendChild(btn);setTimeout(()=>btn.remove(),3000);return;}var sys=document.createElement('div');sys.id='krt-sys';sys.style.cssText='position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(5,0,0,0.95);z-index:9999999;overflow-y:auto;font-family:sans-serif;padding:20px;box-sizing:border-box;color:#fff;';var h='<div style="max-width:1200px;margin:0 auto;"><div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #f03;padding-bottom:10px;margin-bottom:20px;flex-wrap:wrap;gap:10px;"><h1 style="color:#f03;margin:0;text-shadow:0 0 10px #f03;font-size:24px;">KIRITO PULL SYSTEM</h1><div style="display:flex;gap:10px;"><button id="krt-dl-all" style="background:#28a745;color:#fff;border:none;padding:10px 20px;cursor:pointer;border-radius:5px;font-weight:bold;">DOWNLOAD ALL (ZIP)</button><button id="krt-close" style="background:#f03;color:#fff;border:none;padding:10px 20px;cursor:pointer;border-radius:5px;font-weight:bold;">CLOSE (ปิด)</button></div></div><h3>พบรูปภาพทั้งหมด '+uMap.size+' รูป</h3><div id="krt-prog-bg" style="display:none;width:100%;background:#222;border-radius:5px;margin-bottom:15px;overflow:hidden;border:1px solid #444;box-shadow:inset 0 0 10px #000;"><div id="krt-prog" style="width:0%;height:24px;background:#f03;color:#fff;text-align:center;font-size:12px;line-height:24px;font-weight:bold;transition:width 0.3s;">0%</div></div><div id="krt-gal" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:15px;"></div></div><div id="krt-lb" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.95);z-index:10000000;justify-content:center;align-items:center;overflow:hidden;touch-action:none;"><div id="krt-lbc" style="position:absolute;top:20px;right:20px;color:#fff;font-size:2rem;cursor:pointer;z-index:10000001;background:rgba(0,0,0,0.5);width:40px;height:40px;text-align:center;line-height:40px;border-radius:50%;">&times;</div><img id="krt-lbi" style="max-width:90%;max-height:90%;transition:transform 0.1s ease-out;cursor:grab;user-select:none;-webkit-user-drag:none;"><div style="position:absolute;bottom:20px;background:rgba(0,0,0,0.5);padding:10px 20px;border-radius:20px;display:flex;gap:15px;color:#fff;font-size:0.8rem;"><span>กลิ้งเมาส์: ซูม</span><span>ลาก: เลื่อน</span></div></div>';sys.innerHTML=h;document.body.appendChild(sys);var gal=document.getElementById('krt-gal');var all=Array.from(uMap.values());async function fetchImg(url){const pxs=['','https://api.codetabs.com/v1/proxy?quest=','https://corsproxy.io/?'];for(let px of pxs){try{let tgt=px?px+encodeURIComponent(url):url;let ctrl=new AbortController();let tid=setTimeout(()=>ctrl.abort(),6000);let r=await fetch(tgt,{signal:ctrl.signal});clearTimeout(tid);if(r.ok){let b=await r.blob();if(b.size>150&&!b.type.includes('text/html'))return b;}}catch(e){}}return null;}all.forEach(function(s,idx){var c=document.createElement('div');c.style.cssText='background:#111;border:1px solid #333;border-radius:5px;padding:10px;text-align:center;display:flex;flex-direction:column;justify-content:space-between;';var i=document.createElement('img');i.src=s;i.style.cssText='width:100%;height:120px;object-fit:contain;margin-bottom:10px;background:#000;cursor:zoom-in;';i.setAttribute('data-orig',s);i.setAttribute('data-rts','0');i.onerror=function(){var orig=this.getAttribute('data-orig');var rts=parseInt(this.getAttribute('data-rts'));var pxs=['https://api.codetabs.com/v1/proxy?quest=','https://corsproxy.io/?'];if(rts<pxs.length){this.setAttribute('data-rts',rts+1);this.src=pxs[rts]+encodeURIComponent(orig);}else{this.src='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ff3333"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>';this.style.opacity='0.5';this.style.padding='30px';this.title='โหลดภาพล้มเหลว (บล็อกโดยเว็บต้นทาง)';this.style.cursor='default';}};i.onload=function(){if(this.src.startsWith('data:image/svg'))return;if(this.naturalWidth<30)this.onerror();};var info=document.createElement('div');info.style.cssText='color:#aaa;font-size:10px;margin-bottom:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';var fname=s.split('/').pop().split('?')[0];try{fname=decodeURIComponent(fname);}catch(e){}info.innerText=fname||'image';var d=document.createElement('button');d.innerText='ดาวน์โหลด';d.style.cssText='display:block;width:100%;background:#f03;color:#fff;border:none;padding:8px;border-radius:3px;font-size:12px;font-weight:bold;margin-top:auto;cursor:pointer;';d.onclick=async function(e){e.preventDefault();var ogD=d.innerText;d.innerText='กำลังโหลด...';d.style.pointerEvents='none';let b=await fetchImg(s);if(b){var u2=URL.createObjectURL(b);var a2=document.createElement('a');a2.href=u2;a2.download='KIRITO_'+Date.now()+'.jpg';a2.click();URL.revokeObjectURL(u2);d.innerText='สำเร็จ!';d.style.background='#28a745';}else{window.open(s,'_blank');d.innerText='ล้มเหลว';}setTimeout(()=>{d.innerText=ogD;d.style.background='#f03';d.style.pointerEvents='auto';},2000);};i.onclick=function(){if(this.src.startsWith('data:'))return;document.getElementById('krt-lb').style.display='flex';document.getElementById('krt-lbi').src=s;sc=1;tx=0;ty=0;up();};c.appendChild(i);c.appendChild(info);c.appendChild(d);gal.appendChild(c);});document.getElementById('krt-close').onclick=function(){sys.remove();};document.getElementById('krt-dl-all').onclick=async function(){var btn=this;if(btn.disabled)return;var imgsToDownload=[];gal.querySelectorAll('img').forEach((imgEl,idx)=>{if(!imgEl.src.startsWith('data:image/svg')){imgsToDownload.push({url:imgEl.getAttribute('data-orig')||imgEl.src,idx:idx});}});if(imgsToDownload.length===0)return alert('ไม่มีรูปที่โหลดได้');var ogTxt=btn.innerText;btn.innerText='PREPARING...';btn.disabled=true;btn.style.background='#555';var pbg=document.getElementById('krt-prog-bg');var pbar=document.getElementById('krt-prog');pbg.style.display='block';pbar.style.width='0%';pbar.innerText='0%';async function doZip(){var zip=new JSZip();var count=0;var processedCount=0;var cIndex=0;async function workerPool(){while(cIndex<imgsToDownload.length){let item=imgsToDownload[cIndex++];let b=await fetchImg(item.url);if(b){var rawFname=item.url.split('/').pop().split('?')[0];try{rawFname=decodeURIComponent(rawFname);}catch(e){}var ext=rawFname.split('.').pop().toLowerCase();if(ext.length>4||ext===rawFname.toLowerCase()||!ext)ext='jpg';var base=rawFname.substring(0,rawFname.lastIndexOf('.'));if(!base)base='KIRITO_IMAGE';let padIdx=String(item.idx+1).padStart(3,'0');zip.file(`${base}_${padIdx}.${ext}`,b);count++;}processedCount++;var pct=Math.round((processedCount/imgsToDownload.length)*100);pbar.style.width=pct+'%';pbar.innerText=processedCount+'/'+imgsToDownload.length+' ('+pct+'%)';btn.innerText='DOWNLOADING...';}}var workers=Array(8).fill(0).map(()=>workerPool());await Promise.all(workers);if(count===0){pbg.style.display='none';btn.innerText='FAILED (โดนบล็อก)';setTimeout(function(){btn.innerText=ogTxt;btn.disabled=false;btn.style.background='#28a745';},4000);return;}pbar.innerText='ZIPPING...';btn.innerText='PACKING ZIP...';try{var content=await zip.generateAsync({type:'blob'});var u2=URL.createObjectURL(content);var a2=document.createElement('a');a2.href=u2;a2.download='KIRITO_PACK_'+Date.now()+'.zip';a2.click();URL.revokeObjectURL(u2);pbg.style.display='none';btn.innerText='SUCCESS! ('+count+'/'+imgsToDownload.length+')';}catch(e){btn.innerText='ZIP ERROR';}setTimeout(function(){btn.innerText=ogTxt;btn.disabled=false;btn.style.background='#28a745';pbg.style.display='none';},4000);}if(typeof JSZip==='undefined'){pbar.innerText='LOADING JSZIP...';var script=document.createElement('script');script.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';script.onload=doZip;document.head.appendChild(script);}else{doZip();}};var sc=1,tx=0,ty=0,dr=false,sx,sy;function up(){var li=document.getElementById('krt-lbi');if(li)li.style.transform='translate('+tx+'px, '+ty+'px) scale('+sc+')';}var li=document.getElementById('krt-lbi');li.addEventListener('wheel',function(e){e.preventDefault();sc+=e.deltaY*-0.001;sc=Math.min(Math.max(0.5,sc),8);up();},{passive:false});li.addEventListener('mousedown',function(e){e.preventDefault();dr=true;sx=e.clientX-tx;sy=e.clientY-ty;li.style.cursor='grabbing';});sys.addEventListener('mouseup',function(){dr=false;if(li)li.style.cursor='grab';});sys.addEventListener('mousemove',function(e){if(!dr)return;e.preventDefault();tx=e.clientX-sx;ty=e.clientY-sy;up();});
+// ==========================================
+// KIRITO PULL SYSTEM - FULL GITHUB EDITION
+// ==========================================
+(function() {
+    // 1. ลบระบบเก่าออกถ้ามีการเปิดค้างไว้
+    if(document.getElementById('krt-sys-wrapper')) {
+        document.getElementById('krt-sys-wrapper').remove();
+    }
+
+    // 2. ฟังก์ชันคัดกรองและดึงขนาดรูปภาพ
+    const cleanK = function(u) {
+        try {
+            let p = u.split('?')[0].split('#')[0];
+            p = p.replace(/[-_]\d+x\d+(?=\.[a-zA-Z0-9]+$)/i, '');
+            return p;
+        } catch(e) { return u; }
+    };
+    
+    const getSc = function(u) {
+        try {
+            let m = u.split('?')[0].match(/[-_](\d+)x(\d+)(?=\.[a-zA-Z0-9]+$)/i);
+            return m ? parseInt(m[1]) * parseInt(m[2]) : 0;
+        } catch(e) { return 0; }
+    };
+
+    const uMap = new Map();
+    const addImg = function(s) {
+        if(!s || typeof s !== 'string' || s.startsWith('data:')) return;
+        if(s.startsWith('//')) s = 'https:' + s;
+        else if(s.startsWith('/')) s = location.origin + s;
+        
+        try {
+            let u = new URL(decodeURIComponent(s), 'http://d').searchParams.get('url');
+            if(u) s = u;
+        } catch(e) {}
+        
+        let uL = s.toLowerCase().split('?')[0];
+        if(uL.match(/\.(js|css|html|php|json|xml|txt)$/i)) return;
+        if(!uL.match(/\.(jpg|jpeg|png|webp|gif|svg|tiff|heic|ico)$/i)) return;
+        
+        let k = cleanK(s);
+        let ex = uMap.get(k);
+        if(!ex || getSc(s) > getSc(ex)) {
+            uMap.set(k, s);
+        } else if(getSc(s) === getSc(ex) && !s.includes('?') && ex.includes('?')) {
+            uMap.set(k, s);
+        }
+    };
+
+    // 3. สแกนหาดึงรูปภาพจากหน้าเว็บ
+    Array.from(document.images).forEach(e => addImg(e.src));
+    Array.from(document.querySelectorAll('img, a, link, div, span, section')).forEach(e => {
+        ['data-src', 'data-original', 'data-lazy-src', 'data-srcset'].forEach(attr => {
+            let ds = e.getAttribute(attr);
+            if(ds) ds.split(',').forEach(p => addImg(p.trim().split(' ')[0]));
+        });
+        if((e.tagName === 'A' || e.tagName === 'LINK') && e.href) addImg(e.href);
+        let bg = window.getComputedStyle(e).backgroundImage;
+        let m = bg.match(/url\(['"]?(.*?)['"]?\)/);
+        if(m) addImg(m[1]);
+    });
+
+    if(uMap.size === 0) {
+        alert('ไม่พบรูปภาพ (KIRITO SYSTEM)');
+        return;
+    }
+
+    // 4. สร้าง UI ด้วย Shadow DOM (ป้องกัน CSS ตีกัน)
+    const wrapper = document.createElement('div');
+    wrapper.id = 'krt-sys-wrapper';
+    wrapper.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:2147483647;pointer-events:none;';
+    document.body.appendChild(wrapper);
+
+    const shadow = wrapper.attachShadow({mode: 'open'});
+    shadow.innerHTML = `
+        <style>
+            * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+            .container { position: absolute; top:0; left:0; width: 100%; height: 100%; background: #111; overflow-y: auto; padding: 20px; color: #fff; pointer-events: auto; }
+            .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f03; padding-bottom: 10px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+            h1 { color: #f03; margin: 0; text-shadow: 0 0 10px #f03; font-size: 24px; }
+            .btn-group { display: flex; gap: 10px; }
+            button { border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px; font-weight: bold; color: #fff; transition: opacity 0.2s; }
+            button:disabled { opacity: 0.5; cursor: not-allowed; }
+            .btn-zip { background: #28a745; }
+            .btn-close { background: #f03; }
+            .btn-dl { background: #f03; width: 100%; padding: 8px; margin-top: auto; font-size: 12px; }
+            .info-text { color: #aaa; font-size: 14px; margin-bottom: 15px; display: flex; justify-content: space-between; }
+            .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
+            .card { background: #222; border: 1px solid #333; border-radius: 6px; padding: 10px; display: flex; flex-direction: column; text-align: center; }
+            .card img { width: 100%; height: 120px; object-fit: contain; margin-bottom: 10px; background: #000; cursor: zoom-in; border-radius: 4px; }
+            .card .filename { color: #aaa; font-size: 10px; margin-bottom: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            
+            /* Lightbox & ทัชสกรีน */
+            .lightbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10; align-items: center; justify-content: center; touch-action: none; pointer-events: auto; }
+            .lb-close { position: absolute; top: 20px; right: 20px; color: #f03; font-size: 40px; cursor: pointer; z-index: 11; width: 50px; height: 50px; text-align: center; line-height: 50px; background: rgba(0,0,0,0.5); border-radius: 50%; }
+            .lb-img { max-width: 95%; max-height: 95%; transition: transform 0.1s ease-out; cursor: grab; user-select: none; -webkit-user-drag: none; }
+            .lb-img:active { cursor: grabbing; }
+            .lb-hint { position: absolute; bottom: 20px; background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 20px; display: flex; gap: 15px; color: #fff; font-size: 12px; z-index: 11; pointer-events: none; }
+        </style>
+        
+        <div class="container">
+            <div class="header">
+                <h1>KIRITO PULL</h1>
+                <div class="btn-group">
+                    <button id="btn-zip" class="btn-zip">โหลด ZIP</button>
+                    <button id="btn-close" class="btn-close">ปิดหน้าต่าง</button>
+                </div>
+            </div>
+            <div class="info-text">
+                <span id="status-text">พบรูปภาพทั้งหมด ${uMap.size} รูป</span>
+            </div>
+            <div id="gallery" class="grid"></div>
+        </div>
+        
+        <div id="lightbox" class="lightbox">
+            <div id="lb-close" class="lb-close">&times;</div>
+            <img id="lb-img" class="lb-img">
+            <div class="lb-hint">
+                <span>เมาส์: ซูม</span>
+                <span>ลาก/ทัชสกรีน: เลื่อน</span>
+            </div>
+        </div>
+    `;
+
+    const gallery = shadow.getElementById('gallery');
+    const lightbox = shadow.getElementById('lightbox');
+    const lbImg = shadow.getElementById('lb-img');
+    const statusText = shadow.getElementById('status-text');
+
+    // 5. ระบบดึงรูปภาพ (มี Proxy สำรองเผื่อโดนบล็อก)
+    const fetchImg = async (url) => {
+        const proxies = ['', 'https://api.codetabs.com/v1/proxy?quest=', 'https://corsproxy.io/?'];
+        for(let p of proxies) {
+            try {
+                let target = p ? p + encodeURIComponent(url) : url;
+                let ctrl = new AbortController();
+                let tid = setTimeout(() => ctrl.abort(), 6000);
+                let r = await fetch(target, {signal: ctrl.signal});
+                clearTimeout(tid);
+                if(r.ok) {
+                    let b = await r.blob();
+                    if(b.size > 150 && !b.type.includes('text/html')) return b;
+                }
+            } catch(e) {}
+        }
+        return null;
+    };
+
+    // 6. แสดงผลแกลเลอรี
+    let sc = 1, tx = 0, ty = 0; // ตัวแปรสำหรับ Lightbox
+    const updateTransform = () => lbImg.style.transform = `translate(${tx}px, ${ty}px) scale(${sc})`;
+
+    Array.from(uMap.values()).forEach((s, idx) => {
+        let card = document.createElement('div');
+        card.className = 'card';
+        
+        let img = document.createElement('img');
+        img.src = s;
+        img.onerror = function() {
+            if(!this.retried) {
+                this.retried = true;
+                this.src = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(s);
+            } else {
+                this.style.opacity = '0.3';
+            }
+        };
+        img.onclick = () => {
+            lightbox.style.display = 'flex';
+            lbImg.src = s;
+            sc = 1; tx = 0; ty = 0; updateTransform();
+        };
+
+        let fname = s.split('/').pop().split('?')[0];
+        try { fname = decodeURIComponent(fname); } catch(e) {}
+        let info = document.createElement('div');
+        info.className = 'filename';
+        info.innerText = fname || 'image';
+
+        let btn = document.createElement('button');
+        btn.className = 'btn-dl';
+        btn.innerText = 'ดาวน์โหลด';
+        btn.onclick = async () => {
+            let og = btn.innerText;
+            btn.innerText = 'กำลังโหลด...';
+            btn.style.pointerEvents = 'none';
+            let b = await fetchImg(s);
+            if(b) {
+                let u2 = URL.createObjectURL(b);
+                let a2 = document.createElement('a');
+                a2.href = u2;
+                a2.download = 'KIRITO_' + Date.now() + '.jpg';
+                a2.click();
+                URL.revokeObjectURL(u2);
+                btn.innerText = 'สำเร็จ!';
+                btn.style.background = '#28a745';
+            } else {
+                window.open(s, '_blank');
+                btn.innerText = 'หน้าใหม่';
+            }
+            setTimeout(() => {
+                btn.innerText = og;
+                btn.style.background = '#f03';
+                btn.style.pointerEvents = 'auto';
+            }, 2000);
+        };
+
+        card.append(img, info, btn);
+        gallery.append(card);
+    });
+
+    // 7. Event Listeners (ปุ่มปิด และ ระบบเลื่อนรูป)
+    shadow.getElementById('btn-close').onclick = () => wrapper.remove();
+    shadow.getElementById('lb-close').onclick = () => lightbox.style.display = 'none';
+
+    let isDragging = false, startX, startY;
+    
+    // สำหรับเมาส์
+    lbImg.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        sc += e.deltaY * -0.001;
+        sc = Math.min(Math.max(0.5, sc), 8);
+        updateTransform();
+    }, {passive: false});
+    
+    lbImg.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        isDragging = true;
+        startX = e.clientX - tx;
+        startY = e.clientY - ty;
+    });
+    
+    lightbox.addEventListener('mouseup', () => isDragging = false);
+    lightbox.addEventListener('mousemove', (e) => {
+        if(!isDragging) return;
+        e.preventDefault();
+        tx = e.clientX - startX;
+        ty = e.clientY - startY;
+        updateTransform();
+    });
+
+    // สำหรับทัชสกรีน
+    lbImg.addEventListener('touchstart', (e) => {
+        if(e.touches.length === 1) {
+            isDragging = true;
+            startX = e.touches[0].clientX - tx;
+            startY = e.touches[0].clientY - ty;
+        }
+    }, {passive: false});
+    
+    lightbox.addEventListener('touchend', () => isDragging = false);
+    lightbox.addEventListener('touchmove', (e) => {
+        if(!isDragging || e.touches.length !== 1) return;
+        e.preventDefault();
+        tx = e.touches[0].clientX - startX;
+        ty = e.touches[0].clientY - startY;
+        updateTransform();
+    }, {passive: false});
+
+    // 8. ระบบสร้างไฟล์ ZIP
+    shadow.getElementById('btn-zip').onclick = function() {
+        let btn = this;
+        btn.disabled = true;
+        statusText.innerText = 'กำลังเตรียมระบบ ZIP...';
+        statusText.style.color = '#fff';
+
+        const doZip = async () => {
+            statusText.innerText = 'กำลังโหลดข้อมูลรูปภาพ...';
+            let zip = new JSZip();
+            let urls = Array.from(uMap.values());
+            let total = urls.length;
+            let count = 0;
+
+            for(let i=0; i<total; i++) {
+                let s = urls[i];
+                let b = await fetchImg(s);
+                if(b) {
+                    let fname = s.split('/').pop().split('?')[0];
+                    try { fname = decodeURIComponent(fname); } catch(e) {}
+                    let ext = fname.split('.').pop().toLowerCase();
+                    if(ext.length > 4 || ext === fname.toLowerCase() || !ext) ext = 'jpg';
+                    let base = fname.substring(0, fname.lastIndexOf('.')) || 'KIRITO_IMAGE';
+                    let padIdx = String(i+1).padStart(3, '0');
+                    zip.file(`${base}_${padIdx}.${ext}`, b);
+                    count++;
+                }
+                statusText.innerText = `กำลังแพ็กไฟล์ ${count}/${total} ...`;
+            }
+
+            if(count === 0) {
+                statusText.innerText = 'ล้มเหลว: โดนบล็อกการดึงรูป';
+                statusText.style.color = '#f03';
+                btn.disabled = false;
+                return;
+            }
+
+            statusText.innerText = 'กำลังสร้างไฟล์ ZIP กรุณารอ...';
+            try {
+                let content = await zip.generateAsync({type: 'blob'});
+                let u2 = URL.createObjectURL(content);
+                let a2 = document.createElement('a');
+                a2.href = u2;
+                a2.download = 'KIRITO_PACK_' + Date.now() + '.zip';
+                a2.click();
+                URL.revokeObjectURL(u2);
+                statusText.innerText = `ดาวน์โหลด ZIP สำเร็จ (${count} รูป)`;
+                statusText.style.color = '#28a745';
+                btn.innerText = 'สำเร็จ';
+            } catch(e) {
+                statusText.innerText = 'เกิดข้อผิดพลาดในการสร้าง ZIP';
+                statusText.style.color = '#f03';
+                btn.disabled = false;
+            }
+        };
+
+        if(typeof JSZip === 'undefined') {
+            statusText.innerText = 'กำลังโหลดไลบรารี JSZip...';
+            let script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+            script.onload = doZip;
+            document.head.appendChild(script);
+        } else {
+            doZip();
+        }
+    };
+
+})();
