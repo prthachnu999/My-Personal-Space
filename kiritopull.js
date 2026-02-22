@@ -1,5 +1,5 @@
 // ==========================================
-// KIRITO PULL SYSTEM - ULTIMATE GITHUB EDITION v4 (SVG Icons Fix)
+// KIRITO PULL SYSTEM - ULTIMATE MEDIA EDITION v5
 // ==========================================
 (function() {
     if(document.getElementById('krt-sys-wrapper')) {
@@ -23,7 +23,8 @@
 
     const uMap = new Map();
     
-    const addImg = function(s) {
+    // --- ระบบดึง Media ขั้นสูง ---
+    const addMedia = function(s) {
         if(!s || typeof s !== 'string' || s.startsWith('data:')) return;
         
         s = s.trim().replace(/\\u002F/g, '/').replace(/\\/g, '');
@@ -38,7 +39,10 @@
         
         let uL = s.toLowerCase().split('?')[0];
         if(uL.match(/\.(js|css|html|php|json|xml|txt)$/i)) return;
-        if(!uL.match(/\.(jpg|jpeg|png|webp|gif|svg|tiff|heic|ico)$/i)) return;
+        
+        const validExts = ['jpg','jpeg','png','webp','gif','svg','tiff','heic','ico','mp4','webm','ogg','mov','m4v','mp3','wav','m4a'];
+        const ext = uL.split('.').pop();
+        if(!validExts.includes(ext)) return;
         
         let k = cleanK(s);
         let ex = uMap.get(k);
@@ -49,30 +53,34 @@
         }
     };
 
-    Array.from(document.images).forEach(e => addImg(e.src));
+    // 1. ดึงจากแท็กมาตรฐาน
+    Array.from(document.images).forEach(e => addMedia(e.src));
+    Array.from(document.querySelectorAll('video, audio, source')).forEach(e => addMedia(e.src));
     
+    // 2. ดึงจาก Attributes ทุกรูปแบบ
     Array.from(document.querySelectorAll('*')).forEach(e => {
         ['data-src', 'data-original', 'data-lazy-src', 'data-srcset', 'src', 'href', 'srcset', 'content', 'poster'].forEach(attr => {
             let ds = e.getAttribute(attr);
             if(ds) {
-                if(ds.includes(',')) ds.split(',').forEach(p => addImg(p.trim().split(/\s+/)[0]));
-                else addImg(ds);
+                if(ds.includes(',')) ds.split(',').forEach(p => addMedia(p.trim().split(/\s+/)[0]));
+                else addMedia(ds);
             }
         });
         let bg = window.getComputedStyle(e).backgroundImage;
         let m = bg.match(/url\(['"]?(.*?)['"]?\)/);
-        if(m) addImg(m[1]);
+        if(m) addMedia(m[1]);
     });
     
+    // 3. ทะลวง Source Code / JSON
     const htmlCode = document.documentElement.innerHTML;
-    const urlRegex = /(?:https?:|\\\/\\\/|\/\/)[^\s"'<>;&\\]+\.(?:jpg|jpeg|png|gif|webp|svg|ico)(?:\?[^\s"'<>\\]*)?/gi;
+    const urlRegex = /(?:https?:|\\\/\\\/|\/\/)[^\s"'<>;&\\]+\.(?:jpg|jpeg|png|gif|webp|svg|ico|mp4|webm|ogg|mov|m4v|mp3|wav|m4a)(?:\?[^\s"'<>\\]*)?/gi;
     let match;
     while ((match = urlRegex.exec(htmlCode)) !== null) {
-        addImg(match[0]);
+        addMedia(match[0]);
     }
 
     if(uMap.size === 0) {
-        alert('ไม่พบรูปภาพ (KIRITO SYSTEM)');
+        alert('ไม่พบไฟล์รูปภาพ วิดีโอ หรือเสียง (KIRITO SYSTEM)');
         return;
     }
 
@@ -86,7 +94,7 @@
 
     const shadow = wrapper.attachShadow({mode: 'open'});
     
-    // --- ฝัง SVG Icons โดยตรง แก้ปัญหา CSP Blocked ---
+    // --- ฝัง SVG Icons (CSP Bypass 100%) ---
     const SVGs = {
         dl: '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>',
         link: '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>',
@@ -95,7 +103,9 @@
         box: '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>',
         times: '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>',
         check: '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>',
-        spin: '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" class="icon-spin"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10"></path></svg>'
+        spin: '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" class="icon-spin"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10"></path></svg>',
+        trash: '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>',
+        rocket: '<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2l.5-.5a10.4 10.4 0 0 0 7.7-7.7A10.4 10.4 0 0 0 16.5 4.5l-.5.5A10.4 10.4 0 0 0 4.5 16.5z"></path></svg>'
     };
 
     shadow.innerHTML += `
@@ -103,6 +113,7 @@
             * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
             @keyframes krtFadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
             @keyframes krtSpin { 100% { transform: rotate(360deg); } }
+            @keyframes fadeInDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
             
             svg { display: block; }
             .icon-spin { animation: krtSpin 1s linear infinite; }
@@ -114,7 +125,7 @@
             .container::-webkit-scrollbar-thumb:hover { background: rgba(255, 0, 51, 0.9); }
 
             .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.15); padding-bottom: 15px; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
-            h1 { color: #ff3333; margin: 0; text-shadow: 0 2px 15px rgba(255, 51, 51, 0.4); font-size: 28px; font-weight: 800; letter-spacing: 1px; }
+            h1 { color: #ff3333; margin: 0; text-shadow: 0 2px 15px rgba(255, 51, 51, 0.4); font-size: 28px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; }
             .btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
             
             button { border: none; padding: 10px 20px; cursor: pointer; border-radius: 8px; font-weight: 600; color: #fff; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px; }
@@ -128,64 +139,148 @@
             .btn-close { background: rgba(255, 51, 51, 0.15); color: #ff3333; border: 1px solid rgba(255, 51, 51, 0.3); }
             .btn-close:hover { background: #ff3333; color: #fff; }
             
+            /* --- Filters UI --- */
+            .filter-section { margin-bottom: 25px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
+            .filter-label { font-size: 0.85rem; color: #ddd; margin-bottom: 10px; font-weight: bold; }
+            .filter-group { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+            .filter-btn { padding: 6px 14px; font-size: 0.85rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 20px; color: #ccc; cursor: pointer; transition: 0.2s; }
+            .filter-btn:hover { background: rgba(255, 255, 255, 0.2); color: white; }
+            .filter-btn.active { background: #ff3333; color: white; border-color: #ff3333; box-shadow: 0 0 12px rgba(255, 51, 51, 0.4); }
+
+            .sub-filter-container { display: none; padding: 10px 15px; background: rgba(255,255,255,0.05); border-left: 3px solid #ff3333; border-radius: 0 8px 8px 0; margin-bottom: 15px; animation: fadeInDown 0.2s ease-out; }
+            .sub-group { display: none; gap: 8px; flex-wrap: wrap; margin: 0; }
+
             .info-text { color: #eee; font-size: 14px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
             .status-badge { background: rgba(255, 51, 51, 0.2); color: #ffbbbb; padding: 5px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; border: 1px solid rgba(255, 51, 51, 0.3); }
             
-            .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px; }
-            .card { position: relative; background: rgba(30, 30, 30, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 8px 25px rgba(0,0,0,0.25); transition: all 0.3s ease; overflow: hidden;}
-            .card:hover { transform: translateY(-6px); box-shadow: 0 12px 30px rgba(0,0,0,0.4); border-color: rgba(255, 51, 51, 0.4); }
+            /* --- Grid & Cards --- */
+            .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px; padding-bottom: 60px; }
+            .media-card { position: relative; background: rgba(30, 30, 30, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 8px 25px rgba(0,0,0,0.25); transition: all 0.3s ease; overflow: hidden; }
+            .media-card.hidden-by-filter { display: none !important; }
+            .media-card:hover { transform: translateY(-6px); box-shadow: 0 12px 30px rgba(0,0,0,0.4); border-color: rgba(255, 51, 51, 0.4); background: rgba(40,40,40,0.8); }
             
             .card-checkbox { position: absolute; top: 12px; left: 12px; z-index: 5; width: 22px; height: 22px; cursor: pointer; accent-color: #ff3333; filter: drop-shadow(0 0 5px rgba(0,0,0,0.5)); }
+            .type-badge { position: absolute; top: 12px; right: 12px; z-index: 5; background: rgba(0,0,0,0.7); color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; border: 1px solid rgba(255,255,255,0.2); pointer-events: none; font-weight: bold; }
 
-            .img-container { width: 100%; height: 160px; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; cursor: zoom-in; overflow: hidden; }
-            .card img { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-            .card:hover img { transform: scale(1.08); }
+            .media-container { width: 100%; height: 160px; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; position: relative; }
+            .media-card img, .media-card video { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+            .media-card:hover .media-container img, .media-card:hover .media-container video { transform: scale(1.08); }
             
-            .img-info { width: 100%; padding: 12px 10px; background: rgba(0,0,0,0.5); color: #ccc; font-size: 0.75rem; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; }
+            .play-overlay { position: absolute; font-size: 2.5rem; color: rgba(255,255,255,0.7); pointer-events: none; text-shadow: 0 0 10px rgba(0,0,0,0.8); transition: 0.3s; opacity: 1; }
+            .media-card:hover .play-overlay { color: #ff3333; transform: scale(1.1); }
+            
+            .media-info { width: 100%; padding: 12px 10px; background: rgba(0,0,0,0.5); color: #ccc; font-size: 0.75rem; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; }
             .filename { color: #fff; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; flex: 1; margin-right: 5px;}
             .dimensions { color: #ffbbbb; font-size: 10px; font-weight: bold; background: rgba(255,51,51,0.1); padding: 3px 6px; border-radius: 4px; white-space: nowrap; }
             
-            .img-actions { padding: 10px; background: rgba(10,10,10,0.8); display: flex; justify-content: center; gap: 8px; border-top: 1px solid rgba(255,51,51,0.2); }
+            .media-actions { padding: 10px; background: rgba(10,10,10,0.8); display: flex; justify-content: center; gap: 8px; border-top: 1px solid rgba(255,51,51,0.2); }
             .btn-icon { flex: 1; height: 36px; border-radius: 6px; border: none; cursor: pointer; color: white; font-size: 0.95rem; transition: 0.2s; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); }
             .btn-icon:hover { transform: translateY(-3px); }
             .btn-dl { background: rgba(255,51,51,0.7); } .btn-dl:hover { background: #ff3333; box-shadow: 0 0 10px rgba(255,51,51,0.5); }
             .btn-copy-link { background: rgba(0,123,255,0.7); } .btn-copy-link:hover { background: #007bff; box-shadow: 0 0 10px rgba(0,123,255,0.5); }
             .btn-copy-img { background: rgba(40,167,69,0.7); } .btn-copy-img:hover { background: #28a745; box-shadow: 0 0 10px rgba(40,167,69,0.5); }
             
-            /* Lightbox & Navigation */
-            .lightbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); z-index: 10; align-items: center; justify-content: center; touch-action: none; pointer-events: auto; backdrop-filter: blur(8px); opacity: 0; transition: opacity 0.3s; }
+            /* --- Lightbox --- */
+            .lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 2000; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; touch-action: none; pointer-events: auto; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); opacity: 0; transition: opacity 0.3s; }
             .lightbox.active { opacity: 1; display: flex; }
-            .lb-close { position: absolute; top: 20px; right: 20px; color: #fff; font-size: 32px; cursor: pointer; z-index: 12; width: 48px; height: 48px; text-align: center; line-height: 48px; background: rgba(255,255,255,0.1); border-radius: 50%; transition: all 0.2s; }
+            .lb-content-wrapper { position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
+            
+            .lb-media { max-width: 90%; max-height: 85%; transition: transform 0.15s ease-out; filter: drop-shadow(0 10px 30px rgba(0,0,0,0.8)); outline: none; }
+            .lb-media.grabbing { cursor: grabbing; transition: none; }
+            img.lb-media { cursor: grab; user-select: none; -webkit-user-drag: none; }
+            
+            .lb-close { position: absolute; top: 20px; right: 20px; color: #fff; font-size: 32px; cursor: pointer; z-index: 2005; width: 48px; height: 48px; display:flex; align-items:center; justify-content:center; background: rgba(255,255,255,0.1); border-radius: 50%; transition: all 0.2s; }
             .lb-close:hover { background: #ff3333; transform: rotate(90deg); }
-            .lb-nav { position: absolute; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.5); font-size: 40px; cursor: pointer; z-index: 11; width: 50px; height: 80px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); transition: 0.2s; }
+            .lb-nav { position: absolute; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.5); font-size: 40px; cursor: pointer; z-index: 2002; width: 50px; height: 80px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); transition: 0.2s; }
             .lb-nav:hover { background: rgba(255,51,51,0.6); color: white; }
             .lb-prev { left: 0; border-radius: 0 10px 10px 0; }
             .lb-next { right: 0; border-radius: 10px 0 0 10px; }
-            .lb-img { max-width: 90%; max-height: 90%; transition: transform 0.15s ease-out; cursor: grab; user-select: none; -webkit-user-drag: none; filter: drop-shadow(0 10px 30px rgba(0,0,0,0.8)); transform-origin: center; }
-            .lb-img.grabbing { cursor: grabbing; transition: none; }
-            .lb-hint { position: absolute; bottom: 25px; background: rgba(0,0,0,0.7); padding: 10px 25px; border-radius: 30px; display: flex; gap: 20px; color: #eee; font-size: 13px; z-index: 11; pointer-events: none; border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(5px); }
+            .lb-hint { position: absolute; bottom: 25px; background: rgba(0,0,0,0.7); padding: 10px 25px; border-radius: 30px; display: flex; gap: 20px; color: #eee; font-size: 13px; z-index: 2003; pointer-events: none; border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(5px); }
+
+            /* --- Scroll To Top --- */
+            #scrollTopBtn { display: none; position: fixed; bottom: 30px; right: 30px; z-index: 99; border: none; background-color: #ff3333; color: white; cursor: pointer; padding: 15px; border-radius: 50%; box-shadow: 0 4px 15px rgba(255,51,51,0.5); transition: 0.3s; width: 50px; height: 50px; align-items: center; justify-content: center; }
+            #scrollTopBtn:hover { background-color: #ff4d4d; transform: translateY(-5px); box-shadow: 0 6px 20px rgba(255,51,51,0.7); }
         </style>
         
-        <div class="container">
+        <div class="container" id="scroll-container">
             <div class="header">
                 <h1>KIRITO SYSTEM</h1>
                 <div class="btn-group">
-                    <button id="btn-select-all" class="btn-select">${SVGs.checkSq} เลือกทั้งหมด</button>
-                    <button id="btn-zip" class="btn-zip">${SVGs.box} ดาวน์โหลด ZIP</button>
+                    <button id="btn-select-all" class="btn-select">${SVGs.checkSq} เลือกทั้งหมดหน้าจอ</button>
+                    <button id="btn-zip" class="btn-zip">${SVGs.box} โหลด ZIP ที่เลือก</button>
                     <button id="btn-close" class="btn-close">${SVGs.times} ปิดระบบ</button>
                 </div>
             </div>
+
+            <!-- Filters Section -->
+            <div class="filter-section">
+                <div class="filter-label">🗂 หมวดหมู่หลัก (Category):</div>
+                <div class="filter-group" id="mainTypeFilters">
+                    <button class="filter-btn active" data-type="all">📦 ทั้งหมด (All)</button>
+                    <button class="filter-btn" data-type="image">🖼️ รูปภาพ (Image)</button>
+                    <button class="filter-btn" data-type="video">🎥 วิดีโอ (Video)</button>
+                    <button class="filter-btn" data-type="audio">🎵 เสียง (Audio)</button>
+                </div>
+
+                <div id="subFiltersContainer" class="sub-filter-container">
+                    <div class="sub-group" id="subType_image">
+                        <button class="filter-btn active" data-subtype="all">รูปทั้งหมด</button>
+                        <button class="filter-btn" data-subtype="jpg">JPG</button>
+                        <button class="filter-btn" data-subtype="png">PNG</button>
+                        <button class="filter-btn" data-subtype="gif">GIF</button>
+                        <button class="filter-btn" data-subtype="webp">WebP</button>
+                        <button class="filter-btn" data-subtype="svg">SVG</button>
+                        <button class="filter-btn" data-subtype="other_img">อื่นๆ</button>
+                    </div>
+                    <div class="sub-group" id="subType_video">
+                        <button class="filter-btn active" data-subtype="all">วิดีโอทั้งหมด</button>
+                        <button class="filter-btn" data-subtype="mp4">MP4</button>
+                        <button class="filter-btn" data-subtype="webm">WebM</button>
+                        <button class="filter-btn" data-subtype="other_vid">อื่นๆ (MOV, OGG...)</button>
+                    </div>
+                    <div class="sub-group" id="subType_audio">
+                        <button class="filter-btn active" data-subtype="all">เสียงทั้งหมด</button>
+                        <button class="filter-btn" data-subtype="mp3">MP3</button>
+                        <button class="filter-btn" data-subtype="wav">WAV</button>
+                        <button class="filter-btn" data-subtype="other_aud">อื่นๆ (M4A, AAC...)</button>
+                    </div>
+                </div>
+
+                <div class="filter-label">📏 ขนาดไฟล์ (Size) *เฉพาะรูป/คลิป:</div>
+                <div class="filter-group" id="sizeFilters">
+                    <button class="filter-btn active" data-size="all">ทั้งหมด</button>
+                    <button class="filter-btn" data-size="small">เล็ก (&lt;500px)</button>
+                    <button class="filter-btn" data-size="medium">กลาง (500-1200px)</button>
+                    <button class="filter-btn" data-size="large">ใหญ่ (&gt;1200px)</button>
+                </div>
+
+                <div class="filter-label">⏱ ระยะเวลา (Duration) *เฉพาะคลิป/เสียง:</div>
+                <div class="filter-group" id="durationFilters">
+                    <button class="filter-btn active" data-duration="all">ทั้งหมด</button>
+                    <button class="filter-btn" data-duration="short">สั้น (&lt; 30 วิ)</button>
+                    <button class="filter-btn" data-duration="medium">กลาง (30 วิ - 3 นาที)</button>
+                    <button class="filter-btn" data-duration="long">ยาว (&gt; 3 นาที)</button>
+                </div>
+            </div>
+
             <div class="info-text">
                 <span id="status-text">กำลังรวบรวมข้อมูล...</span>
-                <span class="status-badge" id="count-badge">ดึงมาได้ ${imgArray.length} รูป</span>
+                <span class="status-badge" id="count-badge">ดึงมาได้ ${imgArray.length} ไฟล์</span>
             </div>
             <div id="gallery" class="grid"></div>
         </div>
         
+        <!-- Scroll to Top Button -->
+        <button id="scrollTopBtn" title="ขึ้นบนสุด">${SVGs.rocket}</button>
+
         <div id="lightbox" class="lightbox">
-            <div id="lb-close" class="lb-close">&times;</div>
+            <div id="lb-close" class="lb-close">${SVGs.times}</div>
             <div id="lb-prev" class="lb-nav lb-prev">&#10094;</div>
-            <img id="lb-img" class="lb-img">
+            <div id="lb-content-wrapper" class="lb-content-wrapper">
+                <img id="lb-img" class="lb-media" style="display:none;" src="">
+                <video id="lb-vid" class="lb-media" style="display:none; max-width:90%; max-height:85%;" controls></video>
+                <audio id="lb-aud" class="lb-media" style="display:none; width:80%;" controls></audio>
+            </div>
             <div id="lb-next" class="lb-nav lb-next">&#10095;</div>
             <div class="lb-hint">
                 <span>🖱️ ซูม/ลากรูป</span>
@@ -196,27 +291,25 @@
 
     const gallery = shadow.getElementById('gallery');
     const lightbox = shadow.getElementById('lightbox');
-    const lbImg = shadow.getElementById('lb-img');
     const statusText = shadow.getElementById('status-text');
     const countBadge = shadow.getElementById('count-badge');
+    const scrollContainer = shadow.getElementById('scroll-container');
+    const topBtn = shadow.getElementById('scrollTopBtn');
 
-    // UI Helper Functions (เปลี่ยนมารองรับ SVG)
+    // UI Feedback Helpers
     const showTempIcon = (btn, tempSvg, origSvg) => {
-        btn.innerHTML = tempSvg;
-        btn.style.background = '#28a745';
-        setTimeout(() => { 
-            btn.innerHTML = origSvg; 
-            btn.style.background = ''; 
-        }, 2000);
+        btn.innerHTML = tempSvg; btn.style.background = '#28a745';
+        setTimeout(() => { btn.innerHTML = origSvg; btn.style.background = ''; }, 2000);
     };
 
-    const fetchImg = async (url) => {
-        const proxies = ['', 'https://api.codetabs.com/v1/proxy?quest=', 'https://corsproxy.io/?'];
+    // Proxy Engine
+    const fetchMedia = async (url) => {
+        const proxies = ['', 'https://api.codetabs.com/v1/proxy?quest=', 'https://corsproxy.io/?', 'https://api.allorigins.win/raw?url='];
         for(let p of proxies) {
             try {
                 let target = p ? p + encodeURIComponent(url) : url;
                 let ctrl = new AbortController();
-                let tid = setTimeout(() => ctrl.abort(), 6000);
+                let tid = setTimeout(() => ctrl.abort(), 10000);
                 let r = await fetch(target, {signal: ctrl.signal});
                 clearTimeout(tid);
                 if(r.ok) {
@@ -228,28 +321,146 @@
         return null;
     };
 
-    let sc = 1, tx = 0, ty = 0;
-    const updateTransform = () => {
-        if(sc <= 1) { sc = 1; tx = 0; ty = 0; }
-        lbImg.style.transform = `translate(${tx}px, ${ty}px) scale(${sc})`;
-    }
+    // Format Helpers
+    const getMediaType = (url) => {
+        const ext = url.split('.').pop().split('?')[0].toLowerCase();
+        if (['mp4', 'webm', 'ogg', 'mov', 'm4v'].includes(ext)) return 'video';
+        if (['mp3', 'wav', 'm4a', 'aac', 'flac'].includes(ext)) return 'audio';
+        return 'image';
+    };
 
-    const openLightbox = (index) => {
-        currentLbIndex = index;
-        lbImg.src = imgArray[index];
-        sc = 1; tx = 0; ty = 0; 
-        updateTransform();
-        lightbox.classList.add('active');
+    const formatTime = (seconds) => {
+        if(!seconds || isNaN(seconds)) return '0:00';
+        const m = Math.floor(seconds / 60);
+        const s = Math.floor(seconds % 60);
+        return `${m}:${s.toString().padStart(2, '0')}`;
+    };
+
+    const cleanFilename = (url) => {
+        let raw = url.split('/').pop().split(/[#?]/)[0];
+        try{ raw = decodeURIComponent(raw); }catch(e){}
+        if(raw.length > 20) raw = raw.substring(0, 10) + '...' + raw.substring(raw.length - 7);
+        return raw || 'media_file';
+    };
+
+    // --- State ตัวกรอง 2 ชั้น ---
+    let currentMainType = 'all';
+    let currentSubType = 'all';
+    let currentSizeFilter = 'all';
+    let currentDurationFilter = 'all';
+
+    const applyVisualFilters = () => {
+        const cards = shadow.querySelectorAll('.media-card');
+        cards.forEach(card => {
+            const width = parseInt(card.getAttribute('data-width') || 0);
+            const duration = parseFloat(card.getAttribute('data-duration') || 0);
+            const mediaType = card.getAttribute('data-type'); 
+            const url = card.querySelector('.chk-select').getAttribute('data-url').toLowerCase();
+            const ext = url.split('.').pop().split('?')[0];
+            
+            let show = true;
+
+            if (currentMainType !== 'all' && mediaType !== currentMainType) show = false;
+
+            if (show && currentSubType !== 'all') {
+                if (currentSubType === 'jpg' && !['jpg', 'jpeg'].includes(ext)) show = false;
+                else if (['png', 'gif', 'webp', 'svg', 'mp4', 'webm', 'mp3', 'wav'].includes(currentSubType) && ext !== currentSubType) show = false;
+                else if (currentSubType === 'other_img' && ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) show = false;
+                else if (currentSubType === 'other_vid' && ['mp4', 'webm'].includes(ext)) show = false;
+                else if (currentSubType === 'other_aud' && ['mp3', 'wav'].includes(ext)) show = false;
+            }
+
+            if (show && currentSizeFilter !== 'all') {
+                if (mediaType === 'audio') show = false; 
+                else {
+                    if (currentSizeFilter === 'small' && width >= 500) show = false;
+                    if (currentSizeFilter === 'medium' && (width < 500 || width > 1200)) show = false;
+                    if (currentSizeFilter === 'large' && width <= 1200) show = false;
+                }
+            }
+
+            if (show && currentDurationFilter !== 'all') {
+                if (mediaType === 'image') show = false;
+                else {
+                    if (currentDurationFilter === 'short' && duration >= 30) show = false;
+                    if (currentDurationFilter === 'medium' && (duration < 30 || duration > 180)) show = false;
+                    if (currentDurationFilter === 'long' && duration <= 180) show = false;
+                }
+            }
+            
+            if (show) card.classList.remove('hidden-by-filter');
+            else card.classList.add('hidden-by-filter');
+        });
+        
+        const visibleCount = shadow.querySelectorAll('.media-card:not(.hidden-by-filter)').length;
+        statusText.innerText = `พร้อมแสดงผล ${visibleCount} ไฟล์บนหน้าจอ`;
+        updateSelectionCount();
     };
 
     const updateSelectionCount = () => {
-        const checked = shadow.querySelectorAll('.chk-select:checked').length;
-        countBadge.innerText = `เลือกไว้ ${checked}/${imgArray.length} รูป`;
+        const checked = shadow.querySelectorAll('.media-card:not(.hidden-by-filter) .chk-select:checked').length;
+        const visible = shadow.querySelectorAll('.media-card:not(.hidden-by-filter)').length;
+        countBadge.innerText = `เลือกไว้ ${checked}/${visible} ไฟล์`;
     };
 
+    // --- Binding Filter Events ---
+    shadow.querySelectorAll('#mainTypeFilters .filter-btn').forEach(btn => {
+        btn.onclick = () => {
+            currentMainType = btn.getAttribute('data-type'); currentSubType = 'all';
+            shadow.querySelectorAll('#mainTypeFilters .filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const subContainer = shadow.getElementById('subFiltersContainer');
+            shadow.querySelectorAll('.sub-group').forEach(el => el.style.display = 'none');
+
+            if(currentMainType === 'all') {
+                subContainer.style.display = 'none';
+            } else {
+                subContainer.style.display = 'block';
+                const subGrp = shadow.getElementById('subType_' + currentMainType);
+                if(subGrp) {
+                    subGrp.style.display = 'flex';
+                    subGrp.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    subGrp.querySelector('.filter-btn').classList.add('active');
+                }
+            }
+            applyVisualFilters();
+        };
+    });
+
+    shadow.querySelectorAll('.sub-group .filter-btn').forEach(btn => {
+        btn.onclick = () => {
+            currentSubType = btn.getAttribute('data-subtype');
+            btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            applyVisualFilters();
+        };
+    });
+
+    shadow.querySelectorAll('#sizeFilters .filter-btn').forEach(btn => {
+        btn.onclick = () => {
+            currentSizeFilter = btn.getAttribute('data-size');
+            shadow.querySelectorAll('#sizeFilters .filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            applyVisualFilters();
+        };
+    });
+
+    shadow.querySelectorAll('#durationFilters .filter-btn').forEach(btn => {
+        btn.onclick = () => {
+            currentDurationFilter = btn.getAttribute('data-duration');
+            shadow.querySelectorAll('#durationFilters .filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            applyVisualFilters();
+        };
+    });
+
+    // --- Render Gallery (รองรับ Video/Audio) ---
     imgArray.forEach((s, idx) => {
+        const mediaType = getMediaType(s);
         let card = document.createElement('div');
-        card.className = 'card';
+        card.className = 'media-card';
+        card.setAttribute('data-type', mediaType);
         
         let checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
@@ -258,61 +469,100 @@
         checkbox.onchange = updateSelectionCount;
         checkbox.setAttribute('data-url', s);
 
+        let typeBadge = document.createElement('div');
+        typeBadge.className = 'type-badge';
+
         let imgContainer = document.createElement('div');
-        imgContainer.className = 'img-container';
-        let img = document.createElement('img');
-        img.src = s;
-        img.loading = "lazy";
+        imgContainer.className = 'media-container';
+        imgContainer.onclick = () => openLightbox(idx);
         
         let infoContainer = document.createElement('div');
-        infoContainer.className = 'img-info';
-        let filenameSpan = document.createElement('span');
-        filenameSpan.className = 'filename';
-        let dimSpan = document.createElement('span');
-        dimSpan.className = 'dimensions';
-        dimSpan.innerText = 'คำนวณ...';
+        infoContainer.className = 'media-info';
+        let fname = cleanFilename(s);
 
-        img.onload = function() {
-            if(this.naturalWidth && this.naturalHeight) {
-                dimSpan.innerText = `${this.naturalWidth}x${this.naturalHeight}`;
-            } else dimSpan.innerText = 'ไม่ทราบ';
-        };
-        img.onerror = function() {
-            if(!this.retried) {
-                this.retried = true;
-                this.src = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(s);
-            } else {
-                card.style.display = 'none';
-            }
-        };
+        if (mediaType === 'video') {
+            typeBadge.innerText = 'VIDEO';
+            let vid = document.createElement('video');
+            vid.src = s; vid.preload = 'metadata'; vid.muted = true;
+            
+            let playIcon = document.createElement('div');
+            playIcon.className = "play-overlay";
+            playIcon.innerHTML = "▶️";
 
-        img.onclick = () => openLightbox(idx);
-        imgContainer.appendChild(img);
+            vid.onloadedmetadata = function() {
+                card.setAttribute('data-width', this.videoWidth);
+                card.setAttribute('data-duration', this.duration);
+                infoContainer.innerHTML = `<span class="filename" title="${fname}">${fname}</span><span class="dimensions">${this.videoWidth}x${this.videoHeight} | ${formatTime(this.duration)}</span>`;
+                applyVisualFilters();
+            };
+            vid.onerror = function() { card.style.display = 'none'; };
+            
+            card.onmouseenter = () => { let p = vid.play(); if(p!==undefined) p.then(()=>playIcon.style.opacity='0').catch(e=>{}); };
+            card.onmouseleave = () => { vid.pause(); playIcon.style.opacity='1'; };
 
-        let rawName = s.split('/').pop().split('?')[0];
-        try { rawName = decodeURIComponent(rawName); } catch(e) {}
-        filenameSpan.innerText = rawName || `image_${idx+1}.jpg`;
-        infoContainer.append(filenameSpan, dimSpan);
+            infoContainer.innerHTML = `<span class="filename" title="${fname}">${fname}</span><span class="dimensions">Video...</span>`;
+            imgContainer.append(vid, playIcon);
+
+        } else if (mediaType === 'audio') {
+            typeBadge.innerText = 'AUDIO'; typeBadge.style.background = 'rgba(0, 123, 255, 0.7)';
+            let aud = document.createElement('audio');
+            aud.src = s; aud.preload = 'metadata';
+            
+            let musicIcon = document.createElement('div');
+            musicIcon.innerHTML = "🎵"; musicIcon.style.fontSize = "4rem"; musicIcon.style.transition = "0.3s";
+            
+            aud.onloadedmetadata = function() {
+                card.setAttribute('data-width', 0);
+                card.setAttribute('data-duration', this.duration);
+                infoContainer.innerHTML = `<span class="filename" title="${fname}">${fname}</span><span class="dimensions">${formatTime(this.duration)}</span>`;
+                applyVisualFilters();
+            };
+            aud.onerror = function() { card.style.display = 'none'; };
+
+            infoContainer.innerHTML = `<span class="filename" title="${fname}">${fname}</span><span class="dimensions">Audio...</span>`;
+            card.appendChild(aud);
+            imgContainer.appendChild(musicIcon);
+            card.onmouseenter = () => musicIcon.style.transform = 'scale(1.2)';
+            card.onmouseleave = () => musicIcon.style.transform = 'scale(1)';
+
+        } else {
+            typeBadge.innerText = 'IMG'; typeBadge.style.background = 'rgba(40, 167, 69, 0.7)';
+            let img = document.createElement('img');
+            img.src = s; img.loading = "lazy";
+            img.onerror = function() {
+                if(!this.retried) { this.retried = true; this.src = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(s); }
+                else { card.style.display = 'none'; }
+            };
+            img.onload = function() {
+                if(this.naturalWidth < 30) { this.onerror(); return; }
+                card.setAttribute('data-width', this.naturalWidth);
+                infoContainer.innerHTML = `<span class="filename" title="${fname}">${fname}</span><span class="dimensions">${this.naturalWidth}x${this.naturalHeight}</span>`;
+                applyVisualFilters();
+            };
+            
+            infoContainer.innerHTML = `<span class="filename" title="${fname}">${fname}</span><span class="dimensions">Image...</span>`;
+            imgContainer.appendChild(img);
+        }
 
         let actions = document.createElement('div');
-        actions.className = 'img-actions';
+        actions.className = 'media-actions';
         
         let btnDl = document.createElement('button');
-        btnDl.className = 'btn-icon btn-dl'; btnDl.title = 'ดาวน์โหลด';
-        btnDl.innerHTML = SVGs.dl;
+        btnDl.className = 'btn-icon btn-dl'; btnDl.title = 'ดาวน์โหลด'; btnDl.innerHTML = SVGs.dl;
         btnDl.onclick = async () => {
-            let b = await fetchImg(s);
+            let b = await fetchMedia(s);
             if(b) {
                 let u2 = URL.createObjectURL(b);
-                let a2 = document.createElement('a'); a2.href = u2; a2.download = 'KIRITO_' + Date.now() + '.jpg';
-                a2.click(); URL.revokeObjectURL(u2);
+                let a2 = document.createElement('a'); a2.href = u2; 
+                a2.download = `KIRITO_MEDIA_${Date.now()}.${s.split('.').pop().split('?')[0]}`;
+                a2.click(); 
+                setTimeout(()=>URL.revokeObjectURL(u2), 1000);
                 showTempIcon(btnDl, SVGs.check, SVGs.dl);
             } else window.open(s, '_blank');
         };
 
         let btnCopyLink = document.createElement('button');
-        btnCopyLink.className = 'btn-icon btn-copy-link'; btnCopyLink.title = 'คัดลอกลิงก์';
-        btnCopyLink.innerHTML = SVGs.link;
+        btnCopyLink.className = 'btn-icon btn-copy-link'; btnCopyLink.title = 'คัดลอกลิงก์'; btnCopyLink.innerHTML = SVGs.link;
         btnCopyLink.onclick = () => {
             navigator.clipboard.writeText(s).then(() => showTempIcon(btnCopyLink, SVGs.check, SVGs.link))
             .catch(()=>{
@@ -322,26 +572,28 @@
         };
 
         let btnCopyImg = document.createElement('button');
-        btnCopyImg.className = 'btn-icon btn-copy-img'; btnCopyImg.title = 'คัดลอกรูปภาพ';
-        btnCopyImg.innerHTML = SVGs.copy;
+        btnCopyImg.className = 'btn-icon btn-copy-img'; btnCopyImg.title = 'คัดลอกลงคลิปบอร์ด'; btnCopyImg.innerHTML = SVGs.copy;
         btnCopyImg.onclick = async () => {
+            if(mediaType !== 'image') return alert("คลิปวิดีโอและเสียงไม่สามารถก็อปปี้ลงคลิปบอร์ดได้ กรุณากดโหลดแทนครับ");
             try {
-                let b = await fetchImg(s);
+                if (!navigator.clipboard || !navigator.clipboard.write) throw new Error("Blocked");
+                let b = await fetchMedia(s);
                 if(b) {
                     await navigator.clipboard.write([new ClipboardItem({[b.type]: b})]);
                     showTempIcon(btnCopyImg, SVGs.check, SVGs.copy);
                 } else alert("โดนบล็อกการดึงข้อมูลรูปภาพ");
-            } catch(e) { alert("เบราว์เซอร์ไม่รองรับการคัดลอกรูปภาพโดยตรง"); }
+            } catch(e) { alert("เบราว์เซอร์ไม่รองรับการคัดลอกรูปนี้"); }
         };
 
         actions.append(btnDl, btnCopyLink, btnCopyImg);
-        card.append(checkbox, imgContainer, infoContainer, actions);
+        card.append(checkbox, typeBadge, imgContainer, infoContainer, actions);
         gallery.append(card);
     });
 
-    statusText.innerText = 'ระบบพร้อมใช้งาน 100%';
-    updateSelectionCount();
+    // โหลดครั้งแรกให้ประมวลผลตัวกรอง
+    setTimeout(applyVisualFilters, 300);
 
+    // --- UI Controls ---
     shadow.getElementById('btn-close').onclick = () => {
         wrapper.style.opacity = '0';
         wrapper.style.transition = 'opacity 0.3s';
@@ -351,81 +603,124 @@
     let allSelected = true;
     shadow.getElementById('btn-select-all').onclick = () => {
         allSelected = !allSelected;
-        shadow.querySelectorAll('.chk-select').forEach(chk => chk.checked = allSelected);
+        shadow.querySelectorAll('.media-card:not(.hidden-by-filter) .chk-select').forEach(chk => chk.checked = allSelected);
         updateSelectionCount();
     };
 
-    // === Lightbox ===
-    shadow.getElementById('lb-close').onclick = () => lightbox.classList.remove('active');
+    scrollContainer.onscroll = () => {
+        if(scrollContainer.scrollTop > 300) topBtn.style.display = 'flex';
+        else topBtn.style.display = 'none';
+    };
+    topBtn.onclick = () => scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // === Multi-Media Lightbox & Smart Touch 2.0 ===
+    let sc = 1, tx = 0, ty = 0, isDragging = false, startX, startY, initDist = 0, initScale = 1, startTouchX = 0, isSwiping = false;
+    const lbContentWrapper = shadow.getElementById('lb-content-wrapper');
+    const lbImg = shadow.getElementById('lb-img');
+    const lbVid = shadow.getElementById('lb-vid');
+    const lbAud = shadow.getElementById('lb-aud');
+    let activeLbElement = null;
+
+    shadow.getElementById('lb-close').onclick = () => {
+        lightbox.classList.remove('active');
+        lbVid.pause(); lbAud.pause();
+    };
     
+    const updateTransform = () => {
+        if(sc <= 1) { sc = 1; tx = 0; ty = 0; }
+        if(activeLbElement) {
+            if(activeLbElement === lbAud) activeLbElement.style.transform = `translate(0px, 0px) scale(1)`;
+            else activeLbElement.style.transform = `translate(${tx}px, ${ty}px) scale(${sc})`;
+        }
+    }
+
+    const openLightbox = (index) => {
+        let visibleCards = shadow.querySelectorAll('.media-card:not(.hidden-by-filter)');
+        if(visibleCards.length === 0) return;
+        
+        const targetUrl = visibleCards[index].querySelector('.chk-select').getAttribute('data-url');
+        currentLbIndex = imgArray.indexOf(targetUrl);
+        
+        const src = imgArray[currentLbIndex];
+        const type = getMediaType(src);
+
+        lbImg.style.display = 'none'; lbVid.style.display = 'none'; lbAud.style.display = 'none';
+        lbVid.pause(); lbVid.src = ''; lbAud.pause(); lbAud.src = '';
+        sc = 1; tx = 0; ty = 0; 
+
+        if (type === 'video') {
+            lbVid.src = src; lbVid.style.display = 'block'; lbVid.play().catch(e=>{}); activeLbElement = lbVid;
+        } else if (type === 'audio') {
+            lbAud.src = src; lbAud.style.display = 'block'; lbAud.play().catch(e=>{}); activeLbElement = lbAud;
+        } else {
+            lbImg.src = src; lbImg.style.display = 'block'; activeLbElement = lbImg;
+        }
+
+        updateTransform();
+        lightbox.classList.add('active');
+    };
+
     const navLb = (dir) => {
-        currentLbIndex += dir;
-        if(currentLbIndex < 0) currentLbIndex = imgArray.length - 1;
-        if(currentLbIndex >= imgArray.length) currentLbIndex = 0;
-        openLightbox(currentLbIndex);
+        let visibleCards = Array.from(shadow.querySelectorAll('.media-card:not(.hidden-by-filter)'));
+        if(visibleCards.length === 0) return;
+        const currentUrl = imgArray[currentLbIndex];
+        let visibleIndex = visibleCards.findIndex(card => card.querySelector('.chk-select').getAttribute('data-url') === currentUrl);
+        
+        if(visibleIndex === -1) visibleIndex = 0;
+        visibleIndex += dir;
+        if(visibleIndex < 0) visibleIndex = visibleCards.length - 1;
+        if(visibleIndex >= visibleCards.length) visibleIndex = 0;
+        
+        openLightbox(visibleIndex);
     };
     shadow.getElementById('lb-prev').onclick = () => navLb(-1);
     shadow.getElementById('lb-next').onclick = () => navLb(1);
 
-    // === Touch & Mouse ===
-    let isDragging = false, startX, startY, initDist = 0, initScale = 1;
-    let startTouchX = 0, isSwiping = false;
     const getDist = (touches) => Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
     
-    lbImg.addEventListener('wheel', (e) => {
-        e.preventDefault();
-        sc += e.deltaY * -0.002;
-        updateTransform();
+    lbContentWrapper.addEventListener('wheel', (e) => {
+        if(activeLbElement === lbAud) return;
+        e.preventDefault(); sc += e.deltaY * -0.002; updateTransform();
     }, {passive: false});
     
-    lbImg.addEventListener('mousedown', (e) => {
+    lbContentWrapper.addEventListener('mousedown', (e) => {
+        if(e.target === lbVid || e.target === lbAud) return;
         e.preventDefault();
         if(sc > 1) {
-            isDragging = true;
-            startX = e.clientX - tx;
-            startY = e.clientY - ty;
-            lbImg.classList.add('grabbing');
+            isDragging = true; startX = e.clientX - tx; startY = e.clientY - ty;
+            if(activeLbElement) activeLbElement.classList.add('grabbing');
         } else {
-            startTouchX = e.clientX;
-            isSwiping = true;
+            startTouchX = e.clientX; isSwiping = true;
         }
     });
     
     lightbox.addEventListener('mouseup', (e) => {
         isDragging = false;
-        lbImg.classList.remove('grabbing');
+        if(activeLbElement) activeLbElement.classList.remove('grabbing');
         if(sc === 1 && isSwiping) {
             let endX = e.clientX - startTouchX;
-            if(endX < -60) navLb(1);
-            else if(endX > 60) navLb(-1);
+            if(endX < -60) navLb(1); else if(endX > 60) navLb(-1);
             isSwiping = false;
         }
     });
     
     lightbox.addEventListener('mousemove', (e) => {
         if(!isDragging || sc <= 1) return;
-        e.preventDefault();
-        tx = e.clientX - startX;
-        ty = e.clientY - startY;
-        updateTransform();
+        e.preventDefault(); tx = e.clientX - startX; ty = e.clientY - startY; updateTransform();
     });
 
-    lbImg.addEventListener('touchstart', (e) => {
+    lbContentWrapper.addEventListener('touchstart', (e) => {
+        if(e.target === lbVid || e.target === lbAud) return;
         if(e.touches.length === 1) {
             if(sc > 1) {
-                isDragging = true;
-                isSwiping = false;
-                startX = e.touches[0].clientX - tx;
-                startY = e.touches[0].clientY - ty;
+                isDragging = true; isSwiping = false;
+                startX = e.touches[0].clientX - tx; startY = e.touches[0].clientY - ty;
             } else {
-                startTouchX = e.touches[0].clientX;
-                isSwiping = true;
-                isDragging = false;
+                startTouchX = e.touches[0].clientX; isSwiping = true; isDragging = false;
             }
-        } else if (e.touches.length === 2) {
+        } else if (e.touches.length === 2 && activeLbElement !== lbAud) {
             isDragging = false; isSwiping = false;
-            initDist = getDist(e.touches);
-            initScale = sc;
+            initDist = getDist(e.touches); initScale = sc;
         }
     }, {passive: false});
     
@@ -434,37 +729,28 @@
         if(e.touches.length === 0) {
             if (sc === 1 && isSwiping) {
                 let diffX = e.changedTouches[0].clientX - startTouchX;
-                if(diffX < -50) navLb(1);
-                else if(diffX > 50) navLb(-1);
+                if(diffX < -50) navLb(1); else if(diffX > 50) navLb(-1);
             }
-            isDragging = false;
-            isSwiping = false;
+            isDragging = false; isSwiping = false;
         }
     });
     
     lightbox.addEventListener('touchmove', (e) => {
         if(e.touches.length === 2 && initDist) {
             e.preventDefault(); 
-            let currDist = getDist(e.touches);
-            sc = initScale * (currDist / initDist);
-            updateTransform();
+            sc = initScale * (getDist(e.touches) / initDist); updateTransform();
         } else if (e.touches.length === 1) {
             if (sc > 1 && isDragging) {
-                e.preventDefault();
-                tx = e.touches[0].clientX - startX;
-                ty = e.touches[0].clientY - startY;
-                updateTransform();
-            } else if (sc === 1 && isSwiping) {
-                e.preventDefault(); 
+                e.preventDefault(); tx = e.touches[0].clientX - startX; ty = e.touches[0].clientY - startY; updateTransform();
             }
         }
     }, {passive: false});
 
-    // === ZIP ===
+    // === ZIPเฉพาะไฟล์ที่กรองผ่าน (Memory Safe) ===
     shadow.getElementById('btn-zip').onclick = function() {
         let btn = this;
-        let selectedCheckboxes = shadow.querySelectorAll('.chk-select:checked');
-        if(selectedCheckboxes.length === 0) return alert('กรุณาเลือกรูปภาพอย่างน้อย 1 รูป');
+        let selectedCheckboxes = shadow.querySelectorAll('.media-card:not(.hidden-by-filter) .chk-select:checked');
+        if(selectedCheckboxes.length === 0) return alert('กรุณาเลือกไฟล์บนหน้าจออย่างน้อย 1 ไฟล์');
 
         btn.disabled = true;
         let origBtnText = btn.innerHTML;
@@ -472,20 +758,19 @@
         statusText.style.color = '#fff';
 
         const doZip = async () => {
-            statusText.innerText = 'กำลังโหลดข้อมูลรูปภาพ...';
             let zip = new JSZip();
             let total = selectedCheckboxes.length;
             let successCount = 0;
 
             for(let i=0; i<total; i++) {
                 let s = selectedCheckboxes[i].getAttribute('data-url');
-                let b = await fetchImg(s);
+                let b = await fetchMedia(s);
                 if(b) {
                     let fname = s.split('/').pop().split('?')[0];
                     try { fname = decodeURIComponent(fname); } catch(e) {}
                     let ext = fname.split('.').pop().toLowerCase();
-                    if(ext.length > 4 || ext === fname.toLowerCase() || !ext) ext = 'jpg';
-                    let base = fname.substring(0, fname.lastIndexOf('.')) || 'KIRITO_IMAGE';
+                    if(!['jpg','jpeg','png','gif','webp','svg','mp4','webm','ogg','mov','m4v','mp3','wav','m4a'].includes(ext)) ext = 'file';
+                    let base = fname.substring(0, fname.lastIndexOf('.')) || 'KIRITO_MEDIA';
                     let padIdx = String(i+1).padStart(3, '0');
                     zip.file(`${base}_${padIdx}.${ext}`, b);
                     successCount++;
@@ -494,45 +779,35 @@
             }
 
             if(successCount === 0) {
-                statusText.innerText = 'ล้มเหลว: โดนบล็อกการดึงรูป';
+                statusText.innerText = 'ล้มเหลว: โดนบล็อกการดึงไฟล์';
                 statusText.style.color = '#ff3333';
-                btn.disabled = false;
-                btn.innerHTML = origBtnText;
+                btn.disabled = false; btn.innerHTML = origBtnText;
                 return;
             }
 
-            statusText.innerText = 'กำลังสร้างไฟล์ ZIP กรุณารอ...';
+            statusText.innerText = 'กำลังสร้างไฟล์ ZIP ขั้นสุดท้าย (อาจใช้เวลาถ้าวิดีโอใหญ่)...';
             try {
                 let content = await zip.generateAsync({type: 'blob'});
                 let u2 = URL.createObjectURL(content);
-                let a2 = document.createElement('a');
-                a2.href = u2;
-                a2.download = 'KIRITO_PACK_' + Date.now() + '.zip';
-                a2.click();
-                URL.revokeObjectURL(u2);
-                statusText.innerText = `โหลด ZIP สำเร็จ (${successCount} รูป)`;
+                let a2 = document.createElement('a'); a2.href = u2; a2.download = 'KIRITO_PACK_' + Date.now() + '.zip';
+                a2.click(); 
+                setTimeout(()=>URL.revokeObjectURL(u2), 2000); // คืนแรม
+                statusText.innerText = `โหลด ZIP สำเร็จ (${successCount} ไฟล์)`;
                 statusText.style.color = '#28a745';
                 btn.innerHTML = `${SVGs.check} สำเร็จ!`;
             } catch(e) {
-                statusText.innerText = 'เกิดข้อผิดพลาดในการสร้าง ZIP';
+                statusText.innerText = 'ZIP Error: แรมอาจเต็ม แนะนำให้โหลดแยก';
                 statusText.style.color = '#ff3333';
                 btn.disabled = false;
             }
-            
-            setTimeout(() => {
-                btn.disabled = false;
-                btn.innerHTML = origBtnText;
-            }, 3000);
+            setTimeout(() => { btn.disabled = false; btn.innerHTML = origBtnText; }, 3000);
         };
 
         if(typeof JSZip === 'undefined') {
             statusText.innerText = 'กำลังโหลด JSZip...';
             let script = document.createElement('script');
             script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
-            script.onload = doZip;
-            document.head.appendChild(script);
-        } else {
-            doZip();
-        }
+            script.onload = doZip; document.head.appendChild(script);
+        } else doZip();
     };
 })();
