@@ -1,5 +1,5 @@
 // ==========================================
-// KIRITO PULL SYSTEM - ULTIMATE MEDIA EDITION v6 (Deep Media Finder)
+// KIRITO PULL SYSTEM - ULTIMATE MEDIA EDITION v7 (Google/Social Deep Scan)
 // ==========================================
 (function() {
     if(document.getElementById('krt-sys-wrapper')) {
@@ -23,50 +23,60 @@
 
     const uMap = new Map();
     
-    // ทายประเภทไฟล์จากนามสกุล (เผื่อกรณีดึงจาก string ตรงๆ)
+    // อัปเกรดระบบเดาประเภทไฟล์ ให้รู้จัก Social Media Links
     const guessType = (u) => {
         const ext = u.split('.').pop().split('?')[0].toLowerCase();
         if (['mp4', 'webm', 'ogg', 'mov', 'm4v'].includes(ext)) return 'video';
         if (['mp3', 'wav', 'm4a', 'aac', 'flac'].includes(ext)) return 'audio';
         if (['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'tiff', 'heic', 'ico', 'bmp'].includes(ext)) return 'image';
+        
+        // ตรวจจับลิงก์โซเชียลมีเดีย
+        if (u.match(/(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)/i)) return 'youtube';
+        if (u.match(/(facebook\.com\/.*\/videos\/|tiktok\.com\/|instagram\.com\/reel\/|instagram\.com\/p\/)/i)) return 'social_video';
+        if (u.startsWith('data:image/')) return 'image';
         return null; 
     };
 
-    // --- ระบบดึง Media ขั้นสูง (ไม่สนนามสกุล ถ้าบังคับ Type มา) ---
-    const addMedia = function(s, forceType = null) {
-        if(!s || typeof s !== 'string' || s.startsWith('data:')) return;
+    // อัปเกรดฟังก์ชันดึงสื่อ รองรับ Base64 และ Social Links
+    const addMedia = function(s, forceType = null, altThumb = null, altTitle = null) {
+        if(!s || typeof s !== 'string') return;
         
-        s = s.trim().replace(/\\u002F/g, '/').replace(/\\/g, '');
-        if(s.startsWith('//')) s = 'https:' + s;
-        else if(s.startsWith('/')) s = location.origin + s;
-        else if(!s.startsWith('http') && !s.startsWith('blob:')) s = new URL(s, location.href).href;
+        const isDataUrl = s.startsWith('data:image/');
+        if(s.startsWith('data:') && !isDataUrl) return; // บล็อก data ประเภทอื่นที่ไม่ใช่รูปภาพ
         
-        try {
-            let u = new URL(decodeURIComponent(s), 'http://d').searchParams.get('url');
-            if(u) s = u;
-        } catch(e) {}
+        if(!isDataUrl) {
+            s = s.trim().replace(/\\u002F/g, '/').replace(/\\/g, '');
+            if(s.startsWith('//')) s = 'https:' + s;
+            else if(s.startsWith('/')) s = location.origin + s;
+            else if(!s.startsWith('http') && !s.startsWith('blob:')) s = new URL(s, location.href).href;
+            
+            try {
+                let u = new URL(decodeURIComponent(s), 'http://d').searchParams.get('url');
+                if(u) s = u;
+            } catch(e) {}
+        }
         
         let uL = s.toLowerCase().split('?')[0];
         if(uL.match(/\.(js|css|html|php|json|xml|txt)$/i)) return;
         
-        // ถ้าเป็นไฟล์ที่ไม่รู้นามสกุล (เช่น Blob หรือ API) ระบบจะยึดตามที่ส่งมา (forceType)
         let type = forceType || guessType(uL);
-        if(!type) return; // ถ้าไม่ใช่นามสกุลสื่อมีเดีย และไม่ได้บังคับมา ให้ข้ามไป
+        if(!type) return; 
         
-        let k = cleanK(s);
+        let k = isDataUrl ? (s.substring(0, 60) + s.length) : cleanK(s); // ป้องกันบัค key ยาวเกินไป
         let ex = uMap.get(k);
-        if(!ex || getSc(s) > getSc(ex.url)) {
-            uMap.set(k, { url: s, type: type });
-        } else if(getSc(s) === getSc(ex.url) && !s.includes('?') && ex.url.includes('?')) {
-            uMap.set(k, { url: s, type: type });
+        
+        if(!ex || (!isDataUrl && getSc(s) > getSc(ex.url))) {
+            uMap.set(k, { url: s, type: type, thumb: altThumb, title: altTitle });
+        } else if(!isDataUrl && getSc(s) === getSc(ex.url) && !s.includes('?') && ex.url.includes('?')) {
+            uMap.set(k, { url: s, type: type, thumb: altThumb, title: altTitle });
         }
     };
 
-    // 1. ดึงจากแท็กมาตรฐานแบบเจาะจงประเภท (แก้ปัญหาหา Video ไม่เจอ)
-    Array.from(document.images).forEach(e => addMedia(e.src, 'image'));
+    // 1. ดึงจากแท็กมาตรฐาน
+    Array.from(document.images).forEach(e => addMedia(e.src, 'image', null, e.alt));
     Array.from(document.querySelectorAll('video')).forEach(e => {
-        addMedia(e.src, 'video'); // ดึงตัวคลิปหลัก (แม้จะเป็น blob)
-        if(e.poster) addMedia(e.poster, 'image'); // ดึงหน้าปกคลิป
+        addMedia(e.src, 'video'); 
+        if(e.poster) addMedia(e.poster, 'image'); 
         Array.from(e.querySelectorAll('source')).forEach(src => addMedia(src.src, 'video'));
     });
     Array.from(document.querySelectorAll('audio')).forEach(e => {
@@ -74,34 +84,51 @@
         Array.from(e.querySelectorAll('source')).forEach(src => addMedia(src.src, 'audio'));
     });
     
-    // 2. ดึงจาก Attributes ทุกรูปแบบ (คาดเดาประเภทจากนามสกุล)
+    // 2. ดึงจากแท็ก <a> (ใช้หารูป/คลิปที่ Google Search ซ่อนไว้)
+    Array.from(document.querySelectorAll('a')).forEach(a => {
+        let href = a.href;
+        if (!href) return;
+        let type = guessType(href.toLowerCase());
+        if (type === 'youtube' || type === 'social_video') {
+            let img = a.querySelector('img');
+            let thumb = img ? img.src : null;
+            let title = a.innerText.trim().split('\n')[0] || null;
+            addMedia(href, type, thumb, title);
+        }
+    });
+
+    // 3. ดึงจาก Attributes ทุกรูปแบบ
     Array.from(document.querySelectorAll('*')).forEach(e => {
-        ['data-src', 'data-original', 'data-lazy-src', 'data-srcset', 'src', 'href', 'srcset', 'content'].forEach(attr => {
+        ['data-src', 'data-original', 'data-lazy-src', 'data-srcset', 'src', 'href', 'srcset', 'content', 'poster'].forEach(attr => {
             let ds = e.getAttribute(attr);
             if(ds) {
-                if(ds.includes(',')) ds.split(',').forEach(p => addMedia(p.trim().split(/\s+/)[0]));
-                else addMedia(ds);
+                if(ds.includes(',') && !ds.startsWith('data:')) {
+                    ds.split(',').forEach(p => addMedia(p.trim().split(/\s+/)[0]));
+                } else addMedia(ds);
             }
         });
         let bg = window.getComputedStyle(e).backgroundImage;
         let m = bg.match(/url\(['"]?(.*?)['"]?\)/);
-        if(m) addMedia(m[1], 'image'); // พื้นหลังต้องเป็นรูปภาพเท่านั้น
+        if(m) addMedia(m[1], 'image'); 
     });
     
-    // 3. ทะลวง Source Code / JSON (ครอบคลุมสื่อทุกชนิด)
+    // 4. ทะลวง Source Code / JSON
     const htmlCode = document.documentElement.innerHTML;
+    // Regex สำหรับลิงก์ปกติ
     const urlRegex = /(?:https?:|\\\/\\\/|\/\/)[^\s"'<>;&\\]+\.(?:jpg|jpeg|png|gif|webp|svg|ico|mp4|webm|ogg|mov|m4v|mp3|wav|m4a)(?:\?[^\s"'<>\\]*)?/gi;
     let match;
-    while ((match = urlRegex.exec(htmlCode)) !== null) {
-        addMedia(match[0]);
-    }
+    while ((match = urlRegex.exec(htmlCode)) !== null) { addMedia(match[0]); }
+    // Regex สำหรับ Base64 Images (เจาะ Google Search Thumbnail)
+    const b64Regex = /data:image\/(jpeg|png|gif|webp);base64,[a-zA-Z0-9+/=]+/gi;
+    let b64Match;
+    while ((b64Match = b64Regex.exec(htmlCode)) !== null) { addMedia(b64Match[0], 'image'); }
 
     if(uMap.size === 0) {
-        alert('ไม่พบไฟล์มีเดียใดๆ (หากเป็นคลิปที่เข้ารหัสป้องกันสูง อาจจะไม่สามารถดูดได้ครับ)');
+        alert('ไม่พบไฟล์มีเดียใดๆ (KIRITO SYSTEM)');
         return;
     }
 
-    const mediaArray = Array.from(uMap.values()); // เป็น Array ของ Object: {url: '...', type: 'video'}
+    const mediaArray = Array.from(uMap.values()); 
     let currentLbIndex = 0;
 
     const wrapper = document.createElement('div');
@@ -133,7 +160,7 @@
             svg { display: block; }
             .icon-spin { animation: krtSpin 1s linear infinite; }
             
-            .container { position: absolute; top:0; left:0; width: 100%; height: 100%; background: rgba(10, 10, 10, 0.65); overflow-y: auto; padding: 25px; color: #fff; pointer-events: auto; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); animation: krtFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+            .container { position: absolute; top:0; left:0; width: 100%; height: 100%; background: rgba(10, 10, 10, 0.75); overflow-y: auto; padding: 25px; color: #fff; pointer-events: auto; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); animation: krtFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
             .container::-webkit-scrollbar { width: 8px; }
             .container::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.1); }
             .container::-webkit-scrollbar-thumb { background: rgba(255, 0, 51, 0.6); border-radius: 10px; }
@@ -233,7 +260,7 @@
                 <div class="filter-group" id="mainTypeFilters">
                     <button class="filter-btn active" data-type="all">📦 ทั้งหมด (All)</button>
                     <button class="filter-btn" data-type="image">🖼️ รูปภาพ (Image)</button>
-                    <button class="filter-btn" data-type="video">🎥 วิดีโอ (Video)</button>
+                    <button class="filter-btn" data-type="video">🎥 วิดีโอ/โซเชียล (Video)</button>
                     <button class="filter-btn" data-type="audio">🎵 เสียง (Audio)</button>
                 </div>
 
@@ -249,6 +276,8 @@
                     </div>
                     <div class="sub-group" id="subType_video">
                         <button class="filter-btn active" data-subtype="all">วิดีโอทั้งหมด</button>
+                        <button class="filter-btn" data-subtype="youtube">YouTube</button>
+                        <button class="filter-btn" data-subtype="social_video">Social อื่นๆ</button>
                         <button class="filter-btn" data-subtype="mp4">MP4</button>
                         <button class="filter-btn" data-subtype="webm">WebM</button>
                         <button class="filter-btn" data-subtype="other_vid">อื่นๆ (MOV, OGG...)</button>
@@ -261,7 +290,7 @@
                     </div>
                 </div>
 
-                <div class="filter-label">📏 ขนาดไฟล์ (Size) *เฉพาะรูป/คลิป:</div>
+                <div class="filter-label">📏 ขนาดไฟล์ (Size) *เฉพาะรูป/คลิปปกติ:</div>
                 <div class="filter-group" id="sizeFilters">
                     <button class="filter-btn active" data-size="all">ทั้งหมด</button>
                     <button class="filter-btn" data-size="small">เล็ก (&lt;500px)</button>
@@ -295,6 +324,7 @@
                 <img id="lb-img" class="lb-media" style="display:none;" src="">
                 <video id="lb-vid" class="lb-media" style="display:none; max-width:90%; max-height:85%;" controls></video>
                 <audio id="lb-aud" class="lb-media" style="display:none; width:80%;" controls></audio>
+                <iframe id="lb-iframe" class="lb-media" style="display:none; width:90%; height:85%; border:none; border-radius:12px; background:#000;" allowfullscreen allow="autoplay"></iframe>
             </div>
             <div id="lb-next" class="lb-nav lb-next">&#10095;</div>
             <div class="lb-hint">
@@ -334,6 +364,18 @@
         return null;
     };
 
+    const b64toBlob = (b64Data) => {
+        try {
+            let parts = b64Data.split(',');
+            let contentType = parts[0].match(/:(.*?);/)[1];
+            let raw = atob(parts[1]);
+            let rawL = raw.length;
+            let uInt8Array = new Uint8Array(rawL);
+            for (let i = 0; i < rawL; ++i) uInt8Array[i] = raw.charCodeAt(i);
+            return new Blob([uInt8Array], { type: contentType });
+        } catch(e) { return null; }
+    };
+
     const formatTime = (seconds) => {
         if(!seconds || isNaN(seconds)) return '0:00';
         const m = Math.floor(seconds / 60);
@@ -341,10 +383,15 @@
         return `${m}:${s.toString().padStart(2, '0')}`;
     };
 
-    const cleanFilename = (url) => {
+    const cleanFilename = (url, title = null) => {
+        if (title) {
+            if (title.length > 25) return title.substring(0, 25) + '...';
+            return title;
+        }
         let raw = url.split('/').pop().split(/[#?]/)[0];
         try{ raw = decodeURIComponent(raw); }catch(e){}
         if(raw.length > 20) raw = raw.substring(0, 10) + '...' + raw.substring(raw.length - 7);
+        if(raw.startsWith('data:')) return 'Base64 Image';
         return raw || 'media_file';
     };
 
@@ -363,19 +410,26 @@
             const ext = url.split('.').pop().split('?')[0];
             
             let show = true;
+            let isVidCategory = ['video', 'youtube', 'social_video'].includes(mediaType);
 
-            if (currentMainType !== 'all' && mediaType !== currentMainType) show = false;
+            if (currentMainType !== 'all') {
+                if (currentMainType === 'video' && !isVidCategory) show = false;
+                else if (currentMainType === 'image' && mediaType !== 'image') show = false;
+                else if (currentMainType === 'audio' && mediaType !== 'audio') show = false;
+            }
 
             if (show && currentSubType !== 'all') {
-                if (currentSubType === 'jpg' && !['jpg', 'jpeg'].includes(ext)) show = false;
+                if (currentSubType === 'youtube' && mediaType !== 'youtube') show = false;
+                else if (currentSubType === 'social_video' && mediaType !== 'social_video') show = false;
+                else if (currentSubType === 'jpg' && !['jpg', 'jpeg'].includes(ext)) show = false;
                 else if (['png', 'gif', 'webp', 'svg', 'mp4', 'webm', 'mp3', 'wav'].includes(currentSubType) && ext !== currentSubType) show = false;
                 else if (currentSubType === 'other_img' && ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) show = false;
-                else if (currentSubType === 'other_vid' && ['mp4', 'webm'].includes(ext)) show = false;
+                else if (currentSubType === 'other_vid' && ['mp4', 'webm', 'youtube', 'social_video'].includes(mediaType)) show = false;
                 else if (currentSubType === 'other_aud' && ['mp3', 'wav'].includes(ext)) show = false;
             }
 
             if (show && currentSizeFilter !== 'all') {
-                if (mediaType === 'audio') show = false; 
+                if (mediaType === 'audio' || mediaType === 'youtube' || mediaType === 'social_video') show = false; 
                 else {
                     if (currentSizeFilter === 'small' && width >= 500) show = false;
                     if (currentSizeFilter === 'medium' && (width < 500 || width > 1200)) show = false;
@@ -462,6 +516,7 @@
     mediaArray.forEach((item, idx) => {
         const s = item.url;
         const mediaType = item.type;
+        const isDataUrl = s.startsWith('data:image/');
         
         let card = document.createElement('div');
         card.className = 'media-card';
@@ -484,9 +539,30 @@
         
         let infoContainer = document.createElement('div');
         infoContainer.className = 'media-info';
-        let fname = cleanFilename(s);
+        let fname = cleanFilename(s, item.title);
 
-        if (mediaType === 'video') {
+        if (mediaType === 'youtube' || mediaType === 'social_video') {
+            typeBadge.innerText = mediaType === 'youtube' ? 'YOUTUBE' : 'SOCIAL';
+            typeBadge.style.background = '#ff0000';
+            
+            let thumbUrl = item.thumb;
+            if(mediaType === 'youtube') {
+                let vidId = s.match(/[?&]v=([^&]+)/) || s.match(/youtu\.be\/([^?]+)/) || s.match(/shorts\/([^?]+)/);
+                if(vidId && vidId[1]) thumbUrl = `https://img.youtube.com/vi/${vidId[1]}/hqdefault.jpg`;
+            }
+            
+            let img = document.createElement('img');
+            img.src = thumbUrl || 'https://via.placeholder.com/300x160/1a1a1a/ff3333?text=Video+Link';
+            img.style.opacity = '0.8';
+            
+            let playIcon = document.createElement('div');
+            playIcon.className = "play-overlay";
+            playIcon.innerHTML = "▶️";
+
+            infoContainer.innerHTML = `<span class="filename" title="${fname}">${fname}</span><span class="dimensions">Link</span>`;
+            imgContainer.append(img, playIcon);
+
+        } else if (mediaType === 'video') {
             typeBadge.innerText = 'VIDEO';
             let vid = document.createElement('video');
             vid.src = s; vid.preload = 'metadata'; vid.muted = true;
@@ -501,10 +577,7 @@
                 infoContainer.innerHTML = `<span class="filename" title="${fname}">${fname}</span><span class="dimensions">${this.videoWidth}x${this.videoHeight} | ${formatTime(this.duration)}</span>`;
                 applyVisualFilters();
             };
-            vid.onerror = function() { 
-                // หากดึงวิดีโอ (เช่น blob จาก YouTube) ไม่ขึ้น ให้แสดงข้อความแทนพัง
-                infoContainer.innerHTML = `<span class="filename" title="${fname}">${fname}</span><span class="dimensions" style="color:#ff3333">Stream Protected</span>`; 
-            };
+            vid.onerror = function() { infoContainer.innerHTML = `<span class="filename" title="${fname}">${fname}</span><span class="dimensions" style="color:#ff3333">Stream Protected</span>`; };
             
             card.onmouseenter = () => { let p = vid.play(); if(p!==undefined) p.then(()=>playIcon.style.opacity='0').catch(e=>{}); };
             card.onmouseleave = () => { vid.pause(); playIcon.style.opacity='1'; };
@@ -535,15 +608,16 @@
             card.onmouseleave = () => musicIcon.style.transform = 'scale(1)';
 
         } else {
-            typeBadge.innerText = 'IMG'; typeBadge.style.background = 'rgba(40, 167, 69, 0.7)';
+            typeBadge.innerText = isDataUrl ? 'B64 IMG' : 'IMG'; 
+            typeBadge.style.background = 'rgba(40, 167, 69, 0.7)';
             let img = document.createElement('img');
             img.src = s; img.loading = "lazy";
             img.onerror = function() {
-                if(!this.retried) { this.retried = true; this.src = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(s); }
+                if(!isDataUrl && !this.retried) { this.retried = true; this.src = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(s); }
                 else { card.style.display = 'none'; }
             };
             img.onload = function() {
-                if(this.naturalWidth < 30) { this.onerror(); return; }
+                if(this.naturalWidth < 30 && !isDataUrl) { this.onerror(); return; }
                 card.setAttribute('data-width', this.naturalWidth);
                 infoContainer.innerHTML = `<span class="filename" title="${fname}">${fname}</span><span class="dimensions">${this.naturalWidth}x${this.naturalHeight}</span>`;
                 applyVisualFilters();
@@ -559,13 +633,22 @@
         let btnDl = document.createElement('button');
         btnDl.className = 'btn-icon btn-dl'; btnDl.title = 'ดาวน์โหลด'; btnDl.innerHTML = SVGs.dl;
         btnDl.onclick = async () => {
-            if (s.startsWith('blob:')) return window.open(s, '_blank'); // ไฟล์สตรีมมิ่งมักจะโหลดตรงไม่ได้
-            let b = await fetchMedia(s);
+            if (s.startsWith('blob:') || mediaType === 'youtube' || mediaType === 'social_video') return window.open(s, '_blank'); 
+            
+            let b = null;
+            if (isDataUrl) b = b64toBlob(s);
+            else b = await fetchMedia(s);
+
             if(b) {
                 let u2 = URL.createObjectURL(b);
                 let a2 = document.createElement('a'); a2.href = u2; 
-                let e = s.split('.').pop().split('?')[0].toLowerCase();
-                if(e.length > 4) e = mediaType === 'video' ? 'mp4' : (mediaType === 'audio' ? 'mp3' : 'jpg');
+                let e = 'jpg';
+                if (!isDataUrl) {
+                    e = s.split('.').pop().split('?')[0].toLowerCase();
+                    if(e.length > 4) e = mediaType === 'video' ? 'mp4' : (mediaType === 'audio' ? 'mp3' : 'jpg');
+                } else {
+                    e = s.substring(11, s.indexOf(';')).replace('jpeg', 'jpg');
+                }
                 a2.download = `KIRITO_MEDIA_${Date.now()}.${e}`;
                 a2.click(); 
                 setTimeout(()=>URL.revokeObjectURL(u2), 1000);
@@ -576,24 +659,25 @@
         let btnCopyLink = document.createElement('button');
         btnCopyLink.className = 'btn-icon btn-copy-link'; btnCopyLink.title = 'คัดลอกลิงก์'; btnCopyLink.innerHTML = SVGs.link;
         btnCopyLink.onclick = () => {
-            navigator.clipboard.writeText(s).then(() => showTempIcon(btnCopyLink, SVGs.check, SVGs.link))
+            let copyTextData = isDataUrl ? "ภาพแบบ Base64 (ไม่สามารถก๊อปเป็นลิงก์ได้)" : s;
+            navigator.clipboard.writeText(copyTextData).then(() => showTempIcon(btnCopyLink, SVGs.check, SVGs.link))
             .catch(()=>{
-                let t = document.createElement('textarea'); t.value = s; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t);
+                let t = document.createElement('textarea'); t.value = copyTextData; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t);
                 showTempIcon(btnCopyLink, SVGs.check, SVGs.link);
             });
         };
 
         let btnCopyImg = document.createElement('button');
-        btnCopyImg.className = 'btn-icon btn-copy-img'; btnCopyImg.title = 'คัดลอกลงคลิปบอร์ด'; btnCopyImg.innerHTML = SVGs.copy;
+        btnCopyImg.className = 'btn-icon btn-copy-img'; btnCopyImg.title = 'คัดลอกรูปลงคลิปบอร์ด'; btnCopyImg.innerHTML = SVGs.copy;
         btnCopyImg.onclick = async () => {
-            if(mediaType !== 'image') return alert("คลิปวิดีโอและเสียงไม่สามารถก็อปปี้ลงคลิปบอร์ดได้ กรุณากดโหลดแทนครับ");
+            if(mediaType !== 'image') return alert("คลิปวิดีโอและเสียงไม่สามารถก๊อปปี้ลงคลิปบอร์ดได้ กรุณากดโหลดแทนครับ");
             try {
                 if (!navigator.clipboard || !navigator.clipboard.write) throw new Error("Blocked");
-                let b = await fetchMedia(s);
+                let b = isDataUrl ? b64toBlob(s) : await fetchMedia(s);
                 if(b) {
                     await navigator.clipboard.write([new ClipboardItem({[b.type]: b})]);
                     showTempIcon(btnCopyImg, SVGs.check, SVGs.copy);
-                } else alert("โดนบล็อกการดึงข้อมูล");
+                } else alert("โดนบล็อกการดึงข้อมูลรูปภาพ");
             } catch(e) { alert("เบราว์เซอร์ไม่รองรับการคัดลอกรูปนี้"); }
         };
 
@@ -623,23 +707,25 @@
     };
     topBtn.onclick = () => scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
 
-    // === Lightbox ===
+    // === Lightbox (รองรับ iFrame YouTube) ===
     let sc = 1, tx = 0, ty = 0, isDragging = false, startX, startY, initDist = 0, initScale = 1, startTouchX = 0, isSwiping = false;
     const lbContentWrapper = shadow.getElementById('lb-content-wrapper');
     const lbImg = shadow.getElementById('lb-img');
     const lbVid = shadow.getElementById('lb-vid');
     const lbAud = shadow.getElementById('lb-aud');
+    const lbIframe = shadow.getElementById('lb-iframe');
     let activeLbElement = null;
 
     shadow.getElementById('lb-close').onclick = () => {
         lightbox.classList.remove('active');
         lbVid.pause(); lbAud.pause();
+        lbIframe.src = ''; // ปิดเสียง iframe
     };
     
     const updateTransform = () => {
         if(sc <= 1) { sc = 1; tx = 0; ty = 0; }
         if(activeLbElement) {
-            if(activeLbElement === lbAud) activeLbElement.style.transform = `translate(0px, 0px) scale(1)`;
+            if(activeLbElement === lbAud || activeLbElement === lbIframe) activeLbElement.style.transform = `translate(0px, 0px) scale(1)`;
             else activeLbElement.style.transform = `translate(${tx}px, ${ty}px) scale(${sc})`;
         }
     }
@@ -651,19 +737,36 @@
         const targetUrl = visibleCards[index].querySelector('.chk-select').getAttribute('data-url');
         currentLbIndex = mediaArray.findIndex(m => m.url === targetUrl);
         
-        const src = mediaArray[currentLbIndex].url;
-        const type = mediaArray[currentLbIndex].type;
+        const item = mediaArray[currentLbIndex];
+        const src = item.url;
+        const type = item.type;
 
-        lbImg.style.display = 'none'; lbVid.style.display = 'none'; lbAud.style.display = 'none';
-        lbVid.pause(); lbVid.src = ''; lbAud.pause(); lbAud.src = '';
+        lbImg.style.display = 'none'; lbVid.style.display = 'none'; lbAud.style.display = 'none'; lbIframe.style.display = 'none';
+        lbVid.pause(); lbVid.src = ''; lbAud.pause(); lbAud.src = ''; lbIframe.src = '';
         sc = 1; tx = 0; ty = 0; 
 
-        if (type === 'video') {
+        if (type === 'youtube') {
+            let vidId = src.match(/[?&]v=([^&]+)/) || src.match(/youtu\.be\/([^?]+)/) || src.match(/shorts\/([^?]+)/);
+            if(vidId && vidId[1]) {
+                lbIframe.src = `https://www.youtube.com/embed/${vidId[1]}?autoplay=1`;
+                lbIframe.style.display = 'block'; 
+                activeLbElement = lbIframe;
+            } else {
+                window.open(src, '_blank'); return; // ถ้าหา ID ไม่เจอเด้งออกไปแท็บใหม่
+            }
+        } else if (type === 'social_video') {
+            // เล่นตรงๆ ไม่ได้ ให้แสดงรูปปกและปุ่มเปิด
+            lbImg.src = item.thumb || 'https://via.placeholder.com/600x400/1a1a1a/ff3333?text=Click+to+Open+Social+Video'; 
+            lbImg.style.display = 'block'; 
+            activeLbElement = lbImg;
+            lbImg.onclick = () => window.open(src, '_blank');
+        } else if (type === 'video') {
             lbVid.src = src; lbVid.style.display = 'block'; lbVid.play().catch(e=>{}); activeLbElement = lbVid;
         } else if (type === 'audio') {
             lbAud.src = src; lbAud.style.display = 'block'; lbAud.play().catch(e=>{}); activeLbElement = lbAud;
         } else {
             lbImg.src = src; lbImg.style.display = 'block'; activeLbElement = lbImg;
+            lbImg.onclick = null; // reset onclick
         }
 
         updateTransform();
@@ -689,12 +792,12 @@
     const getDist = (touches) => Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
     
     lbContentWrapper.addEventListener('wheel', (e) => {
-        if(activeLbElement === lbAud) return;
+        if(activeLbElement === lbAud || activeLbElement === lbIframe) return;
         e.preventDefault(); sc += e.deltaY * -0.002; updateTransform();
     }, {passive: false});
     
     lbContentWrapper.addEventListener('mousedown', (e) => {
-        if(e.target === lbVid || e.target === lbAud) return;
+        if(e.target === lbVid || e.target === lbAud || e.target === lbIframe) return;
         e.preventDefault();
         if(sc > 1) {
             isDragging = true; startX = e.clientX - tx; startY = e.clientY - ty;
@@ -720,7 +823,7 @@
     });
 
     lbContentWrapper.addEventListener('touchstart', (e) => {
-        if(e.target === lbVid || e.target === lbAud) return;
+        if(e.target === lbVid || e.target === lbAud || e.target === lbIframe) return;
         if(e.touches.length === 1) {
             if(sc > 1) {
                 isDragging = true; isSwiping = false;
@@ -728,7 +831,7 @@
             } else {
                 startTouchX = e.touches[0].clientX; isSwiping = true; isDragging = false;
             }
-        } else if (e.touches.length === 2 && activeLbElement !== lbAud) {
+        } else if (e.touches.length === 2 && activeLbElement !== lbAud && activeLbElement !== lbIframe) {
             isDragging = false; isSwiping = false;
             initDist = getDist(e.touches); initScale = sc;
         }
@@ -756,7 +859,7 @@
         }
     }, {passive: false});
 
-    // === ZIP ===
+    // === ZIP (ดึงภาพปกสำหรับวิดีโอโซเชียลแทน) ===
     shadow.getElementById('btn-zip').onclick = function() {
         let btn = this;
         let selectedCheckboxes = shadow.querySelectorAll('.media-card:not(.hidden-by-filter) .chk-select:checked');
@@ -775,21 +878,43 @@
             for(let i=0; i<total; i++) {
                 let s = selectedCheckboxes[i].getAttribute('data-url');
                 let type = selectedCheckboxes[i].getAttribute('data-type');
+                let isDataUrl = s.startsWith('data:image/');
+                let isSocial = type === 'youtube' || type === 'social_video';
                 
-                // ข้ามไฟล์ blob: เพราะ fetch บนสตรีมมิ่งมักจะพังและเปลืองแรม
-                if(s.startsWith('blob:')) continue;
+                if(s.startsWith('blob:')) continue; // ข้ามสตรีมมิ่งสด
 
-                let b = await fetchMedia(s);
-                if(b) {
-                    let fname = s.split('/').pop().split('?')[0];
-                    try { fname = decodeURIComponent(fname); } catch(e) {}
-                    let ext = fname.split('.').pop().toLowerCase();
-                    if(!['jpg','jpeg','png','gif','webp','svg','mp4','webm','ogg','mov','m4v','mp3','wav','m4a'].includes(ext)) {
-                        ext = type === 'video' ? 'mp4' : (type === 'audio' ? 'mp3' : 'jpg');
+                let b = null;
+                let ext = 'jpg';
+
+                if (isDataUrl) {
+                    b = b64toBlob(s);
+                    ext = s.substring(11, s.indexOf(';')).replace('jpeg', 'jpg');
+                } else if (isSocial) {
+                    // โหลดภาพปกวิดีโอแทน เนื่องจากวิดีโอ YouTube โหลดตรงๆไม่ได้
+                    let thumbUrl = null;
+                    let targetItem = mediaArray.find(m => m.url === s);
+                    if(targetItem && targetItem.thumb) thumbUrl = targetItem.thumb;
+                    if(type === 'youtube') {
+                        let vidId = s.match(/[?&]v=([^&]+)/) || s.match(/youtu\.be\/([^?]+)/) || s.match(/shorts\/([^?]+)/);
+                        if(vidId && vidId[1]) thumbUrl = `https://img.youtube.com/vi/${vidId[1]}/hqdefault.jpg`;
                     }
-                    let base = fname.substring(0, fname.lastIndexOf('.')) || 'KIRITO_MEDIA';
+                    if(thumbUrl && !thumbUrl.startsWith('data:')) b = await fetchMedia(thumbUrl);
+                    else if(thumbUrl && thumbUrl.startsWith('data:')) b = b64toBlob(thumbUrl);
+                    ext = 'jpg';
+                } else {
+                    b = await fetchMedia(s);
+                    if(b) {
+                        ext = s.split('.').pop().split('?')[0].toLowerCase();
+                        if(!['jpg','jpeg','png','gif','webp','svg','mp4','webm','ogg','mov','m4v','mp3','wav','m4a'].includes(ext)) {
+                            ext = type === 'video' ? 'mp4' : (type === 'audio' ? 'mp3' : 'jpg');
+                        }
+                    }
+                }
+
+                if(b) {
+                    let base = 'KIRITO_MEDIA';
                     let padIdx = String(i+1).padStart(3, '0');
-                    zip.file(`${base}_${padIdx}.${ext}`, b);
+                    zip.file(`${base}_${type.toUpperCase()}_${padIdx}.${ext}`, b);
                     successCount++;
                 }
                 statusText.innerText = `กำลังแพ็กไฟล์ ${successCount}/${total} ...`;
@@ -802,7 +927,7 @@
                 return;
             }
 
-            statusText.innerText = 'กำลังสร้างไฟล์ ZIP ขั้นสุดท้าย (อาจใช้เวลาถ้าวิดีโอใหญ่)...';
+            statusText.innerText = 'กำลังสร้างไฟล์ ZIP ขั้นสุดท้าย...';
             try {
                 let content = await zip.generateAsync({type: 'blob'});
                 let u2 = URL.createObjectURL(content);
