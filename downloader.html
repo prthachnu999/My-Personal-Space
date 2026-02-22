@@ -226,6 +226,13 @@
             transition: all 0.3s;
         }
         .bookmark-link:hover { background: var(--primary-red); border-color: white; box-shadow: 0 0 15px var(--glow-red); }
+        
+        .mobile-copy-btn {
+            background: transparent; border: 1px solid #007bff; color: #007bff;
+            padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;
+            margin-top: 10px; transition: all 0.3s; display: inline-flex; align-items: center; gap: 5px;
+        }
+        .mobile-copy-btn:hover { background: #007bff; color: white; }
 
     </style>
 </head>
@@ -262,10 +269,15 @@
             <div style="text-align:center;">
                 <div class="bookmarklet-box">
                     <a id="bookmarklet-ui-link" class="bookmark-link" href="#">
-                        <i class="fas fa-bookmark"></i> KIRITO PULL
+                        <i class="fas fa-bookmark"></i> KIRITO PULL (PC)
                     </a>
+                    <br>
+                    <button id="btn-copy-mobile" class="mobile-copy-btn" onclick="copyMobileCode()">
+                        <i class="fas fa-mobile-alt"></i> คัดลอกโค้ดสำหรับโทรศัพท์
+                    </button>
                 </div>
-                <p style="font-size:0.8rem; color:#888; margin-top:10px;">ลากปุ่มนี้ไปใส่แถบบุคมาร์ก (Bookmark Bar) หรือกดค้างเพื่อก๊อปปี้ลิงก์ไปใช้บนโทรศัพท์</p>
+                <p style="font-size:0.8rem; color:#888; margin-top:10px;"><b>บน PC:</b> ลากปุ่มแดงไปใส่แถบบุคมาร์ก</p>
+                <p style="font-size:0.8rem; color:#888;"><b>บนมือถือ:</b> กดปุ่มสีฟ้าเพื่อก๊อปปี้โค้ด แล้วนำไปวางแก้ไขใน URL ของบุคมาร์ก</p>
             </div>
         </div>
 
@@ -404,9 +416,7 @@
         function isImage(url) {
             if (!url || typeof url !== 'string') return false;
             const u = url.toLowerCase().split('?')[0].split('#')[0];
-            // สกัดไฟล์ขยะ 100%
             if (u.endsWith('.js') || u.endsWith('.css') || u.endsWith('.html') || u.endsWith('.php') || u.endsWith('.json') || u.endsWith('.xml') || u.endsWith('.txt')) return false;
-            // ยอมรับเฉพาะนามสกุลภาพเท่านั้น
             return (u.match(/\.(jpg|jpeg|png|webp|gif|svg|tiff|heic|ico)$/i)) != null;
         }
 
@@ -430,18 +440,14 @@
             return false;
         }
 
-        // --- Core Extraction (อัปเกรดขุด Lazy Load ขั้นเทพ) ---
         function extractImagesFromHtml(html, baseUrl) {
             let foundRaw = new Set(); 
-            
-            // 1. ดึงด้วย Regex แบบเต็มพิกัด (ดึงทุกลิงก์ที่มีนามสกุลภาพ)
             const regex = /(?:https?:)?\/\/[^\s"'<>;&]+\.(?:jpg|jpeg|png|gif|webp|svg|ico)\b/gi;
             let match;
             while ((match = regex.exec(html)) !== null) {
                 foundRaw.add(match[0]);
             }
             
-            // 2. ดึงจาก DOM (ทะลวงทุก Attribute)
             try {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
@@ -496,8 +502,6 @@
             return finalUrls;
         }
 
-        // --- SMART DEDUPLICATION LOGIC (ปล่อยหน้าโดจินไว้ ไม่ลบ) ---
-        // ตัดเฉพาะรูปแบบขนาดภาพ กว้างxยาว (เช่น -150x150) ทำให้ -001.jpg รอดแน่นอน!
         function getCleanKey(urlStr) {
             try {
                 let u = new URL(urlStr);
@@ -612,13 +616,8 @@
                 img.referrerPolicy = "no-referrer";
                 img.onclick = () => openLightbox(src);
                 
-                const info = document.createElement('div');
-                info.className = 'img-info';
-                
-                // --- ระบบ Fallback ทะลุการบล็อก ---
                 img.setAttribute('data-rts', '0');
                 img.onerror = function() {
-                    // ถ้าโหลดไม่ขึ้นเพราะติด 403 / CORS ให้เปลี่ยน proxy ไปเรื่อยๆ
                     let rts = parseInt(this.getAttribute('data-rts'));
                     const pxs = [
                         'https://api.codetabs.com/v1/proxy?quest=',
@@ -629,7 +628,6 @@
                         this.setAttribute('data-rts', (rts + 1).toString());
                         this.src = pxs[rts] + encodeURIComponent(src);
                     } else {
-                        // ป้องกันการลบการ์ดทิ้ง ให้โชว์ไอคอน Error สีแดง แทนรูปที่โหลดไม่ได้ เพื่อให้นับรูปเจอ
                         this.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ff3333"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>';
                         this.style.opacity = '0.5';
                         this.style.padding = '30px';
@@ -645,9 +643,8 @@
                     const h = this.naturalHeight;
                     
                     if(!card.classList.contains('error-load')) {
-                        // ดักทาง Google Proxy/AllOrigins ที่ชอบส่ง 1x1 Pixel มาให้เวลาโหลดรูปไม่ติด
                         if(w < 30) { 
-                            this.onerror(); // สั่งให้มันเปลี่ยน Proxy ทันที!
+                            this.onerror(); 
                             return; 
                         }
                         card.setAttribute('data-width', w);
@@ -675,6 +672,9 @@
                     updateStatusText();
                 }
 
+                const info = document.createElement('div');
+                info.className = 'img-info';
+
                 const actions = document.createElement('div');
                 actions.className = 'img-actions';
                 
@@ -692,7 +692,6 @@
             });
         }
 
-        // --- ระบบ Fetch รูปที่แข็งแกร่งระดับโลก ---
         async function fetchImageSafe(url) {
             const proxies = [
                 '', 
@@ -784,9 +783,7 @@
             }
         }
 
-        // --- THE ULTIMATE SPEED: ระบบโหลดคู่ขนานแบบ Worker Pool (8 Threads) ---
         async function downloadAll() {
-            // ดึงเฉพาะรูปที่ไม่ใช่ Error SVG
             const visibleCards = Array.from(document.querySelectorAll('.img-card:not(.hidden-by-filter) img:not([src^="data:"])'));
             const images = visibleCards.map(img => img.getAttribute('data-orig') || img.src);
 
@@ -828,7 +825,6 @@
                             let base = decodedFilename.substring(0, decodedFilename.lastIndexOf('.'));
                             if(!base) base = 'KIRITO_IMAGE';
                             
-                            // จัดเรียงชื่อให้โหลดแล้วเรียงหน้าสวยๆ
                             let paddedIdx = String(idx+1).padStart(3, '0');
                             zip.file(`${base}_${paddedIdx}.${ext}`, blob);
                             successCount++;
@@ -875,7 +871,6 @@
             }
         }
 
-        // --- ระบบควบคุม Lightbox หน้าหลัก (รองรับ PC + ทัชสกรีน) ---
         let scale = 1, isDragging = false, startX, startY, translateX = 0, translateY = 0;
         let initialPinchDist = null, initialPinchScale = 1;
         const lbImg = document.getElementById('lb-img');
@@ -894,7 +889,6 @@
             lbImg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
         }
         
-        // [PC] กลิ้งเมาส์ซูม
         lbImg.addEventListener('wheel', (e) => {
             e.preventDefault();
             const delta = e.deltaY * -0.001;
@@ -902,7 +896,6 @@
             updateTransform();
         }, { passive: false });
 
-        // [PC] ลากเมาส์
         lbImg.addEventListener('mousedown', (e) => {
             e.preventDefault();
             isDragging = true;
@@ -921,7 +914,6 @@
             updateTransform();
         });
 
-        // [Mobile] ระบบสัมผัสหน้าหลัก ลาก/ซูม
         lbImg.addEventListener('touchstart', (e) => {
             if(e.touches.length === 2) {
                 e.preventDefault();
@@ -956,7 +948,38 @@
 
         document.getElementById('allowDuplicates').addEventListener('change', renderGallery);
 
-        // --- BOOKMARKLET GENERATOR SCRIPT (อัปเกรดเครื่องยนต์ + กรองซ้ำแบบใหม่ + กัน 1x1 Pixel + ทะลวง 18+ + รองรับมือถือเต็มระบบ) ---
+        // --- NEW: Copy short code for Mobile ---
+        function copyMobileCode() {
+            // ดึงไฟล์จาก Github Pages ของคุณ
+            const shortCode = `javascript:(function(){var s=document.createElement('script');s.src='https://prthachnu999.github.io/My-Personal-Space/kiritopull.js?v='+Date.now();document.body.appendChild(s);})();`;
+            
+            const textArea = document.createElement("textarea");
+            textArea.value = shortCode;
+            document.body.appendChild(textArea);
+            textArea.select();
+            
+            try { 
+                document.execCommand('copy'); 
+                const btn = document.getElementById('btn-copy-mobile');
+                const orig = btn.innerHTML;
+                btn.innerHTML = `<i class="fas fa-check"></i> คัดลอกสำเร็จ! นำไปวางในมือถือได้เลย`;
+                btn.style.background = '#28a745';
+                btn.style.color = 'white';
+                btn.style.borderColor = '#28a745';
+                
+                setTimeout(() => {
+                    btn.innerHTML = orig;
+                    btn.style.background = 'transparent';
+                    btn.style.color = '#007bff';
+                    btn.style.borderColor = '#007bff';
+                }, 3000);
+            } catch (err) {
+                alert("คัดลอกไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
+            }
+            document.body.removeChild(textArea);
+        }
+
+        // --- OLD PC BOOKMARKLET GENERATOR ---
         document.addEventListener('DOMContentLoaded', () => {
             const bookmarkletLogic = function() {
                 if(document.getElementById('krt-sys')) document.getElementById('krt-sys').remove();
@@ -1250,7 +1273,6 @@
                     }
                 };
 
-                // --- ระบบควบคุม Lightbox ภายใน Bookmarklet (รองรับมือถือ+PC) ---
                 var sc = 1, tx = 0, ty = 0, dr = false, sx, sy;
                 var initialDist = null, initScale = 1; 
 
@@ -1260,7 +1282,6 @@
                 }
                 var lbImg = document.getElementById('krt-lbi');
                 
-                // [PC] กลิ้งเมาส์
                 lbImg.addEventListener('wheel', function(e){
                     e.preventDefault();
                     sc += e.deltaY * -0.001;
@@ -1268,7 +1289,6 @@
                     up();
                 }, {passive:false});
                 
-                // [PC] ลากเมาส์
                 lbImg.addEventListener('mousedown', function(e){
                     e.preventDefault();
                     dr = true; sx = e.clientX - tx; sy = e.clientY - ty;
@@ -1282,7 +1302,6 @@
                     up();
                 });
 
-                // [Mobile] ระบบทัชสกรีน (ลาก + ซูมด้วยสองนิ้ว)
                 lbImg.addEventListener('touchstart', function(e){
                     if(e.touches.length === 2) {
                         e.preventDefault();
