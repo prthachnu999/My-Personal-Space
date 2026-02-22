@@ -1,5 +1,5 @@
 // ==========================================
-// KIRITO PULL SYSTEM - MASTERPIECE EDITION 
+// KIRITO PULL SYSTEM - ULTIMATE GITHUB EDITION v3
 // ==========================================
 (function() {
     if(document.getElementById('krt-sys-wrapper')) {
@@ -22,10 +22,16 @@
     };
 
     const uMap = new Map();
+    
+    // --- ฟังก์ชันดึงรูป (อัปเกรด Regex และเจาะ JSON) ---
     const addImg = function(s) {
         if(!s || typeof s !== 'string' || s.startsWith('data:')) return;
+        
+        // คลีนข้อมูลและแปลง Path
+        s = s.trim().replace(/\\u002F/g, '/').replace(/\\/g, '');
         if(s.startsWith('//')) s = 'https:' + s;
         else if(s.startsWith('/')) s = location.origin + s;
+        else if(!s.startsWith('http')) s = new URL(s, location.href).href;
         
         try {
             let u = new URL(decodeURIComponent(s), 'http://d').searchParams.get('url');
@@ -45,17 +51,30 @@
         }
     };
 
+    // 1. หาจาก Image Tags ปกติ
     Array.from(document.images).forEach(e => addImg(e.src));
-    Array.from(document.querySelectorAll('img, a, link, div, span, section')).forEach(e => {
-        ['data-src', 'data-original', 'data-lazy-src', 'data-srcset'].forEach(attr => {
+    
+    // 2. หาจาก Attributes ยอดฮิตที่เว็บชอบซ่อน
+    Array.from(document.querySelectorAll('*')).forEach(e => {
+        ['data-src', 'data-original', 'data-lazy-src', 'data-srcset', 'src', 'href', 'srcset', 'content', 'poster'].forEach(attr => {
             let ds = e.getAttribute(attr);
-            if(ds) ds.split(',').forEach(p => addImg(p.trim().split(' ')[0]));
+            if(ds) {
+                if(ds.includes(',')) ds.split(',').forEach(p => addImg(p.trim().split(/\s+/)[0]));
+                else addImg(ds);
+            }
         });
-        if((e.tagName === 'A' || e.tagName === 'LINK') && e.href) addImg(e.href);
         let bg = window.getComputedStyle(e).backgroundImage;
         let m = bg.match(/url\(['"]?(.*?)['"]?\)/);
         if(m) addImg(m[1]);
     });
+    
+    // 3. ทะลวงหาจาก Source Code และ Script (ไม้ตายสำหรับ Facebook/Pinterest)
+    const htmlCode = document.documentElement.innerHTML;
+    const urlRegex = /(?:https?:|\\\/\\\/|\/\/)[^\s"'<>;&\\]+\.(?:jpg|jpeg|png|gif|webp|svg|ico)(?:\?[^\s"'<>\\]*)?/gi;
+    let match;
+    while ((match = urlRegex.exec(htmlCode)) !== null) {
+        addImg(match[0]);
+    }
 
     if(uMap.size === 0) {
         alert('ไม่พบรูปภาพ (KIRITO SYSTEM)');
@@ -71,15 +90,18 @@
     document.body.appendChild(wrapper);
 
     const shadow = wrapper.attachShadow({mode: 'open'});
-    shadow.innerHTML = `
+    
+    // โหลด Font Awesome เพื่อใช้ไอคอน
+    const fontAwesome = document.createElement('link');
+    fontAwesome.rel = 'stylesheet';
+    fontAwesome.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+    shadow.appendChild(fontAwesome);
+
+    shadow.innerHTML += `
         <style>
             * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-            
             @keyframes krtFadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
-            
-            /* ปรับความใสของพื้นหลัง (0.55) และความเบลอ (15px) */
-            .container { position: absolute; top:0; left:0; width: 100%; height: 100%; background: rgba(10, 10, 10, 0.55); overflow-y: auto; padding: 25px; color: #fff; pointer-events: auto; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); animation: krtFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-            
+            .container { position: absolute; top:0; left:0; width: 100%; height: 100%; background: rgba(10, 10, 10, 0.65); overflow-y: auto; padding: 25px; color: #fff; pointer-events: auto; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); animation: krtFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
             .container::-webkit-scrollbar { width: 8px; }
             .container::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.1); }
             .container::-webkit-scrollbar-thumb { background: rgba(255, 0, 51, 0.6); border-radius: 10px; }
@@ -95,50 +117,46 @@
             
             .btn-zip { background: linear-gradient(135deg, #28a745, #208838); box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3); }
             .btn-zip:hover:not(:disabled) { background: linear-gradient(135deg, #218838, #1e7e34); box-shadow: 0 6px 20px rgba(40, 167, 69, 0.5); transform: translateY(-2px); }
-            
             .btn-select { background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); }
             .btn-select:hover { background: rgba(255, 255, 255, 0.25); }
-            
             .btn-close { background: rgba(255, 51, 51, 0.15); color: #ff3333; border: 1px solid rgba(255, 51, 51, 0.3); }
             .btn-close:hover { background: #ff3333; color: #fff; }
             
             .info-text { color: #eee; font-size: 14px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
             .status-badge { background: rgba(255, 51, 51, 0.2); color: #ffbbbb; padding: 5px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; border: 1px solid rgba(255, 51, 51, 0.3); }
             
-            /* Grid & Cards */
             .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px; }
-            .card { position: relative; background: rgba(30, 30, 30, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.25); transition: all 0.3s ease; }
-            .card:hover { transform: translateY(-6px); box-shadow: 0 12px 30px rgba(0,0,0,0.4); border-color: rgba(255, 51, 51, 0.4); background: rgba(40, 40, 40, 0.8); }
+            .card { position: relative; background: rgba(30, 30, 30, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 8px 25px rgba(0,0,0,0.25); transition: all 0.3s ease; overflow: hidden;}
+            .card:hover { transform: translateY(-6px); box-shadow: 0 12px 30px rgba(0,0,0,0.4); border-color: rgba(255, 51, 51, 0.4); }
             
-            .card-checkbox { position: absolute; top: 15px; left: 15px; z-index: 2; width: 22px; height: 22px; cursor: pointer; accent-color: #ff3333; }
-            .card-copy { position: absolute; top: 15px; right: 15px; z-index: 2; background: rgba(0,0,0,0.6); color: #fff; border: none; border-radius: 6px; padding: 4px 8px; font-size: 10px; cursor: pointer; backdrop-filter: blur(4px); transition: 0.2s; }
-            .card-copy:hover { background: #ff3333; }
+            .card-checkbox { position: absolute; top: 12px; left: 12px; z-index: 5; width: 22px; height: 22px; cursor: pointer; accent-color: #ff3333; filter: drop-shadow(0 0 5px rgba(0,0,0,0.5)); }
 
-            .img-container { width: 100%; height: 140px; border-radius: 8px; overflow: hidden; margin-bottom: 12px; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; position: relative; }
-            .card img { max-width: 100%; max-height: 100%; object-fit: contain; cursor: zoom-in; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+            .img-container { width: 100%; height: 160px; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; cursor: zoom-in; overflow: hidden; }
+            .card img { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
             .card:hover img { transform: scale(1.08); }
             
-            .filename { color: #fff; font-size: 11px; margin-bottom: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; padding: 0 5px; }
-            .dimensions { color: #aaa; font-size: 10px; margin-bottom: 12px; font-weight: 400; background: rgba(0,0,0,0.4); padding: 4px 0; border-radius: 6px; }
+            .img-info { width: 100%; padding: 12px 10px; background: rgba(0,0,0,0.5); color: #ccc; font-size: 0.75rem; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; }
+            .filename { color: #fff; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; flex: 1; margin-right: 5px;}
+            .dimensions { color: #ffbbbb; font-size: 10px; font-weight: bold; background: rgba(255,51,51,0.1); padding: 3px 6px; border-radius: 4px; white-space: nowrap; }
             
-            .btn-dl { background: rgba(255, 51, 51, 0.8); width: 100%; padding: 10px; margin-top: auto; font-size: 12px; border-radius: 6px; font-weight: 600; }
-            .btn-dl:hover { background: #ff3333; }
+            .img-actions { padding: 10px; background: rgba(10,10,10,0.8); display: flex; justify-content: center; gap: 8px; border-top: 1px solid rgba(255,51,51,0.2); }
+            .btn-icon { flex: 1; height: 36px; border-radius: 6px; border: none; cursor: pointer; color: white; font-size: 0.95rem; transition: 0.2s; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); }
+            .btn-icon:hover { transform: translateY(-3px); }
+            .btn-dl { background: rgba(255,51,51,0.7); } .btn-dl:hover { background: #ff3333; box-shadow: 0 0 10px rgba(255,51,51,0.5); }
+            .btn-copy-link { background: rgba(0,123,255,0.7); } .btn-copy-link:hover { background: #007bff; box-shadow: 0 0 10px rgba(0,123,255,0.5); }
+            .btn-copy-img { background: rgba(40,167,69,0.7); } .btn-copy-img:hover { background: #28a745; box-shadow: 0 0 10px rgba(40,167,69,0.5); }
             
             /* Lightbox & Navigation */
             .lightbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); z-index: 10; align-items: center; justify-content: center; touch-action: none; pointer-events: auto; backdrop-filter: blur(8px); opacity: 0; transition: opacity 0.3s; }
             .lightbox.active { opacity: 1; display: flex; }
-            
             .lb-close { position: absolute; top: 20px; right: 20px; color: #fff; font-size: 32px; cursor: pointer; z-index: 12; width: 48px; height: 48px; text-align: center; line-height: 48px; background: rgba(255,255,255,0.1); border-radius: 50%; transition: all 0.2s; }
             .lb-close:hover { background: #ff3333; transform: rotate(90deg); }
-            
-            .lb-nav { position: absolute; top: 50%; transform: translateY(-50%); color: #fff; font-size: 40px; cursor: pointer; z-index: 11; width: 50px; height: 80px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); transition: 0.2s; }
-            .lb-nav:hover { background: rgba(255,51,51,0.6); }
-            .lb-prev { left: 10px; border-radius: 0 10px 10px 0; }
-            .lb-next { right: 10px; border-radius: 10px 0 0 10px; }
-
+            .lb-nav { position: absolute; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.5); font-size: 40px; cursor: pointer; z-index: 11; width: 50px; height: 80px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); transition: 0.2s; }
+            .lb-nav:hover { background: rgba(255,51,51,0.6); color: white; }
+            .lb-prev { left: 0; border-radius: 0 10px 10px 0; }
+            .lb-next { right: 0; border-radius: 10px 0 0 10px; }
             .lb-img { max-width: 90%; max-height: 90%; transition: transform 0.15s ease-out; cursor: grab; user-select: none; -webkit-user-drag: none; filter: drop-shadow(0 10px 30px rgba(0,0,0,0.8)); transform-origin: center; }
             .lb-img.grabbing { cursor: grabbing; transition: none; }
-            
             .lb-hint { position: absolute; bottom: 25px; background: rgba(0,0,0,0.7); padding: 10px 25px; border-radius: 30px; display: flex; gap: 20px; color: #eee; font-size: 13px; z-index: 11; pointer-events: none; border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(5px); }
         </style>
         
@@ -146,13 +164,13 @@
             <div class="header">
                 <h1>KIRITO SYSTEM</h1>
                 <div class="btn-group">
-                    <button id="btn-select-all" class="btn-select">☑️ เลือกทั้งหมด / ยกเลิก</button>
-                    <button id="btn-zip" class="btn-zip">📦 ดาวน์โหลด ZIP ที่เลือก</button>
-                    <button id="btn-close" class="btn-close">✖ ปิดระบบ</button>
+                    <button id="btn-select-all" class="btn-select"><i class="fas fa-check-square"></i> เลือกทั้งหมด</button>
+                    <button id="btn-zip" class="btn-zip"><i class="fas fa-box-open"></i> ดาวน์โหลด ZIP</button>
+                    <button id="btn-close" class="btn-close"><i class="fas fa-times"></i> ปิดระบบ</button>
                 </div>
             </div>
             <div class="info-text">
-                <span id="status-text">พร้อมใช้งาน</span>
+                <span id="status-text">กำลังรวบรวมข้อมูล...</span>
                 <span class="status-badge" id="count-badge">ดึงมาได้ ${imgArray.length} รูป</span>
             </div>
             <div id="gallery" class="grid"></div>
@@ -165,7 +183,7 @@
             <div id="lb-next" class="lb-nav lb-next">&#10095;</div>
             <div class="lb-hint">
                 <span>🖱️ ซูม/ลากรูป</span>
-                <span>↔️ เปลี่ยนรูป</span>
+                <span>↔️ ปัดเพื่อเปลี่ยน</span>
             </div>
         </div>
     `;
@@ -175,6 +193,15 @@
     const lbImg = shadow.getElementById('lb-img');
     const statusText = shadow.getElementById('status-text');
     const countBadge = shadow.getElementById('count-badge');
+
+    // UI Helper Functions
+    const showTempIcon = (btn, tempIcon, origIcon) => {
+        const i = btn.querySelector('i');
+        if(i) {
+            i.className = tempIcon; btn.style.background = '#28a745';
+            setTimeout(() => { i.className = origIcon; btn.style.background = ''; }, 2000);
+        }
+    };
 
     const fetchImg = async (url) => {
         const proxies = ['', 'https://api.codetabs.com/v1/proxy?quest=', 'https://corsproxy.io/?'];
@@ -195,7 +222,10 @@
     };
 
     let sc = 1, tx = 0, ty = 0;
-    const updateTransform = () => lbImg.style.transform = `translate(${tx}px, ${ty}px) scale(${sc})`;
+    const updateTransform = () => {
+        if(sc <= 1) { sc = 1; tx = 0; ty = 0; }
+        lbImg.style.transform = `translate(${tx}px, ${ty}px) scale(${sc})`;
+    }
 
     const openLightbox = (index) => {
         currentLbIndex = index;
@@ -221,82 +251,88 @@
         checkbox.onchange = updateSelectionCount;
         checkbox.setAttribute('data-url', s);
 
-        let copyBtn = document.createElement('button');
-        copyBtn.className = 'card-copy';
-        copyBtn.innerText = '🔗 Copy';
-        copyBtn.onclick = () => {
-            navigator.clipboard.writeText(s);
-            copyBtn.innerText = '✔ Copied';
-            setTimeout(() => copyBtn.innerText = '🔗 Copy', 2000);
-        };
-        
         let imgContainer = document.createElement('div');
         imgContainer.className = 'img-container';
-        
         let img = document.createElement('img');
         img.src = s;
+        img.loading = "lazy";
         
-        let dimInfo = document.createElement('div');
-        dimInfo.className = 'dimensions';
-        dimInfo.innerText = 'กำลังคำนวณ...';
+        let infoContainer = document.createElement('div');
+        infoContainer.className = 'img-info';
+        let filenameSpan = document.createElement('span');
+        filenameSpan.className = 'filename';
+        let dimSpan = document.createElement('span');
+        dimSpan.className = 'dimensions';
+        dimSpan.innerText = 'คำนวณ...';
 
         img.onload = function() {
             if(this.naturalWidth && this.naturalHeight) {
-                dimInfo.innerText = `กว้าง: ${this.naturalWidth}px | ยาว: ${this.naturalHeight}px`;
-            } else dimInfo.innerText = 'ไม่ทราบขนาด';
+                dimSpan.innerText = `${this.naturalWidth}x${this.naturalHeight}`;
+            } else dimSpan.innerText = 'ไม่ทราบ';
         };
-
         img.onerror = function() {
             if(!this.retried) {
                 this.retried = true;
                 this.src = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(s);
             } else {
-                this.style.opacity = '0.3';
-                dimInfo.innerText = 'โหลดล้มเหลว';
+                card.style.display = 'none'; // ซ่อนรูปที่พัง
             }
         };
 
         img.onclick = () => openLightbox(idx);
         imgContainer.appendChild(img);
 
-        let fname = s.split('/').pop().split('?')[0];
-        try { fname = decodeURIComponent(fname); } catch(e) {}
-        let info = document.createElement('div');
-        info.className = 'filename';
-        info.innerText = fname || `image_${idx+1}.jpg`;
+        let rawName = s.split('/').pop().split('?')[0];
+        try { rawName = decodeURIComponent(rawName); } catch(e) {}
+        filenameSpan.innerText = rawName || `image_${idx+1}.jpg`;
+        infoContainer.append(filenameSpan, dimSpan);
 
-        let btn = document.createElement('button');
-        btn.className = 'btn-dl';
-        btn.innerText = '💾 โหลดรูปนี้';
-        btn.onclick = async () => {
-            let og = btn.innerText;
-            btn.innerText = 'กำลังโหลด...';
-            btn.style.pointerEvents = 'none';
+        let actions = document.createElement('div');
+        actions.className = 'img-actions';
+        
+        let btnDl = document.createElement('button');
+        btnDl.className = 'btn-icon btn-dl'; btnDl.title = 'ดาวน์โหลด';
+        btnDl.innerHTML = '<i class="fas fa-download"></i>';
+        btnDl.onclick = async () => {
             let b = await fetchImg(s);
             if(b) {
                 let u2 = URL.createObjectURL(b);
-                let a2 = document.createElement('a');
-                a2.href = u2;
-                a2.download = 'KIRITO_' + Date.now() + '_' + idx + '.jpg';
-                a2.click();
-                URL.revokeObjectURL(u2);
-                btn.innerText = '✔ สำเร็จ!';
-                btn.style.background = '#28a745';
-            } else {
-                window.open(s, '_blank');
-                btn.innerText = 'เปิดหน้าใหม่';
-            }
-            setTimeout(() => {
-                btn.innerText = og;
-                btn.style.background = 'rgba(255, 51, 51, 0.8)';
-                btn.style.pointerEvents = 'auto';
-            }, 2000);
+                let a2 = document.createElement('a'); a2.href = u2; a2.download = 'KIRITO_' + Date.now() + '.jpg';
+                a2.click(); URL.revokeObjectURL(u2);
+                showTempIcon(btnDl, 'fas fa-check', 'fas fa-download');
+            } else window.open(s, '_blank');
         };
 
-        card.append(checkbox, copyBtn, imgContainer, info, dimInfo, btn);
+        let btnCopyLink = document.createElement('button');
+        btnCopyLink.className = 'btn-icon btn-copy-link'; btnCopyLink.title = 'คัดลอกลิงก์';
+        btnCopyLink.innerHTML = '<i class="fas fa-link"></i>';
+        btnCopyLink.onclick = () => {
+            navigator.clipboard.writeText(s).then(() => showTempIcon(btnCopyLink, 'fas fa-check', 'fas fa-link'))
+            .catch(()=>{
+                let t = document.createElement('textarea'); t.value = s; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t);
+                showTempIcon(btnCopyLink, 'fas fa-check', 'fas fa-link');
+            });
+        };
+
+        let btnCopyImg = document.createElement('button');
+        btnCopyImg.className = 'btn-icon btn-copy-img'; btnCopyImg.title = 'คัดลอกรูปภาพ';
+        btnCopyImg.innerHTML = '<i class="fas fa-copy"></i>';
+        btnCopyImg.onclick = async () => {
+            try {
+                let b = await fetchImg(s);
+                if(b) {
+                    await navigator.clipboard.write([new ClipboardItem({[b.type]: b})]);
+                    showTempIcon(btnCopyImg, 'fas fa-check', 'fas fa-copy');
+                } else alert("โดนบล็อกการดึงข้อมูลรูปภาพ");
+            } catch(e) { alert("เบราว์เซอร์ไม่รองรับการคัดลอกรูปภาพโดยตรง"); }
+        };
+
+        actions.append(btnDl, btnCopyLink, btnCopyImg);
+        card.append(checkbox, imgContainer, infoContainer, actions);
         gallery.append(card);
     });
 
+    statusText.innerText = 'ระบบพร้อมใช้งาน 100%';
     updateSelectionCount();
 
     // Event Listeners UI หลัก
@@ -325,40 +361,43 @@
     shadow.getElementById('lb-prev').onclick = () => navLb(-1);
     shadow.getElementById('lb-next').onclick = () => navLb(1);
 
-    // === อัปเกรดระบบ Touch & Zoom & Swipe ===
+    // === SMART TOUCH 2.0 (แก้บัครูปลอย) ===
     let isDragging = false, startX, startY, initDist = 0, initScale = 1;
+    let startTouchX = 0, isSwiping = false;
     const getDist = (touches) => Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
     
     lbImg.addEventListener('wheel', (e) => {
         e.preventDefault();
-        sc += e.deltaY * -0.001;
-        sc = Math.min(Math.max(0.5, sc), 8);
+        sc += e.deltaY * -0.002;
         updateTransform();
     }, {passive: false});
     
     lbImg.addEventListener('mousedown', (e) => {
         e.preventDefault();
-        isDragging = true;
-        startX = e.clientX - tx;
-        startY = e.clientY - ty;
-        lbImg.classList.add('grabbing');
+        if(sc > 1) {
+            isDragging = true;
+            startX = e.clientX - tx;
+            startY = e.clientY - ty;
+            lbImg.classList.add('grabbing');
+        } else {
+            startTouchX = e.clientX;
+            isSwiping = true;
+        }
     });
     
     lightbox.addEventListener('mouseup', (e) => {
-        if(!isDragging) return;
         isDragging = false;
         lbImg.classList.remove('grabbing');
-        // ตรวจจับการ Swipe บนเมาส์ถ้ารูปขนาดปกติ
-        if(sc === 1) {
-            let endX = e.clientX - startX;
-            if(endX < -50) navLb(1);
-            else if(endX > 50) navLb(-1);
-            else { tx = 0; ty = 0; updateTransform(); }
+        if(sc === 1 && isSwiping) {
+            let endX = e.clientX - startTouchX;
+            if(endX < -60) navLb(1);
+            else if(endX > 60) navLb(-1);
+            isSwiping = false;
         }
     });
     
     lightbox.addEventListener('mousemove', (e) => {
-        if(!isDragging) return;
+        if(!isDragging || sc <= 1) return;
         e.preventDefault();
         tx = e.clientX - startX;
         ty = e.clientY - startY;
@@ -367,59 +406,70 @@
 
     lbImg.addEventListener('touchstart', (e) => {
         if(e.touches.length === 1) {
-            isDragging = true;
-            startX = e.touches[0].clientX - tx;
-            startY = e.touches[0].clientY - ty;
-            lbImg.classList.add('grabbing');
+            if(sc > 1) {
+                isDragging = true;
+                isSwiping = false;
+                startX = e.touches[0].clientX - tx;
+                startY = e.touches[0].clientY - ty;
+            } else {
+                startTouchX = e.touches[0].clientX;
+                isSwiping = true;
+                isDragging = false;
+            }
         } else if (e.touches.length === 2) {
-            isDragging = false; 
+            isDragging = false; isSwiping = false;
             initDist = getDist(e.touches);
             initScale = sc;
         }
     }, {passive: false});
     
     lightbox.addEventListener('touchend', (e) => {
-        lbImg.classList.remove('grabbing');
-        if(e.touches.length === 0 && isDragging && sc === 1) {
-            // ตรวจจับ Swipe บนมือถือ
-            if(tx < -60) navLb(1);
-            else if(tx > 60) navLb(-1);
-            else { tx = 0; ty = 0; updateTransform(); }
+        if(e.touches.length < 2) initDist = null;
+        if(e.touches.length === 0) {
+            if (sc === 1 && isSwiping) {
+                let diffX = e.changedTouches[0].clientX - startTouchX;
+                if(diffX < -50) navLb(1);
+                else if(diffX > 50) navLb(-1);
+            }
+            isDragging = false;
+            isSwiping = false;
         }
-        isDragging = false;
     });
     
     lightbox.addEventListener('touchmove', (e) => {
-        e.preventDefault(); 
-        if(isDragging && e.touches.length === 1) {
-            tx = e.touches[0].clientX - startX;
-            ty = e.touches[0].clientY - startY;
-            updateTransform();
-        } else if (e.touches.length === 2) {
+        if(e.touches.length === 2 && initDist) {
+            e.preventDefault(); 
             let currDist = getDist(e.touches);
-            if (initDist > 0) {
-                let nScale = initScale * (currDist / initDist);
-                sc = Math.min(Math.max(0.5, nScale), 8); 
+            sc = initScale * (currDist / initDist);
+            updateTransform();
+        } else if (e.touches.length === 1) {
+            if (sc > 1 && isDragging) {
+                e.preventDefault();
+                tx = e.touches[0].clientX - startX;
+                ty = e.touches[0].clientY - startY;
                 updateTransform();
+            } else if (sc === 1 && isSwiping) {
+                e.preventDefault(); 
             }
         }
     }, {passive: false});
 
-    // === ระบบแพ็ก ZIP ล่าสุด (เฉพาะรูปที่เลือก) ===
+    // === ระบบแพ็ก ZIP (เสถียรสุด ทนต่อการโดนบล็อก) ===
     shadow.getElementById('btn-zip').onclick = function() {
         let btn = this;
         let selectedCheckboxes = shadow.querySelectorAll('.chk-select:checked');
         if(selectedCheckboxes.length === 0) return alert('กรุณาเลือกรูปภาพอย่างน้อย 1 รูป');
 
         btn.disabled = true;
-        statusText.innerText = 'กำลังเตรียมระบบ ZIP...';
+        let origBtnText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> เตรียมแพ็ก ZIP...';
         statusText.style.color = '#fff';
 
         const doZip = async () => {
             statusText.innerText = 'กำลังโหลดข้อมูลรูปภาพ...';
             let zip = new JSZip();
             let total = selectedCheckboxes.length;
-            let count = 0;
+            let successCount = 0;
 
             for(let i=0; i<total; i++) {
                 let s = selectedCheckboxes[i].getAttribute('data-url');
@@ -432,15 +482,16 @@
                     let base = fname.substring(0, fname.lastIndexOf('.')) || 'KIRITO_IMAGE';
                     let padIdx = String(i+1).padStart(3, '0');
                     zip.file(`${base}_${padIdx}.${ext}`, b);
-                    count++;
+                    successCount++;
                 }
-                statusText.innerText = `กำลังแพ็กไฟล์ ${count}/${total} ...`;
+                statusText.innerText = `กำลังแพ็กไฟล์ ${successCount}/${total} ...`;
             }
 
-            if(count === 0) {
+            if(successCount === 0) {
                 statusText.innerText = 'ล้มเหลว: โดนบล็อกการดึงรูป';
                 statusText.style.color = '#ff3333';
                 btn.disabled = false;
+                btn.innerHTML = origBtnText;
                 return;
             }
 
@@ -453,14 +504,19 @@
                 a2.download = 'KIRITO_PACK_' + Date.now() + '.zip';
                 a2.click();
                 URL.revokeObjectURL(u2);
-                statusText.innerText = `โหลด ZIP สำเร็จ (${count} รูป)`;
+                statusText.innerText = `โหลด ZIP สำเร็จ (${successCount} รูป)`;
                 statusText.style.color = '#28a745';
-                btn.innerText = 'สำเร็จ';
+                btn.innerHTML = '<i class="fas fa-check"></i> สำเร็จ!';
             } catch(e) {
                 statusText.innerText = 'เกิดข้อผิดพลาดในการสร้าง ZIP';
                 statusText.style.color = '#ff3333';
                 btn.disabled = false;
             }
+            
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = origBtnText;
+            }, 3000);
         };
 
         if(typeof JSZip === 'undefined') {
