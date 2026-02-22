@@ -1,5 +1,5 @@
 // ==========================================
-// KIRITO PULL SYSTEM - ULTIMATE MEDIA EDITION v5
+// KIRITO PULL SYSTEM - ULTIMATE MEDIA EDITION v6 (Deep Media Finder)
 // ==========================================
 (function() {
     if(document.getElementById('krt-sys-wrapper')) {
@@ -23,14 +23,23 @@
 
     const uMap = new Map();
     
-    // --- ระบบดึง Media ขั้นสูง ---
-    const addMedia = function(s) {
+    // ทายประเภทไฟล์จากนามสกุล (เผื่อกรณีดึงจาก string ตรงๆ)
+    const guessType = (u) => {
+        const ext = u.split('.').pop().split('?')[0].toLowerCase();
+        if (['mp4', 'webm', 'ogg', 'mov', 'm4v'].includes(ext)) return 'video';
+        if (['mp3', 'wav', 'm4a', 'aac', 'flac'].includes(ext)) return 'audio';
+        if (['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'tiff', 'heic', 'ico', 'bmp'].includes(ext)) return 'image';
+        return null; 
+    };
+
+    // --- ระบบดึง Media ขั้นสูง (ไม่สนนามสกุล ถ้าบังคับ Type มา) ---
+    const addMedia = function(s, forceType = null) {
         if(!s || typeof s !== 'string' || s.startsWith('data:')) return;
         
         s = s.trim().replace(/\\u002F/g, '/').replace(/\\/g, '');
         if(s.startsWith('//')) s = 'https:' + s;
         else if(s.startsWith('/')) s = location.origin + s;
-        else if(!s.startsWith('http')) s = new URL(s, location.href).href;
+        else if(!s.startsWith('http') && !s.startsWith('blob:')) s = new URL(s, location.href).href;
         
         try {
             let u = new URL(decodeURIComponent(s), 'http://d').searchParams.get('url');
@@ -40,26 +49,34 @@
         let uL = s.toLowerCase().split('?')[0];
         if(uL.match(/\.(js|css|html|php|json|xml|txt)$/i)) return;
         
-        const validExts = ['jpg','jpeg','png','webp','gif','svg','tiff','heic','ico','mp4','webm','ogg','mov','m4v','mp3','wav','m4a'];
-        const ext = uL.split('.').pop();
-        if(!validExts.includes(ext)) return;
+        // ถ้าเป็นไฟล์ที่ไม่รู้นามสกุล (เช่น Blob หรือ API) ระบบจะยึดตามที่ส่งมา (forceType)
+        let type = forceType || guessType(uL);
+        if(!type) return; // ถ้าไม่ใช่นามสกุลสื่อมีเดีย และไม่ได้บังคับมา ให้ข้ามไป
         
         let k = cleanK(s);
         let ex = uMap.get(k);
-        if(!ex || getSc(s) > getSc(ex)) {
-            uMap.set(k, s);
-        } else if(getSc(s) === getSc(ex) && !s.includes('?') && ex.includes('?')) {
-            uMap.set(k, s);
+        if(!ex || getSc(s) > getSc(ex.url)) {
+            uMap.set(k, { url: s, type: type });
+        } else if(getSc(s) === getSc(ex.url) && !s.includes('?') && ex.url.includes('?')) {
+            uMap.set(k, { url: s, type: type });
         }
     };
 
-    // 1. ดึงจากแท็กมาตรฐาน
-    Array.from(document.images).forEach(e => addMedia(e.src));
-    Array.from(document.querySelectorAll('video, audio, source')).forEach(e => addMedia(e.src));
+    // 1. ดึงจากแท็กมาตรฐานแบบเจาะจงประเภท (แก้ปัญหาหา Video ไม่เจอ)
+    Array.from(document.images).forEach(e => addMedia(e.src, 'image'));
+    Array.from(document.querySelectorAll('video')).forEach(e => {
+        addMedia(e.src, 'video'); // ดึงตัวคลิปหลัก (แม้จะเป็น blob)
+        if(e.poster) addMedia(e.poster, 'image'); // ดึงหน้าปกคลิป
+        Array.from(e.querySelectorAll('source')).forEach(src => addMedia(src.src, 'video'));
+    });
+    Array.from(document.querySelectorAll('audio')).forEach(e => {
+        addMedia(e.src, 'audio');
+        Array.from(e.querySelectorAll('source')).forEach(src => addMedia(src.src, 'audio'));
+    });
     
-    // 2. ดึงจาก Attributes ทุกรูปแบบ
+    // 2. ดึงจาก Attributes ทุกรูปแบบ (คาดเดาประเภทจากนามสกุล)
     Array.from(document.querySelectorAll('*')).forEach(e => {
-        ['data-src', 'data-original', 'data-lazy-src', 'data-srcset', 'src', 'href', 'srcset', 'content', 'poster'].forEach(attr => {
+        ['data-src', 'data-original', 'data-lazy-src', 'data-srcset', 'src', 'href', 'srcset', 'content'].forEach(attr => {
             let ds = e.getAttribute(attr);
             if(ds) {
                 if(ds.includes(',')) ds.split(',').forEach(p => addMedia(p.trim().split(/\s+/)[0]));
@@ -68,10 +85,10 @@
         });
         let bg = window.getComputedStyle(e).backgroundImage;
         let m = bg.match(/url\(['"]?(.*?)['"]?\)/);
-        if(m) addMedia(m[1]);
+        if(m) addMedia(m[1], 'image'); // พื้นหลังต้องเป็นรูปภาพเท่านั้น
     });
     
-    // 3. ทะลวง Source Code / JSON
+    // 3. ทะลวง Source Code / JSON (ครอบคลุมสื่อทุกชนิด)
     const htmlCode = document.documentElement.innerHTML;
     const urlRegex = /(?:https?:|\\\/\\\/|\/\/)[^\s"'<>;&\\]+\.(?:jpg|jpeg|png|gif|webp|svg|ico|mp4|webm|ogg|mov|m4v|mp3|wav|m4a)(?:\?[^\s"'<>\\]*)?/gi;
     let match;
@@ -80,11 +97,11 @@
     }
 
     if(uMap.size === 0) {
-        alert('ไม่พบไฟล์รูปภาพ วิดีโอ หรือเสียง (KIRITO SYSTEM)');
+        alert('ไม่พบไฟล์มีเดียใดๆ (หากเป็นคลิปที่เข้ารหัสป้องกันสูง อาจจะไม่สามารถดูดได้ครับ)');
         return;
     }
 
-    const imgArray = Array.from(uMap.values());
+    const mediaArray = Array.from(uMap.values()); // เป็น Array ของ Object: {url: '...', type: 'video'}
     let currentLbIndex = 0;
 
     const wrapper = document.createElement('div');
@@ -94,7 +111,6 @@
 
     const shadow = wrapper.attachShadow({mode: 'open'});
     
-    // --- ฝัง SVG Icons (CSP Bypass 100%) ---
     const SVGs = {
         dl: '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>',
         link: '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>',
@@ -104,7 +120,6 @@
         times: '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>',
         check: '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>',
         spin: '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" class="icon-spin"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10"></path></svg>',
-        trash: '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>',
         rocket: '<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2l.5-.5a10.4 10.4 0 0 0 7.7-7.7A10.4 10.4 0 0 0 16.5 4.5l-.5.5A10.4 10.4 0 0 0 4.5 16.5z"></path></svg>'
     };
 
@@ -206,7 +221,7 @@
             <div class="header">
                 <h1>KIRITO SYSTEM</h1>
                 <div class="btn-group">
-                    <button id="btn-select-all" class="btn-select">${SVGs.checkSq} เลือกทั้งหมดหน้าจอ</button>
+                    <button id="btn-select-all" class="btn-select">${SVGs.checkSq} เลือกทั้งหมดบนจอ</button>
                     <button id="btn-zip" class="btn-zip">${SVGs.box} โหลด ZIP ที่เลือก</button>
                     <button id="btn-close" class="btn-close">${SVGs.times} ปิดระบบ</button>
                 </div>
@@ -265,7 +280,7 @@
 
             <div class="info-text">
                 <span id="status-text">กำลังรวบรวมข้อมูล...</span>
-                <span class="status-badge" id="count-badge">ดึงมาได้ ${imgArray.length} ไฟล์</span>
+                <span class="status-badge" id="count-badge">ดึงมาได้ ${mediaArray.length} ไฟล์</span>
             </div>
             <div id="gallery" class="grid"></div>
         </div>
@@ -296,13 +311,11 @@
     const scrollContainer = shadow.getElementById('scroll-container');
     const topBtn = shadow.getElementById('scrollTopBtn');
 
-    // UI Feedback Helpers
     const showTempIcon = (btn, tempSvg, origSvg) => {
         btn.innerHTML = tempSvg; btn.style.background = '#28a745';
         setTimeout(() => { btn.innerHTML = origSvg; btn.style.background = ''; }, 2000);
     };
 
-    // Proxy Engine
     const fetchMedia = async (url) => {
         const proxies = ['', 'https://api.codetabs.com/v1/proxy?quest=', 'https://corsproxy.io/?', 'https://api.allorigins.win/raw?url='];
         for(let p of proxies) {
@@ -321,14 +334,6 @@
         return null;
     };
 
-    // Format Helpers
-    const getMediaType = (url) => {
-        const ext = url.split('.').pop().split('?')[0].toLowerCase();
-        if (['mp4', 'webm', 'ogg', 'mov', 'm4v'].includes(ext)) return 'video';
-        if (['mp3', 'wav', 'm4a', 'aac', 'flac'].includes(ext)) return 'audio';
-        return 'image';
-    };
-
     const formatTime = (seconds) => {
         if(!seconds || isNaN(seconds)) return '0:00';
         const m = Math.floor(seconds / 60);
@@ -343,7 +348,6 @@
         return raw || 'media_file';
     };
 
-    // --- State ตัวกรอง 2 ชั้น ---
     let currentMainType = 'all';
     let currentSubType = 'all';
     let currentSizeFilter = 'all';
@@ -403,7 +407,6 @@
         countBadge.innerText = `เลือกไว้ ${checked}/${visible} ไฟล์`;
     };
 
-    // --- Binding Filter Events ---
     shadow.querySelectorAll('#mainTypeFilters .filter-btn').forEach(btn => {
         btn.onclick = () => {
             currentMainType = btn.getAttribute('data-type'); currentSubType = 'all';
@@ -455,9 +458,11 @@
         };
     });
 
-    // --- Render Gallery (รองรับ Video/Audio) ---
-    imgArray.forEach((s, idx) => {
-        const mediaType = getMediaType(s);
+    // --- Render Gallery ---
+    mediaArray.forEach((item, idx) => {
+        const s = item.url;
+        const mediaType = item.type;
+        
         let card = document.createElement('div');
         card.className = 'media-card';
         card.setAttribute('data-type', mediaType);
@@ -468,6 +473,7 @@
         checkbox.checked = true;
         checkbox.onchange = updateSelectionCount;
         checkbox.setAttribute('data-url', s);
+        checkbox.setAttribute('data-type', mediaType);
 
         let typeBadge = document.createElement('div');
         typeBadge.className = 'type-badge';
@@ -495,7 +501,10 @@
                 infoContainer.innerHTML = `<span class="filename" title="${fname}">${fname}</span><span class="dimensions">${this.videoWidth}x${this.videoHeight} | ${formatTime(this.duration)}</span>`;
                 applyVisualFilters();
             };
-            vid.onerror = function() { card.style.display = 'none'; };
+            vid.onerror = function() { 
+                // หากดึงวิดีโอ (เช่น blob จาก YouTube) ไม่ขึ้น ให้แสดงข้อความแทนพัง
+                infoContainer.innerHTML = `<span class="filename" title="${fname}">${fname}</span><span class="dimensions" style="color:#ff3333">Stream Protected</span>`; 
+            };
             
             card.onmouseenter = () => { let p = vid.play(); if(p!==undefined) p.then(()=>playIcon.style.opacity='0').catch(e=>{}); };
             card.onmouseleave = () => { vid.pause(); playIcon.style.opacity='1'; };
@@ -550,11 +559,14 @@
         let btnDl = document.createElement('button');
         btnDl.className = 'btn-icon btn-dl'; btnDl.title = 'ดาวน์โหลด'; btnDl.innerHTML = SVGs.dl;
         btnDl.onclick = async () => {
+            if (s.startsWith('blob:')) return window.open(s, '_blank'); // ไฟล์สตรีมมิ่งมักจะโหลดตรงไม่ได้
             let b = await fetchMedia(s);
             if(b) {
                 let u2 = URL.createObjectURL(b);
                 let a2 = document.createElement('a'); a2.href = u2; 
-                a2.download = `KIRITO_MEDIA_${Date.now()}.${s.split('.').pop().split('?')[0]}`;
+                let e = s.split('.').pop().split('?')[0].toLowerCase();
+                if(e.length > 4) e = mediaType === 'video' ? 'mp4' : (mediaType === 'audio' ? 'mp3' : 'jpg');
+                a2.download = `KIRITO_MEDIA_${Date.now()}.${e}`;
                 a2.click(); 
                 setTimeout(()=>URL.revokeObjectURL(u2), 1000);
                 showTempIcon(btnDl, SVGs.check, SVGs.dl);
@@ -581,7 +593,7 @@
                 if(b) {
                     await navigator.clipboard.write([new ClipboardItem({[b.type]: b})]);
                     showTempIcon(btnCopyImg, SVGs.check, SVGs.copy);
-                } else alert("โดนบล็อกการดึงข้อมูลรูปภาพ");
+                } else alert("โดนบล็อกการดึงข้อมูล");
             } catch(e) { alert("เบราว์เซอร์ไม่รองรับการคัดลอกรูปนี้"); }
         };
 
@@ -590,10 +602,8 @@
         gallery.append(card);
     });
 
-    // โหลดครั้งแรกให้ประมวลผลตัวกรอง
     setTimeout(applyVisualFilters, 300);
 
-    // --- UI Controls ---
     shadow.getElementById('btn-close').onclick = () => {
         wrapper.style.opacity = '0';
         wrapper.style.transition = 'opacity 0.3s';
@@ -613,7 +623,7 @@
     };
     topBtn.onclick = () => scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
 
-    // === Multi-Media Lightbox & Smart Touch 2.0 ===
+    // === Lightbox ===
     let sc = 1, tx = 0, ty = 0, isDragging = false, startX, startY, initDist = 0, initScale = 1, startTouchX = 0, isSwiping = false;
     const lbContentWrapper = shadow.getElementById('lb-content-wrapper');
     const lbImg = shadow.getElementById('lb-img');
@@ -639,10 +649,10 @@
         if(visibleCards.length === 0) return;
         
         const targetUrl = visibleCards[index].querySelector('.chk-select').getAttribute('data-url');
-        currentLbIndex = imgArray.indexOf(targetUrl);
+        currentLbIndex = mediaArray.findIndex(m => m.url === targetUrl);
         
-        const src = imgArray[currentLbIndex];
-        const type = getMediaType(src);
+        const src = mediaArray[currentLbIndex].url;
+        const type = mediaArray[currentLbIndex].type;
 
         lbImg.style.display = 'none'; lbVid.style.display = 'none'; lbAud.style.display = 'none';
         lbVid.pause(); lbVid.src = ''; lbAud.pause(); lbAud.src = '';
@@ -663,7 +673,7 @@
     const navLb = (dir) => {
         let visibleCards = Array.from(shadow.querySelectorAll('.media-card:not(.hidden-by-filter)'));
         if(visibleCards.length === 0) return;
-        const currentUrl = imgArray[currentLbIndex];
+        const currentUrl = mediaArray[currentLbIndex].url;
         let visibleIndex = visibleCards.findIndex(card => card.querySelector('.chk-select').getAttribute('data-url') === currentUrl);
         
         if(visibleIndex === -1) visibleIndex = 0;
@@ -746,7 +756,7 @@
         }
     }, {passive: false});
 
-    // === ZIPเฉพาะไฟล์ที่กรองผ่าน (Memory Safe) ===
+    // === ZIP ===
     shadow.getElementById('btn-zip').onclick = function() {
         let btn = this;
         let selectedCheckboxes = shadow.querySelectorAll('.media-card:not(.hidden-by-filter) .chk-select:checked');
@@ -764,12 +774,19 @@
 
             for(let i=0; i<total; i++) {
                 let s = selectedCheckboxes[i].getAttribute('data-url');
+                let type = selectedCheckboxes[i].getAttribute('data-type');
+                
+                // ข้ามไฟล์ blob: เพราะ fetch บนสตรีมมิ่งมักจะพังและเปลืองแรม
+                if(s.startsWith('blob:')) continue;
+
                 let b = await fetchMedia(s);
                 if(b) {
                     let fname = s.split('/').pop().split('?')[0];
                     try { fname = decodeURIComponent(fname); } catch(e) {}
                     let ext = fname.split('.').pop().toLowerCase();
-                    if(!['jpg','jpeg','png','gif','webp','svg','mp4','webm','ogg','mov','m4v','mp3','wav','m4a'].includes(ext)) ext = 'file';
+                    if(!['jpg','jpeg','png','gif','webp','svg','mp4','webm','ogg','mov','m4v','mp3','wav','m4a'].includes(ext)) {
+                        ext = type === 'video' ? 'mp4' : (type === 'audio' ? 'mp3' : 'jpg');
+                    }
                     let base = fname.substring(0, fname.lastIndexOf('.')) || 'KIRITO_MEDIA';
                     let padIdx = String(i+1).padStart(3, '0');
                     zip.file(`${base}_${padIdx}.${ext}`, b);
@@ -779,7 +796,7 @@
             }
 
             if(successCount === 0) {
-                statusText.innerText = 'ล้มเหลว: โดนบล็อกการดึงไฟล์';
+                statusText.innerText = 'ล้มเหลว: โดนบล็อก หรือเป็นไฟล์ติดลิขสิทธิ์เข้ารหัส (Blob)';
                 statusText.style.color = '#ff3333';
                 btn.disabled = false; btn.innerHTML = origBtnText;
                 return;
@@ -791,12 +808,12 @@
                 let u2 = URL.createObjectURL(content);
                 let a2 = document.createElement('a'); a2.href = u2; a2.download = 'KIRITO_PACK_' + Date.now() + '.zip';
                 a2.click(); 
-                setTimeout(()=>URL.revokeObjectURL(u2), 2000); // คืนแรม
+                setTimeout(()=>URL.revokeObjectURL(u2), 2000); 
                 statusText.innerText = `โหลด ZIP สำเร็จ (${successCount} ไฟล์)`;
                 statusText.style.color = '#28a745';
                 btn.innerHTML = `${SVGs.check} สำเร็จ!`;
             } catch(e) {
-                statusText.innerText = 'ZIP Error: แรมอาจเต็ม แนะนำให้โหลดแยก';
+                statusText.innerText = 'ZIP Error: แรมอาจเต็ม แนะนำให้โหลดแยกทีละคลิป';
                 statusText.style.color = '#ff3333';
                 btn.disabled = false;
             }
