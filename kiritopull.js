@@ -1,5 +1,5 @@
 // ==========================================
-// KIRITO PULL SYSTEM - FULL GITHUB EDITION
+// KIRITO PULL SYSTEM - FULL GITHUB EDITION v2
 // ==========================================
 (function() {
     // 1. ลบระบบเก่าออกถ้ามีการเปิดค้างไว้
@@ -75,23 +75,27 @@
     shadow.innerHTML = `
         <style>
             * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-            .container { position: absolute; top:0; left:0; width: 100%; height: 100%; background: #111; overflow-y: auto; padding: 20px; color: #fff; pointer-events: auto; }
+            /* ปรับพื้นหลังให้โปร่งใสเล็กน้อย (0.9) */
+            .container { position: absolute; top:0; left:0; width: 100%; height: 100%; background: rgba(17, 17, 17, 0.9); overflow-y: auto; padding: 20px; color: #fff; pointer-events: auto; backdrop-filter: blur(2px); }
             .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f03; padding-bottom: 10px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
             h1 { color: #f03; margin: 0; text-shadow: 0 0 10px #f03; font-size: 24px; }
             .btn-group { display: flex; gap: 10px; }
-            button { border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px; font-weight: bold; color: #fff; transition: opacity 0.2s; }
-            button:disabled { opacity: 0.5; cursor: not-allowed; }
+            button { border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px; font-weight: bold; color: #fff; transition: opacity 0.2s, transform 0.1s; }
+            button:active { transform: scale(0.95); }
+            button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
             .btn-zip { background: #28a745; }
             .btn-close { background: #f03; }
             .btn-dl { background: #f03; width: 100%; padding: 8px; margin-top: auto; font-size: 12px; }
             .info-text { color: #aaa; font-size: 14px; margin-bottom: 15px; display: flex; justify-content: space-between; }
-            .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
-            .card { background: #222; border: 1px solid #333; border-radius: 6px; padding: 10px; display: flex; flex-direction: column; text-align: center; }
-            .card img { width: 100%; height: 120px; object-fit: contain; margin-bottom: 10px; background: #000; cursor: zoom-in; border-radius: 4px; }
+            /* ปรับขนาด Grid ให้กระชับขึ้นสำหรับมือถือ (130px) */
+            .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; }
+            .card { background: rgba(34, 34, 34, 0.8); border: 1px solid #333; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+            /* ปรับพื้นหลังรูป thumbnail ให้โปร่งใส */
+            .card img { width: 100%; height: 120px; object-fit: contain; margin-bottom: 10px; background: transparent; cursor: zoom-in; border-radius: 4px; }
             .card .filename { color: #aaa; font-size: 10px; margin-bottom: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
             
             /* Lightbox & ทัชสกรีน */
-            .lightbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10; align-items: center; justify-content: center; touch-action: none; pointer-events: auto; }
+            .lightbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10; align-items: center; justify-content: center; touch-action: none; pointer-events: auto; }
             .lb-close { position: absolute; top: 20px; right: 20px; color: #f03; font-size: 40px; cursor: pointer; z-index: 11; width: 50px; height: 50px; text-align: center; line-height: 50px; background: rgba(0,0,0,0.5); border-radius: 50%; }
             .lb-img { max-width: 95%; max-height: 95%; transition: transform 0.1s ease-out; cursor: grab; user-select: none; -webkit-user-drag: none; }
             .lb-img:active { cursor: grabbing; }
