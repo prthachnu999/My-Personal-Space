@@ -179,9 +179,9 @@
         .lb-prev { left: 0; border-radius: 0 10px 10px 0; }
         .lb-next { right: 0; border-radius: 10px 0 0 10px; }
 
-        .lb-controls { position: absolute; bottom: 30px; background: rgba(0,0,0,0.6); padding: 12px 25px; border-radius: 30px; display: flex; gap: 20px; color: #ddd; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px); }
+        .lb-controls { position: absolute; bottom: 30px; background: rgba(0,0,0,0.6); padding: 12px 25px; border-radius: 30px; display: flex; gap: 20px; color: #ddd; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px); pointer-events: none; }
         
-        .status-msg { color: var(--glow-red); text-align: center; margin: 15px 0; font-size: 1rem; font-weight:bold; }
+        .status-msg { color: var(--glow-red); text-align: center; margin: 15px 0; font-size: 1rem; font-weight:bold; line-height: 1.5; }
         .loader { display: none; width: 35px; height: 35px; border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--primary-red); border-radius: 50%; animation: spin 1s linear infinite; margin: 15px auto; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
@@ -216,13 +216,14 @@
         </div>
 
         <div id="tab-auto" class="input-section active">
-            <input type="text" id="targetUrl" placeholder="ใส่ลิงก์เว็บไซต์เป้าหมาย (เช่น https://pinterest.com/...)">
+            <input type="text" id="targetUrl" placeholder="ใส่ลิงก์เว็บไซต์เป้าหมาย (เช่น https://example.com)">
             <button class="btn btn-scan" onclick="startAutoScan()"><i class="fas fa-radar"></i> START SCAN</button>
+            <p style="font-size:0.8rem; color:#aaa; margin-top:10px; text-align:center;">*หมายเหตุ: เว็บโซเชียลที่มีระบบป้องกันสูง (เช่น Facebook, IG, Pinterest) ไม่สามารถสแกนตรงๆได้ กรุณาใช้ Bookmarklet ที่เมนู Setup Tools แทนครับ</p>
         </div>
 
         <div id="tab-manual" class="input-section">
             <input type="text" id="manualUrl" placeholder="ลิงก์โดเมนต้นทาง (สำคัญมาก! เพื่อดึงรูปที่ติด Relative Path ให้สมบูรณ์)">
-            <textarea id="sourceCode" placeholder="วาง Source Code HTML (Ctrl+U) ไว้ที่นี่..."></textarea>
+            <textarea id="sourceCode" placeholder="วาง Source Code HTML หรือ โค้ด JSON รกๆ ไว้ที่นี่ ระบบจะสแกนหาทุกลิงก์ให้เอง..."></textarea>
             <button class="btn btn-scan" onclick="startManualScan()"><i class="fas fa-microchip"></i> DECODE & EXTRACT</button>
         </div>
 
@@ -237,7 +238,7 @@
                         <i class="fas fa-mobile-alt"></i> คัดลอก Loader Code (สำหรับมือถือ)
                     </button>
                 </div>
-                <p style="font-size:0.85rem; color:#aaa; margin-top:15px;">ระบบคลีนโค้ดและเชื่อมต่อกับ GitHub โดยตรง 100%</p>
+                <p style="font-size:0.85rem; color:#aaa; margin-top:15px;">📌 เครื่องมือนี้คือ "กุญแจหลัก" ในการดูดรูปจากเว็บที่บล็อก Auto Scan อย่าง Facebook และ Pinterest ระบบถูกอัปเกรดให้เชื่อมต่อ GitHub อัตโนมัติ 100%</p>
             </div>
         </div>
 
@@ -276,7 +277,7 @@
 
     <div class="gallery" id="gallery"></div>
     
-    <div class="back-nav">
+    <div class="back-nav" style="margin-bottom: 30px;">
         <a href="index.html" class="btn-home"><i class="fas fa-home"></i> กลับหน้าหลัก</a>
     </div>
 
@@ -297,7 +298,7 @@
         let currentLbIndex = 0;
         let currentSizeFilter = 'all', currentTypeFilter = 'all';
 
-        // --- ระบบแจ้งเตือนปุ่ม UI ---
+        // --- ระบบแจ้งเตือนปุ่ม UI ให้มีความเสถียร ---
         function showTempSuccess(btnId, tempHtml, originalHtml, time = 2500) {
             const btn = document.getElementById(btnId);
             if(!btn) return;
@@ -326,7 +327,6 @@
             document.getElementById(`tab-${mode}`).classList.add('active');
         }
 
-        // --- ระบบฟิลเตอร์ (กรองรูป) ---
         function setSizeFilter(size, btn) {
             currentSizeFilter = size;
             document.querySelectorAll('#sizeFilters .filter-btn').forEach(b => b.classList.remove('active'));
@@ -358,7 +358,7 @@
 
         function updateStatusText() {
             const visibleCards = document.querySelectorAll('.img-card:not(.hidden-by-filter)');
-            document.getElementById('status').innerText = `พบทั้งหมด ${visibleCards.length} รูป (พร้อมดาวน์โหลด)`;
+            document.getElementById('status').innerText = `ค้นพบทั้งหมด ${visibleCards.length} รูป (พร้อมดาวน์โหลด)`;
         }
 
         function checkFileType(url, filter) {
@@ -373,21 +373,25 @@
             return false;
         }
 
-        // --- Core Engine: ตัวเจาะหาลิงก์แบบลึกขั้นสุด (Deep Scan) ---
+        // --- Core Engine อัปเกรด: โหดขึ้น เจาะทะลุ String และ JSON ทุุกรูปแบบ ---
         function extractImagesFromHtml(html, baseUrl) {
             let foundRaw = new Set(); 
             
-            // Regex 1: หาลิงก์รูปภาพในหน้าเว็บและใน JSON/Script (ทะลุ .js)
-            const urlRegex = /(?:https?:)?\/\/[^"'\s<>;&]+\.(?:jpg|jpeg|png|gif|webp|svg|ico|bmp|tiff)(?:\?[^"'\s<>]*)?/gi;
+            // Regex 1: เจาะหาลิงก์แบบดิบๆ ไม่สนแท็ก HTML (ทะลวงโค้ดที่ถูกซ่อนในสคริปต์ JSON)
+            // รองรับทั้งลิงก์ที่มี \/ แทน / (เช่นใน JSON ของ Next.js)
+            const urlRegex = /(?:https?:|\\\/\\\/|\/\/)[^\s"'<>;&\\]+\.(?:jpg|jpeg|png|gif|webp|svg|ico|bmp|tiff)(?:\?[^\s"'<>\\]*)?/gi;
             let match;
-            while ((match = urlRegex.exec(html)) !== null) foundRaw.add(match[0]);
+            while ((match = urlRegex.exec(html)) !== null) {
+                let cleanedMatch = match[0].replace(/\\/g, ''); // ลบ Blackslash ออก
+                foundRaw.add(cleanedMatch);
+            }
             
-            // Regex 2: ใช้ DOM Parse ทะลวงโครงสร้างแท็กต่างๆ
+            // Regex 2: เจาะหาผ่าน DOM Parser เผื่อมีอยู่ใน Attribute อื่นๆ
             try {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 doc.querySelectorAll('*').forEach(el => {
-                    ['src', 'data-src', 'data-original', 'data-lazy-src', 'data-srcset', 'href', 'srcset', 'imagesrcset', 'content'].forEach(attr => {
+                    ['src', 'data-src', 'data-original', 'data-lazy-src', 'data-srcset', 'href', 'srcset', 'imagesrcset', 'content', 'poster'].forEach(attr => {
                         let val = el.getAttribute(attr);
                         if (val) {
                             if (val.includes(',') && attr.includes('set')) {
@@ -397,7 +401,7 @@
                             }
                         }
                     });
-                    // ควานหาพื้นหลัง CSS
+                    // ควานหาจาก CSS Style ทั่วไป
                     let style = el.getAttribute('style');
                     if (style && style.includes('url(')) {
                         let m = style.match(/url\(['"]?([^'"()]+)['"]?\)/);
@@ -410,14 +414,19 @@
             foundRaw.forEach(url => {
                 if (!url || url.startsWith('data:')) return;
                 try {
-                    // แก้บัคลิงก์จาก JSON ที่มี \u002F
-                    url = url.trim().replace(/\\u002F/g, '/');
-                    if (url.includes('%')) try { url = decodeURIComponent(url); } catch(e){}
+                    url = url.trim();
+                    // แก้บัคการเข้ารหัส URL แปลกๆ
+                    if (url.includes('%')) {
+                        try { url = decodeURIComponent(url); } catch(e){}
+                    }
                     
-                    // แปลง Relative URL ให้เป็น Full URL แบบชาญฉลาด
+                    // เติมเต็ม Relative URL ให้สมบูรณ์
                     if (url.startsWith('//')) url = 'https:' + url;
                     else if (url.startsWith('/')) { 
-                        if(baseUrl) url = new URL(url, new URL(baseUrl).origin).href; 
+                        if(baseUrl) {
+                            let origin = new URL(baseUrl).origin;
+                            url = origin + url; 
+                        }
                     }
                     else if (!url.startsWith('http')) {
                         if(baseUrl) {
@@ -426,7 +435,7 @@
                         }
                     }
 
-                    // เจาะลิงก์ที่โดน Redirect ครอบไว้
+                    // สกัดลิงก์ที่โดนครอบด้วย Redirect
                     if (url.includes('url=')) {
                         try {
                             let dummy = new URL(url, 'http://d');
@@ -444,12 +453,12 @@
             return finalUrls;
         }
 
-        // --- ระบบ Proxy ขั้นสูง (สลับเซิร์ฟเวอร์อัตโนมัติ) ---
+        // --- ระบบ Proxy Chain ขั้นสูง (Failover) ---
         async function fetchHtmlSafe(url) {
             const proxies = [
+                'https://api.allorigins.win/raw?url=', // Proxy ที่เจาะทะลุได้ดีที่สุด
                 'https://api.codetabs.com/v1/proxy?quest=', 
-                'https://corsproxy.io/?',
-                'https://api.allorigins.win/raw?url='
+                'https://corsproxy.io/?'
             ];
             for (let p of proxies) {
                 try {
@@ -461,11 +470,15 @@
         }
 
         async function fetchImageSafe(url) {
-            const proxies = ['', 'https://api.codetabs.com/v1/proxy?quest=', 'https://corsproxy.io/?'];
+            const proxies = ['', 'https://api.codetabs.com/v1/proxy?quest=', 'https://corsproxy.io/?', 'https://api.allorigins.win/raw?url='];
             for (let px of proxies) {
                 try {
-                    const res = await fetch(px ? px + encodeURIComponent(url) : url, { signal: AbortSignal.timeout(6000) });
-                    if (res.ok) { let b = await res.blob(); if(b.size > 150) return b; }
+                    const target = px ? px + encodeURIComponent(url) : url;
+                    const res = await fetch(target, { signal: AbortSignal.timeout(6000) });
+                    if (res.ok) { 
+                        let b = await res.blob(); 
+                        if(b.size > 150 && !b.type.includes('text/html')) return b; 
+                    }
                 } catch (e) {}
             }
             return null;
@@ -474,26 +487,38 @@
         async function startAutoScan() {
             const url = document.getElementById('targetUrl').value;
             if (!url) return alert('กรุณาใส่ลิงก์เว็บไซต์');
+            
+            // เช็กเตือนล่วงหน้าสำหรับเว็บที่กันเหนียว
+            if(url.includes('facebook.com') || url.includes('pinterest.com') || url.includes('instagram.com')) {
+                const proceed = confirm("เว็บที่คุณใส่มีการบล็อกแบบรุนแรง (Facebook/Pinterest/IG) โหมด Auto Scan มักจะดึงภาพไม่ได้เพราะติดการล็อกอินหรือ SPA \n\nต้องการลองฝืนแสกนต่อหรือไม่?\n(แนะนำให้เปิดเว็บนั้นแล้วกดใช้ KIRITO PULL Bookmarklet แทน)");
+                if(!proceed) return;
+            }
+
             runScan(url, async () => await fetchHtmlSafe(url));
         }
 
         function startManualScan() {
             const url = document.getElementById('manualUrl').value;
             const code = document.getElementById('sourceCode').value;
-            if (!code) return alert('กรุณาวาง Source Code HTML');
+            if (!code) return alert('กรุณาวาง Source Code HTML หรือข้อความที่มีลิงก์');
             runScan(url, async () => code);
         }
 
         async function runScan(baseUrl, fetcher) {
             document.getElementById('gallery').innerHTML = '';
             document.getElementById('loader').style.display = 'block';
-            document.getElementById('status').innerText = "กำลังเจาะทะลวงระบบและดึงข้อมูล...";
+            document.getElementById('status').innerText = "กำลังเจาะทะลวงระบบและดึงข้อมูลลิงก์...";
             try {
                 const html = await fetcher();
                 allScannedImages = extractImagesFromHtml(html, baseUrl);
-                renderGallery();
+                
+                if(allScannedImages.length === 0) {
+                    document.getElementById('status').innerHTML = "❌ สแกนเสร็จสิ้น แต่ไม่พบรูปภาพ (อาจติดระบบป้องกัน SPA/React)<br>👉 กรุณาใช้ปุ่ม Bookmarklet แทนครับ";
+                } else {
+                    renderGallery();
+                }
             } catch (e) {
-                document.getElementById('status').innerHTML = "❌ ล้มเหลว: เว็บมีการป้องกันสูงมาก<br>👉 แนะนำให้ใช้โหมด Manual Code หรือใช้ Bookmarklet แทนครับ";
+                document.getElementById('status').innerHTML = "❌ ล้มเหลว: เซิร์ฟเวอร์เป้าหมายปฏิเสธการเชื่อมต่อ (CORS Blocked)<br>👉 กรุณาใช้ปุ่ม Bookmarklet แทนการใส่ลิงก์ตรงๆ ครับ";
             }
             document.getElementById('loader').style.display = 'none';
         }
@@ -506,7 +531,6 @@
             try { let m = urlStr.split('?')[0].match(/[-_](\d+)x(\d+)(?=\.[a-zA-Z0-9]+$)/i); return m ? parseInt(m[1])*parseInt(m[2]) : 0; } catch(e) { return 0; }
         }
 
-        // --- ระบบจัดการแกลเลอรี ---
         function renderGallery() {
             const gallery = document.getElementById('gallery');
             const allowDupes = document.getElementById('allowDuplicates').checked; 
@@ -543,7 +567,7 @@
                 img.src = src; img.loading = "lazy";
                 img.onerror = function() {
                     if(!this.retried) { this.retried = true; this.src = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(src); }
-                    else { card.style.display = 'none'; }
+                    else { card.style.display = 'none'; } // ซ่อนรูปที่ดึงไม่ได้จริงๆ ทิ้งไป
                 };
                 img.onload = function() {
                     card.setAttribute('data-width', this.naturalWidth);
@@ -559,7 +583,6 @@
                 const actions = document.createElement('div');
                 actions.className = 'img-actions';
                 
-                // ปุ่ม Action ด้านล่างรูป
                 actions.innerHTML = `
                     <button class="btn-icon btn-dl" title="โหลดภาพ" onclick="downloadSingle('${src}', this)"><i class="fas fa-download"></i></button>
                     <button class="btn-icon btn-copy-link" title="ก็อปปี้ลิงก์" onclick="copyText('${src}', this)"><i class="fas fa-link"></i></button>
@@ -573,24 +596,28 @@
             updateStatusText();
         }
 
-        // --- ระบบดาวน์โหลด & Copy สุดแกร่ง ---
+        // --- ฟังก์ชันแก้ไขปุ่มที่กดไม่ติด ---
         async function downloadSingle(url, btnElement) {
             let blob = await fetchImageSafe(url);
             if(blob) {
                 const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
                 a.download = `KIRITO_${Date.now()}.jpg`; a.click();
                 if(btnElement) showTempIcon(btnElement, 'fas fa-check', 'fas fa-download');
-            } else window.open(url, '_blank');
+            } else {
+                // ถ้าโหลดแบบแอบๆ ไม่ได้ ให้เด้งไปหน้าใหม่ให้ผู้ใช้เซฟเอง
+                window.open(url, '_blank');
+            }
         }
 
         function copyText(txt, btnElement) {
-            const t = document.createElement("textarea"); t.value = txt; 
-            t.style.position = 'fixed'; t.style.left = '-9999px';
-            document.body.appendChild(t); t.select();
-            try { 
-                document.execCommand('copy'); 
+            navigator.clipboard.writeText(txt).then(() => {
                 if(btnElement) showTempIcon(btnElement, 'fas fa-check', 'fas fa-link');
-            } catch(e){} document.body.removeChild(t);
+            }).catch(err => {
+                // เผื่อเบราว์เซอร์เก่า
+                const t = document.createElement("textarea"); t.value = txt; 
+                document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t);
+                if(btnElement) showTempIcon(btnElement, 'fas fa-check', 'fas fa-link');
+            });
         }
         
         async function copyImageToClipboard(url, btnElement) {
@@ -600,6 +627,8 @@
                 if(blob) {
                     await navigator.clipboard.write([new ClipboardItem({[blob.type]: blob})]);
                     if(btnElement) showTempIcon(btnElement, 'fas fa-check', 'fas fa-copy');
+                } else {
+                    alert("โดนบล็อกการดึงข้อมูลรูปภาพ กรุณาใช้วิธีดาวน์โหลดแทนครับ");
                 }
             } catch (e) { alert("เบราว์เซอร์ไม่รองรับการคัดลอกรูปภาพโดยตรง กรุณาใช้ปุ่มโหลดแทน"); }
         }
@@ -617,6 +646,7 @@
             }
         }
 
+        // --- ระบบดาวน์โหลด ZIP ที่ทนทาน ---
         async function downloadAll() {
             const checkedBoxes = Array.from(document.querySelectorAll('.chk-select:checked'));
             if(checkedBoxes.length === 0) return alert('กรุณาเลือกรูปภาพอย่างน้อย 1 รูป');
@@ -637,7 +667,7 @@
 
                 const worker = async (url, idx) => {
                     let blob = await fetchImageSafe(url);
-                    if (blob) {
+                    if (blob) { // ถ้าดึงรูปได้ ค่อยใส่ ZIP (แก้บัค ZIP ค้าง)
                         let fname = url.split('/').pop().split(/[#?]/)[0];
                         try { fname = decodeURIComponent(fname); } catch(e){}
                         let ext = fname.split('.').pop().toLowerCase();
@@ -645,24 +675,26 @@
                         zip.file(`KIRITO_${Date.now()}_${idx.toString().padStart(3,'0')}.${ext}`, blob);
                         successCount++;
                     }
-                    let pct = Math.round((successCount / images.length) * 100);
+                    // อัปเดต Progress Bar
+                    let processed = idx + 1;
+                    let pct = Math.round((processed / images.length) * 100);
                     progBar.style.width = pct + '%';
                     progBar.innerText = `บรรจุไฟล์: ${successCount} / ${images.length} (${pct}%)`;
                 };
 
-                // จำกัดความเร็วโหลดพร้อมกัน 10 ไฟล์เพื่อกันเน็ตตัด
-                for (let i = 0; i < images.length; i += 10) {
-                    const chunk = images.slice(i, i + 10);
-                    await Promise.all(chunk.map((url, idx) => worker(url, i + idx)));
+                // จำกัดความเร็วโหลดพร้อมกัน 5 ไฟล์ต่อชุด กัน Proxy โดนแบน
+                for (let i = 0; i < images.length; i += 5) {
+                    const chunk = images.slice(i, i + 5);
+                    await Promise.all(chunk.map((url, indexOffset) => worker(url, i + indexOffset)));
                 }
 
                 if(successCount > 0) {
-                    progBar.innerText = 'กำลังสร้างไฟล์ ZIP...';
+                    progBar.innerText = 'กำลังสร้างไฟล์ ZIP สุดท้าย...';
                     const content = await zip.generateAsync({type:"blob"});
                     const a = document.createElement('a');
                     a.href = URL.createObjectURL(content); a.download = `KIRITO_PACK_${Date.now()}.zip`; a.click();
                     showTempSuccess('btn-dl-all', `<i class="fas fa-check"></i> สำเร็จ (${successCount} รูป)`, originalText, 4000);
-                } else alert('โดนระบบป้องกันบล็อกการดาวน์โหลดทั้งหมด');
+                } else alert('ล้มเหลว: โดนระบบป้องกันของเว็บต้นทางบล็อกทั้งหมด');
                 
             } catch(e) { alert('ZIP ERROR: มีปัญหาขัดข้องขณะแพ็กไฟล์'); }
 
@@ -672,14 +704,12 @@
 
         function copyMobileCode() {
             const shortCode = `javascript:(function(){var s=document.createElement('script');s.src='https://prthachnu999.github.io/My-Personal-Space/kiritopull.js?v='+Date.now();document.body.appendChild(s);})();`;
-            const t = document.createElement("textarea"); t.value = shortCode; 
-            t.style.position = 'fixed'; t.style.left = '-9999px';
-            document.body.appendChild(t); t.select();
-            try { 
-                document.execCommand('copy'); 
-                showTempSuccess('btn-copy-mobile', '<i class="fas fa-check"></i> คัดลอกแล้ว นำไปวางแก้ในบุคมาร์กได้เลย', '<i class="fas fa-mobile-alt"></i> คัดลอก Loader Code (สำหรับมือถือ)', 4000);
-            } catch (err) {}
-            document.body.removeChild(t);
+            navigator.clipboard.writeText(shortCode).then(() => {
+                showTempSuccess('btn-copy-mobile', '<i class="fas fa-check"></i> คัดลอกแล้ว นำไปวางในบุคมาร์กได้เลย', '<i class="fas fa-mobile-alt"></i> คัดลอก Loader Code (สำหรับมือถือ)', 4000);
+            }).catch(err => {
+                const t = document.createElement("textarea"); t.value = shortCode; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t);
+                showTempSuccess('btn-copy-mobile', '<i class="fas fa-check"></i> คัดลอกแล้ว', '<i class="fas fa-mobile-alt"></i> คัดลอก Loader Code (สำหรับมือถือ)', 4000);
+            });
         }
 
         // ==========================================
@@ -709,7 +739,7 @@
         }
 
         function updateTransform() { 
-            // แก้บัครูปลอย: ถ้าขนาดปกติ (หรือต่ำกว่า) ให้จัดเข้าตรงกลางทันที
+            // แก้บัครูปลอย: ถ้าขนาดปกติ ให้ล็อกพิกัดไว้ตรงกลางเป๊ะๆ ห้ามขยับ
             if(scale <= 1) { scale = 1; tx = 0; ty = 0; }
             lbImg.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`; 
         }
@@ -738,11 +768,11 @@
             isDragging = false; 
             lbImg.classList.remove('grabbing'); 
             
-            // ปัดเปลี่ยนรูปด้วยเมาส์
+            // ปัดเปลี่ยนรูปด้วยเมาส์ (ซ้าย-ขวา)
             if(scale === 1 && isSwiping) {
                 let diffX = e.clientX - startTouchX;
-                if(diffX < -60) navLb(1); 
-                else if(diffX > 60) navLb(-1);
+                if(diffX < -70) navLb(1); 
+                else if(diffX > 70) navLb(-1);
                 isSwiping = false;
             }
         });
@@ -767,13 +797,13 @@
                 initialPinchScale = scale;
             } else if(e.touches.length === 1) {
                 if(scale > 1) {
-                    // โหมดลาก (Pan) เมื่อรูปซูมอยู่
+                    // โหมดแพนกล้องเมื่อซูม
                     isDragging = true;
                     isSwiping = false;
                     startX = e.touches[0].clientX - tx;
                     startY = e.touches[0].clientY - ty;
                 } else {
-                    // โหมดเตรียมปัด (Swipe) เมื่อรูปขนาดปกติ
+                    // โหมดปัดเมื่อขนาดปกติ
                     startTouchX = e.touches[0].clientX;
                     isSwiping = true;
                     isDragging = false;
@@ -783,20 +813,20 @@
 
         lightbox.addEventListener('touchmove', (e) => {
             if(e.touches.length === 2 && initialPinchDist) {
-                // โหมดซูม
+                // ซูมเข้าออก
                 e.preventDefault();
                 const currentDist = getDist(e.touches);
                 scale = initialPinchScale * (currentDist / initialPinchDist);
                 updateTransform();
             } else if (e.touches.length === 1) {
                 if (scale > 1 && isDragging) {
-                    // โหมดลาก (ขยับพิกัด)
+                    // เลื่อนดูรูปที่ซูม
                     e.preventDefault();
                     tx = e.touches[0].clientX - startX;
                     ty = e.touches[0].clientY - startY;
                     updateTransform();
                 } else if (scale === 1 && isSwiping) {
-                    // โหมดปัด (บล็อกการเลื่อนหน้าจอ)
+                    // บล็อกหน้าจอไม่ให้เลื่อนตามตอนจะปัดซ้ายขวา
                     e.preventDefault(); 
                 }
             }
@@ -806,7 +836,7 @@
             if(e.touches.length < 2) initialPinchDist = null;
             if(e.touches.length === 0) {
                 if (scale === 1 && isSwiping) {
-                    // ประมวลผลการปัดเปลี่ยนรูปเมื่อยกนิ้ว
+                    // ประมวลผลว่าปัดซ้ายหรือขวา ตอนปล่อยนิ้ว
                     let diffX = e.changedTouches[0].clientX - startTouchX;
                     if(diffX < -50) navLb(1); 
                     else if(diffX > 50) navLb(-1);
