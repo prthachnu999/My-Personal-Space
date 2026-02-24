@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Personal Space - System Hub</title>
+    <title>Porathat_012 - System Hub</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000000">
@@ -23,7 +23,7 @@
             --font-main: 'Sarabun', sans-serif;
             --font-tech: 'Orbitron', sans-serif;
             --system-green: #39ff14;
-            --alert-red: #ff3333; /* สีแดงสำหรับ Downloader */
+            --alert-red: #ff3333; 
         }
 
         body {
@@ -41,74 +41,141 @@
             box-sizing: border-box;
             user-select: none;
             background-image: 
+                radial-gradient(circle at 50% 50%, #0d1b2a 0%, #000000 100%),
                 linear-gradient(rgba(0, 242, 255, 0.03) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(0, 242, 255, 0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+        }
+
+        /* Scanline Effect */
+        body::after {
+            content: " "; display: block; position: fixed; top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            z-index: 2; background-size: 100% 2px, 3px 100%; pointer-events: none;
         }
 
         .container {
             text-align: center;
             z-index: 10;
-            max-width: 450px;
+            max-width: 500px;
             width: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(10px);
-            padding: 30px 25px;
-            border: 1px solid rgba(0, 242, 255, 0.1);
-            border-radius: 15px;
-            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+            background: rgba(5, 10, 15, 0.85);
+            backdrop-filter: blur(15px);
+            padding: 40px 30px 30px 30px;
+            border: 1px solid rgba(0, 242, 255, 0.2);
+            border-radius: 12px;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(0, 242, 255, 0.05);
             position: relative;
             overflow: hidden;
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
         }
 
         .container::before {
             content: '';
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 2px;
-            background: linear-gradient(90deg, transparent, var(--glow-color), transparent);
+            top: 0; left: 0; width: 100%; height: 3px;
+            background: linear-gradient(90deg, transparent, var(--glow-color), var(--secondary-glow), transparent);
         }
 
+        /* --- Header Status Elements --- */
+        .system-status {
+            position: absolute;
+            top: 15px; left: 20px;
+            font-family: var(--font-tech);
+            font-size: 0.65rem;
+            color: var(--system-green);
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .system-status .pulse {
+            width: 6px; height: 6px; background: var(--system-green); border-radius: 50%;
+            box-shadow: 0 0 8px var(--system-green);
+            animation: blink 1.5s infinite;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        .system-clock {
+            position: absolute;
+            top: 15px; right: 20px;
+            font-family: var(--font-tech);
+            font-size: 0.75rem;
+            color: var(--glow-color);
+            letter-spacing: 2px;
+            text-shadow: 0 0 5px var(--glow-color);
+        }
+
+        /* --- Profile & Title --- */
         .profile-img {
-            width: 120px;
-            height: 120px;
+            width: 110px;
+            height: 110px;
             object-fit: cover;
             border-radius: 50%;
             border: 2px solid var(--glow-color);
-            filter: drop-shadow(0 0 15px rgba(0, 242, 255, 0.4)); 
+            filter: drop-shadow(0 0 15px rgba(0, 242, 255, 0.3)); 
             margin-bottom: 15px;
-            transition: transform 0.3s ease;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .profile-img:hover {
-            transform: scale(1.05) rotate(5deg);
+            transform: scale(1.1) rotate(5deg);
+            filter: drop-shadow(0 0 25px rgba(0, 242, 255, 0.6)); 
         }
 
         h1 {
             font-family: var(--font-tech);
-            font-size: 1.5rem;
+            font-size: 1.6rem;
+            margin-top: 0;
             margin-bottom: 5px;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
             background: linear-gradient(to right, #ffffff, var(--glow-color));
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
             color: transparent;
-            filter: drop-shadow(0 0 10px rgba(0, 242, 255, 0.5));
+            filter: drop-shadow(0 0 8px rgba(0, 242, 255, 0.4));
         }
 
-        p {
-            font-size: 0.8rem;
-            margin-bottom: 25px;
+        p.subtitle {
+            font-size: 0.75rem;
+            margin-top: 0;
+            margin-bottom: 20px;
             color: #8daab9;
             font-family: var(--font-tech);
-            letter-spacing: 1px;
+            letter-spacing: 2px;
         }
 
+        /* --- Hardware Specs Bar --- */
+        .hardware-specs {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            background: rgba(0, 242, 255, 0.05);
+            border: 1px solid rgba(0, 242, 255, 0.2);
+            padding: 8px 15px;
+            border-radius: 4px;
+            margin-bottom: 25px;
+            font-family: var(--font-tech);
+            font-size: 0.65rem;
+            color: #b0c4de;
+            flex-wrap: wrap;
+        }
+        .hardware-specs span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .hardware-specs i {
+            color: var(--glow-color);
+        }
+
+        /* --- Menu Grid --- */
         .menu-grid {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
         }
 
         .link-btn {
@@ -117,8 +184,8 @@
             justify-content: space-between;
             text-decoration: none;
             color: #fff;
-            background: rgba(0, 242, 255, 0.05);
-            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 12px 18px;
             font-size: 0.9rem;
             font-weight: bold;
             border: 1px solid rgba(0, 242, 255, 0.3);
@@ -128,46 +195,45 @@
             overflow: hidden;
         }
 
+        .link-btn::before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: 0.5s;
+        }
+
+        .link-btn:hover::before { left: 100%; }
+
         .link-btn:hover {
-            background: rgba(0, 242, 255, 0.15);
-            border-color: var(--glow-color);
             transform: translateX(5px);
-            box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
+            background: rgba(0, 242, 255, 0.1);
         }
 
         /* --- Specific Button Colors --- */
-        .btn-dark-repulser { border-color: #00f2ff; }
-        .btn-dark-repulser:hover { box-shadow: 0 0 15px rgba(0, 242, 255, 0.4); }
+        .btn-dark-repulser { border-left: 4px solid #00f2ff; border-color: rgba(0, 242, 255, 0.3); }
+        .btn-dark-repulser i { color: #00f2ff; }
+        .btn-dark-repulser:hover { box-shadow: 0 0 15px rgba(0, 242, 255, 0.3); border-color: #00f2ff; }
 
-        .btn-elucidator { border-color: #9b72cb; }
+        .btn-elucidator { border-left: 4px solid #9b72cb; border-color: rgba(155, 114, 203, 0.3); }
         .btn-elucidator i { color: #9b72cb; }
-        .btn-elucidator:hover { box-shadow: 0 0 15px rgba(155, 114, 203, 0.4); border-color: #9b72cb; background: rgba(155, 114, 203, 0.15); }
+        .btn-elucidator:hover { box-shadow: 0 0 15px rgba(155, 114, 203, 0.3); border-color: #9b72cb; background: rgba(155, 114, 203, 0.15); }
 
-        .btn-watermark { border-color: #f97316; }
+        .btn-watermark { border-left: 4px solid #f97316; border-color: rgba(249, 115, 22, 0.3); }
         .btn-watermark i { color: #f97316; }
-        .btn-watermark:hover { box-shadow: 0 0 15px rgba(249, 115, 22, 0.4); border-color: #f97316; background: rgba(249, 115, 22, 0.15); }
+        .btn-watermark:hover { box-shadow: 0 0 15px rgba(249, 115, 22, 0.3); border-color: #f97316; background: rgba(249, 115, 22, 0.15); }
 
-        .btn-system-call { border-color: var(--system-green); }
+        .btn-system-call { border-left: 4px solid var(--system-green); border-color: rgba(57, 255, 20, 0.3); }
         .btn-system-call i { color: var(--system-green); }
-        .btn-system-call:hover { 
-            box-shadow: 0 0 15px rgba(57, 255, 20, 0.4); 
-            border-color: var(--system-green); 
-            background: rgba(57, 255, 20, 0.15); 
-        }
+        .btn-system-call:hover { box-shadow: 0 0 15px rgba(57, 255, 20, 0.3); border-color: var(--system-green); background: rgba(57, 255, 20, 0.15); }
 
-        /* --- ปุ่ม Downloader (สีแดง) --- */
-        .btn-downloader { border-color: var(--alert-red); }
+        .btn-downloader { border-left: 4px solid var(--alert-red); border-color: rgba(255, 51, 51, 0.3); }
         .btn-downloader i { color: var(--alert-red); }
-        .btn-downloader:hover { 
-            box-shadow: 0 0 15px rgba(255, 51, 51, 0.4); 
-            border-color: var(--alert-red); 
-            background: rgba(255, 51, 51, 0.15); 
-        }
+        .btn-downloader:hover { box-shadow: 0 0 15px rgba(255, 51, 51, 0.3); border-color: var(--alert-red); background: rgba(255, 51, 51, 0.15); }
 
         .btn-icon {
-            font-size: 1.1rem;
-            width: 25px;
+            font-size: 1.2rem;
+            width: 30px;
             text-align: center;
+            filter: drop-shadow(0 0 5px currentColor);
         }
 
         .btn-text {
@@ -177,69 +243,130 @@
             font-family: var(--font-tech);
             letter-spacing: 0.5px;
             font-size: 0.75rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .btn-subtext {
+            font-family: var(--font-main);
+            font-size: 0.65rem;
+            color: #8daab9;
+            font-weight: normal;
+            margin-top: 2px;
+            letter-spacing: 0;
         }
 
         .status-dot {
-            width: 6px;
-            height: 6px;
+            width: 8px;
+            height: 8px;
             background: #333;
             border-radius: 50%;
             box-shadow: 0 0 5px #333;
+            transition: all 0.3s;
         }
 
         .link-btn:hover .status-dot {
-            background: #0f0;
-            box-shadow: 0 0 8px #0f0;
+            background: var(--system-green);
+            box-shadow: 0 0 8px var(--system-green);
         }
 
+        @media (max-width: 480px) {
+            .hardware-specs { flex-direction: column; gap: 8px; align-items: center; }
+            .btn-text { font-size: 0.65rem; }
+            .btn-subtext { font-size: 0.55rem; }
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <img src="คิรโตะธีมดำ.jpg" alt="Profile Image" class="profile-img">
+        <!-- Status & Clock -->
+        <div class="system-status">
+            <div class="pulse"></div> ONLINE: Porathat_012
+        </div>
+        <div class="system-clock" id="live-clock">00:00:00</div>
 
-        <h1>Personal Space</h1>
-        <p>SYSTEM ACCESS PORTAL</p>
+        <!-- Profile -->
+        <img src="คิรโตะธีมดำ.jpg" alt="Profile Image" class="profile-img" onerror="this.src='คิริโตะ.jpg'">
 
+        <h1>SYSTEM HUB</h1>
+        <p class="subtitle">MASTER CONTROL PORTAL</p>
+
+        <!-- Hardware Specs (Lenovo LOQ) -->
+        <div class="hardware-specs">
+            <span title="Device Model"><i class="fas fa-laptop"></i> LENOVO LOQ 15</span>
+            <span title="Processor"><i class="fas fa-microchip"></i> i5-12450HX</span>
+            <span title="Graphics"><i class="fas fa-gamepad"></i> RTX 3050</span>
+            <span title="Memory"><i class="fas fa-memory"></i> 12GB DDR5</span>
+        </div>
+
+        <!-- Application Links -->
         <div class="menu-grid">
+
             <a href="DARK REPULSER.html" class="link-btn btn-dark-repulser">
-                <i class="fas fa-bolt btn-icon" style="color: #00f2ff;"></i>
-                <span class="btn-text">DARK REPULSER - ( ระบบเปลี่ยนชื่อไฟล์ )</span>
+                <i class="fas fa-bolt btn-icon"></i>
+                <div class="btn-text">
+                    DARK REPULSER
+                    <span class="btn-subtext">( ระบบเปลี่ยนชื่อไฟล์ )</span>
+                </div>
                 <span class="status-dot"></span>
             </a>
-
+            
             <a href="WATERMARK MASTER.html" class="link-btn btn-watermark">
                 <i class="fas fa-copyright btn-icon"></i>
-                <span class="btn-text">WATERMARK TITANIUM - ( ระบบประทับลายน้ำ )</span>
+                <div class="btn-text">
+                    WATERMARK TITANIUM
+                    <span class="btn-subtext">( ระบบประทับลายน้ำ )</span>
+                </div>
                 <span class="status-dot"></span>
             </a>
 
             <a href="ELUCIDATOR.html" class="link-btn btn-elucidator">
-                <i class="fas fa-image btn-icon"></i>
-                <span class="btn-text">ELUCIDATOR - ( ระบบแปลงรูป -> ไฟล์ )</span>
+                <i class="fas fa-images btn-icon"></i>
+                <div class="btn-text">
+                    ELUCIDATOR 
+                    <span class="btn-subtext">( ระบบแปลงรูป -> ไฟล์ | Ultimate V4.5 )</span>
+                </div>
                 <span class="status-dot"></span>
             </a>
 
             <a href="SYSTEM CALL.html" class="link-btn btn-system-call">
-                <i class="fas fa-microchip btn-icon"></i>
-                <span class="btn-text">SYSTEM CALL - ( ระบบแปลงไฟล์ -> รูป )</span>
+                <i class="fas fa-file-export btn-icon"></i>
+                <div class="btn-text">
+                    SYSTEM CALL 
+                    <span class="btn-subtext">( ระบบแปลงไฟล์ -> รูป | Batch V2.0 )</span>
+                </div>
                 <span class="status-dot"></span>
             </a>
 
             <a href="downloader.html" class="link-btn btn-downloader">
                 <i class="fas fa-cloud-download-alt btn-icon"></i>
-                <span class="btn-text">KIRITO DOWNLOADER - ( ระบบดูดรูปภาพ )</span>
+                <div class="btn-text">
+                    KIRITO DOWNLOADER
+                    <span class="btn-subtext">( ระบบดูดรูปภาพบนเว็บไซต์ )</span>
+                </div>
                 <span class="status-dot"></span>
             </a>
             
-            <a href="https://prthachnu999.github.io/LinkStar_Universal/" class="link-btn" style="margin-top: 5px; border-style: dashed; opacity: 0.7; padding: 8px 15px;">
-                <i class="fas fa-globe btn-icon"></i>
-                <span class="btn-text">LinkStar Universal (Web)</span>
-                <i class="fas fa-external-link-alt text-xs"></i>
+            <a href="https://prthachnu999.github.io/LinkStar_Universal/" class="link-btn" style="margin-top: 8px; border-style: dashed; opacity: 0.7; padding: 10px 18px; border-left: 1px dashed rgba(0, 242, 255, 0.3);">
+                <i class="fas fa-globe btn-icon" style="color: #fff;"></i>
+                <div class="btn-text">
+                    LinkStar Universal (Web)
+                </div>
+                <i class="fas fa-external-link-alt" style="font-size: 0.7rem;"></i>
             </a>
         </div>
     </div>
 
+    <!-- Clock Script -->
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('th-TH', { hour12: false });
+            document.getElementById('live-clock').innerText = timeString;
+        }
+        setInterval(updateClock, 1000);
+        updateClock(); // Initial call
+    </script>
 </body>
 </html>
