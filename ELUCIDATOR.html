@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Link Start! - Elucidator System V3.1 [Batch & Sort]</title>
+    <title>Link Start! - Elucidator System V4.5 [Ultimate Batch]</title>
     
     <meta name="theme-color" content="#000000">
 
@@ -27,12 +27,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/heic2any/0.0.4/heic2any.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
     
     <style>
         :root {
             --neon-blue: #00d2ff;
             --neon-purple: #9b72cb;
             --neon-green: #00ff64;
+            --neon-orange: #ff9900;
             --bg-dark: #010409;
             --panel-bg: rgba(13, 17, 23, 0.95);
             --grid-color: rgba(0, 210, 255, 0.05);
@@ -87,9 +94,15 @@
             color: #000;
             box-shadow: 0 0 15px var(--neon-blue);
         }
+        .btn-sao:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-color: gray;
+            color: gray;
+        }
 
         .btn-secondary { border-color: var(--neon-purple); color: var(--neon-purple); }
-        .btn-secondary:hover:not(:disabled) { background: var(--neon-purple); box-shadow: 0 0 15px var(--neon-purple); }
+        .btn-secondary:hover:not(:disabled) { background: var(--neon-purple); box-shadow: 0 0 15px var(--neon-purple); color: #fff;}
 
         .drop-zone {
             border: 2px dashed rgba(0, 210, 255, 0.3);
@@ -102,13 +115,24 @@
             box-shadow: inset 0 0 20px rgba(0, 210, 255, 0.2);
         }
 
+        /* Global Drop Overlay - CSS FIXED */
+        #global-drop-overlay {
+            position: fixed; inset: 0; z-index: 9999;
+            background: rgba(0, 210, 255, 0.15);
+            backdrop-filter: blur(3px);
+            border: 4px dashed var(--neon-blue);
+            display: none; justify-content: center; align-items: center;
+            flex-direction: column; pointer-events: none;
+        }
+        #global-drop-overlay.active { display: flex; }
+
         select, input[type="text"], input[type="number"] {
             background: rgba(0,0,0,0.8);
             border: 1px solid rgba(255,255,255,0.2);
             color: white;
             font-family: 'Sarabun', sans-serif;
         }
-        select:focus, input:focus { border-color: var(--neon-blue); outline: none; }
+        select:focus, input:focus { border-color: var(--neon-blue); outline: none; box-shadow: 0 0 5px var(--neon-blue); }
 
         .sao-check {
             appearance: none; width: 16px; height: 16px;
@@ -148,25 +172,37 @@
             background: rgba(155, 114, 203, 0.2);
             box-shadow: 0 0 15px var(--neon-purple);
         }
+        
+        .file-tag { font-size: 0.5rem; padding: 1px 4px; border-radius: 2px; margin-left: 5px; text-transform: uppercase; font-weight: bold; font-family: 'Orbitron'; border: 1px solid; }
+        .tag-img { background: rgba(0, 210, 255, 0.1); color: var(--neon-blue); border-color: var(--neon-blue); }
+        .tag-doc { background: rgba(255, 153, 0, 0.1); color: var(--neon-orange); border-color: var(--neon-orange); }
+        .tag-pdf { background: rgba(255, 0, 0, 0.1); color: #ff4444; border-color: #ff4444; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
+    <!-- Global Drop Overlay -->
+    <div id="global-drop-overlay">
+        <i class="fas fa-satellite-dish text-6xl text-blue-400 mb-4 animate-ping"></i>
+        <h2 class="font-tech text-3xl text-white tracking-widest" style="text-shadow: 0 0 15px var(--neon-blue);">DROP FILES TO UPLOAD</h2>
+        <p class="font-thai text-blue-300 mt-2">ปล่อยเมาส์เพื่อนำเข้าสู่ระบบ</p>
+    </div>
+
     <header class="w-full bg-black/80 border-b border-blue-900 sticky top-0 z-50 backdrop-blur-md">
         <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 border border-blue-400 rounded-full flex items-center justify-center animate-pulse">
+                <div class="w-8 h-8 border border-blue-400 rounded-full flex items-center justify-center animate-pulse shadow-[0_0_10px_var(--neon-blue)]">
                     <i class="fas fa-bolt text-blue-400"></i>
                 </div>
                 <div>
                     <h1 class="font-tech text-xl md:text-2xl font-bold italic tracking-tighter text-white">
-                        ELUCIDATOR <span class="text-green-400">V3.1</span>
+                        ELUCIDATOR <span class="text-green-400">V4.5</span>
                     </h1>
-                    <p class="text-[9px] text-blue-400 font-tech tracking-[0.1em] uppercase">Batch Processing System [Sort & Split]</p>
+                    <p class="text-[9px] text-blue-400 font-tech tracking-[0.1em] uppercase">Ultimate Batch System [Compact Edition]</p>
                 </div>
             </div>
             <div class="text-right hidden sm:block">
-                <div class="text-[10px] text-gray-500 font-tech mb-1">SYSTEM ONLINE</div>
+                <div class="text-[10px] text-gray-500 font-tech mb-1">SYSTEM ONLINE | Porathat_012</div>
                 <div class="w-32 h-1 bg-gray-800">
                     <div class="h-full bg-green-500 w-full shadow-[0_0_5px_#00ff64]"></div>
                 </div>
@@ -174,165 +210,191 @@
         </div>
     </header>
 
-    <main class="flex-grow p-4 md:p-8 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <main class="flex-grow p-4 md:p-6 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        <aside class="lg:col-span-4 space-y-6">
+        <!-- Left Column: Controls (Now more compact) -->
+        <aside class="lg:col-span-4 flex flex-col gap-4">
+            
             <!-- INPUT PANEL -->
-            <div class="sao-panel p-6">
-                <h3 class="font-tech text-sm text-blue-300 mb-2 uppercase flex items-center gap-2">
-                    <i class="fas fa-upload"></i> INPUT STREAM (นำเข้า)
-                </h3>
+            <div class="sao-panel p-5">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-tech text-sm text-blue-300 uppercase flex items-center gap-2">
+                        <i class="fas fa-upload"></i> INPUT STREAM
+                    </h3>
+                    <button onclick="document.getElementById('file-input').click()" class="text-[10px] text-blue-400 hover:text-white font-thai underline cursor-pointer">
+                        เลือกไฟล์ (Browse)
+                    </button>
+                </div>
                 <div class="sao-header-line"></div>
-                <div id="drop-zone" class="drop-zone p-8 text-center cursor-pointer relative overflow-hidden group" onclick="document.getElementById('file-input').click()">
-                    <input type="file" id="file-input" multiple accept="image/*,.zip,application/zip,application/x-zip-compressed" class="hidden" onchange="handleFiles(this.files)">
+                <div id="drop-zone" class="drop-zone p-4 text-center cursor-pointer relative overflow-hidden group" onclick="document.getElementById('file-input').click()">
+                    <input type="file" id="file-input" multiple accept="image/*,.zip,.heic,.pdf,.docx,.xlsx,.pptx,application/zip,application/x-zip-compressed" class="hidden" onchange="handleFiles(this.files)">
                     <div class="absolute inset-0 bg-blue-500/5 translate-y-[-100%] group-hover:translate-y-0 transition-transform duration-500"></div>
-                    <i class="fas fa-folder-open text-4xl text-gray-400 mb-3 group-hover:text-blue-400 transition-colors"></i>
-                    <p class="text-sm font-bold text-gray-300 font-thai">คลิก หรือ ลากไฟล์วางที่นี่</p>
-                    <p class="text-[9px] text-gray-500 mt-2 font-tech">SUPPORT: JPG, PNG, WEBP, <span class="text-purple-400">ZIP</span></p>
+                    <i class="fas fa-cloud-upload-alt text-3xl text-gray-500 mb-2 group-hover:text-blue-400 transition-colors"></i>
+                    <p class="text-xs font-bold text-gray-300 font-thai">ลากไฟล์วางที่นี่</p>
+                    <p class="text-[8px] text-gray-500 mt-1 font-tech">JPG, PNG, WEBP, HEIC, PDF, ZIP, OFFICE</p>
                 </div>
             </div>
 
-            <!-- CONFIG PANEL -->
-            <div class="sao-panel p-6 border-t-2 border-purple-500">
+            <!-- CORE CONFIG & MODULES (Merged & Grid for compactness) -->
+            <div class="sao-panel p-5 border-t-2 border-purple-500">
                 <div class="flex justify-between items-center mb-2">
                     <h3 class="font-tech text-sm text-purple-300 uppercase flex items-center gap-2">
-                        <i class="fas fa-cogs"></i> CONFIGURATION (ตั้งค่า)
+                        <i class="fas fa-sliders-h"></i> PARAMETERS
                     </h3>
-                    <button onclick="reqResetConfig()" class="text-[10px] text-gray-400 hover:text-white border border-gray-600 px-2 py-1 rounded hover:bg-gray-700 transition-colors font-thai">
-                        ↺ รีเซ็ตค่า
+                    <button onclick="reqResetConfig()" class="text-[10px] text-gray-400 hover:text-white px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 transition-colors font-thai">
+                        <i class="fas fa-sync-alt"></i> รีเซ็ต
                     </button>
                 </div>
                 <div class="sao-header-line" style="background: linear-gradient(90deg, var(--neon-purple), transparent);"></div>
-                <div class="space-y-4">
+                
+                <!-- Grid Container for compact layout -->
+                <div class="grid grid-cols-2 gap-3">
+                    
+                    <!-- Format -->
                     <div>
-                        <label class="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Target Format (นามสกุล)</label>
-                        <select id="target-format" class="w-full p-2 text-xs font-thai rounded-sm" onchange="updateOptions()">
-                            <option value="jpeg">JPG Image (ภาพถ่ายทั่วไป)</option>
-                            <option value="png">PNG Image (พื้นหลังใส)</option>
-                            <option value="webp">WEBP (เว็บสมัยใหม่)</option>
-                            <option value="favicon">Favicon (ไอคอนเว็บ 64px)</option>
-                            <option value="pdf">PDF Document (ขนาดตามรูป)</option>
-                            <option value="base64">Base64 Code (รหัสข้อความ)</option>
+                        <label class="text-[9px] font-bold text-gray-400 uppercase mb-1 block">Output Format</label>
+                        <select id="target-format" class="w-full p-1.5 text-[11px] font-tech rounded-sm" onchange="updateOptions()">
+                            <option value="jpeg">JPG Image</option>
+                            <option value="png">PNG Image</option>
+                            <option value="webp">WEBP Image</option>
+                            <option value="bmp">BMP Raw</option>
+                            <option value="avif">AVIF High</option>
+                            <option value="favicon">Favicon (.ico)</option>
+                            <option value="pdf">PDF Doc</option>
+                            <option value="base64">Base64 Txt</option>
                         </select>
                     </div>
 
+                    <!-- Quality -->
                     <div id="quality-control">
                         <div class="flex justify-between mb-1">
-                            <label class="text-[10px] font-bold text-gray-400 uppercase">Quality (คุณภาพ)</label>
-                            <span id="quality-val" class="text-[10px] text-blue-400 font-mono">90%</span>
+                            <label class="text-[9px] font-bold text-gray-400 uppercase">Quality</label>
+                            <span id="quality-val" class="text-[9px] text-blue-400 font-mono">90%</span>
                         </div>
-                        <input type="range" id="quality" min="10" max="100" value="90" class="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer" oninput="document.getElementById('quality-val').innerText = this.value + '%'">
+                        <input type="range" id="quality" min="10" max="100" value="90" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer mt-1" oninput="document.getElementById('quality-val').innerText = this.value + '%'">
                     </div>
 
-                    <!-- Batch / Chunk Options -->
-                    <div class="bg-black/40 p-2 border border-gray-800 rounded">
-                        <div class="flex justify-between items-center mb-1">
-                            <label class="text-[10px] font-bold text-purple-400 uppercase"><i class="fas fa-boxes"></i> Batch Save (แบ่งเซฟ)</label>
-                            <span class="text-[9px] text-gray-500">จำนวนรูปต่อ 1 ไฟล์ (ZIP/PDF)</span>
-                        </div>
-                        <input type="number" id="batch-size" placeholder="ใส่จำนวน (ว่าง = ไม่แบ่ง)" min="1" class="w-full p-1 text-[10px]">
-                        <p class="text-[8px] text-gray-500 mt-1 font-thai">*เช่น ใส่ 10 เพื่อแบ่งไฟล์ละ 10 รูป</p>
-                    </div>
-
-                    <div id="pdf-options" class="hidden p-3 bg-black/40 border border-gray-700">
-                        <label class="flex items-center gap-2 text-[11px] text-gray-300 cursor-pointer">
-                            <input type="checkbox" id="pdf-one-file" class="sao-check" checked>
-                            <span class="font-thai">รวมเป็น PDF ไฟล์เดียว (ใช้ Batch แบ่งได้)</span>
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- EXTENSION MODULES -->
-            <div class="sao-panel p-6 border-t-2 border-green-500">
-                <h3 class="font-tech text-sm text-green-400 uppercase flex items-center gap-2 mb-3">
-                    <i class="fas fa-microchip"></i> MODULES_EXT (เสริม)
-                </h3>
-                
-                <div class="space-y-3">
                     <!-- Resize -->
-                    <div class="bg-black/40 p-2 border border-gray-800 rounded">
-                        <div class="flex items-center justify-between mb-2">
-                            <label class="text-[10px] font-bold text-gray-400 uppercase"><i class="fas fa-compress-arrows-alt"></i> Resize (ปรับขนาด)</label>
-                            <input type="checkbox" id="resize-enable" class="sao-check" onchange="toggleResizeInput()">
-                        </div>
-                        <div id="resize-inputs" class="grid grid-cols-2 gap-2 opacity-50 pointer-events-none transition-opacity">
-                            <input type="number" id="resize-width" placeholder="Width (px)" class="w-full p-1 text-[10px] text-center" min="1">
-                            <div class="text-[9px] text-gray-500 text-center col-span-2 pt-1 font-thai">*ความสูงปรับอัตโนมัติ</div>
-                        </div>
+                    <div>
+                        <label class="text-[9px] font-bold text-gray-400 uppercase mb-1 block">Resize</label>
+                        <select id="resize-mode" class="w-full p-1.5 text-[10px] font-thai rounded-sm" onchange="toggleResizeInput()">
+                            <option value="none">Original (เดิม)</option>
+                            <option value="custom">ระบุความกว้าง...</option>
+                            <option value="hd">HD (1280px)</option>
+                            <option value="fhd">FHD (1920px)</option>
+                            <option value="scale50">ย่อลง 50%</option>
+                            <option value="scale75">ย่อลง 75%</option>
+                        </select>
+                        <input type="number" id="resize-width" placeholder="Width (px)" class="w-full p-1 text-[10px] text-center hidden mt-1 border-t-0" min="1">
                     </div>
 
                     <!-- Filters -->
-                    <div class="bg-black/40 p-2 border border-gray-800 rounded">
-                         <label class="text-[10px] font-bold text-gray-400 uppercase block mb-1"><i class="fas fa-magic"></i> Visual FX (ฟิลเตอร์)</label>
-                         <select id="img-filter" class="w-full p-1 text-[10px] font-thai rounded-sm">
-                            <option value="none">-- Normal (ปกติ) --</option>
-                            <option value="grayscale">Noir Mode (ขาวดำ)</option>
+                    <div>
+                         <label class="text-[9px] font-bold text-gray-400 uppercase block mb-1">Visual FX</label>
+                         <select id="img-filter" class="w-full p-1.5 text-[10px] font-thai rounded-sm">
+                            <option value="none">Normal (ปกติ)</option>
+                            <option value="grayscale">Noir (ขาวดำ)</option>
                             <option value="sepia">Retro (ซีเปีย)</option>
-                            <option value="invert">Negative (กลับสี)</option>
-                            <option value="contrast">High Contrast (คมชัด)</option>
+                            <option value="invert">Negative</option>
+                            <option value="contrast">High Contrast</option>
                         </select>
                     </div>
 
-                    <!-- Renaming -->
-                    <div class="bg-black/40 p-2 border border-gray-800 rounded">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase block mb-1"><i class="fas fa-tag"></i> Prefix (คำนำหน้าชื่อ)</label>
-                        <input type="text" id="file-prefix" placeholder="Ex. img_ หรือ pic-" class="w-full p-1 text-[10px]">
-                   </div>
+                    <!-- Prefix -->
+                    <div class="col-span-2">
+                        <label class="text-[9px] font-bold text-gray-400 uppercase block mb-1">Rename Prefix (คำนำหน้า)</label>
+                        <input type="text" id="file-prefix" placeholder="ex. IMG_ หรือ SAO_ (เว้นว่างได้)" class="w-full p-1.5 text-[10px]">
+                    </div>
+
+                    <!-- Batch & PDF -->
+                    <div class="col-span-2 grid grid-cols-2 gap-3 p-2 bg-black/40 border border-gray-800 rounded">
+                        <div>
+                            <label class="text-[9px] font-bold text-purple-400 uppercase block mb-1">Batch (แบ่งชุด)</label>
+                            <input type="number" id="batch-size" placeholder="จำนวนรูป/ไฟล์" min="1" class="w-full p-1 text-[10px]">
+                        </div>
+                        <div id="pdf-options" class="flex items-center hidden mt-3">
+                            <label class="flex items-center gap-2 text-[9px] text-gray-300 cursor-pointer">
+                                <input type="checkbox" id="pdf-one-file" class="sao-check" checked>
+                                <span class="font-thai">รวมเป็น PDF ไฟล์เดียว</span>
+                            </label>
+                        </div>
+                        <!-- Watermark Option -->
+                        <div class="col-span-2 pt-2 border-t border-gray-800 mt-1">
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="text-[9px] font-bold text-orange-400 uppercase"><i class="fas fa-font"></i> Watermark (ลายน้ำ)</label>
+                            </div>
+                            <div class="flex gap-2">
+                                <input type="text" id="watermark-text" placeholder="ใส่ข้อความลายน้ำ (เว้นว่าง = ไม่ใส่)" class="w-full p-1.5 text-[10px]">
+                                <select id="watermark-pos" class="p-1.5 text-[10px] w-20">
+                                    <option value="br">ขวาล่าง</option>
+                                    <option value="bl">ซ้ายล่าง</option>
+                                    <option value="center">ตรงกลาง</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="pt-4 grid grid-cols-2 gap-3 mt-2 border-t border-gray-800">
-                    <button onclick="reqClearAll()" class="btn-sao border-red-500 text-red-500 hover:bg-red-500 hover:text-white py-3 text-[10px] font-bold">
+                <div class="pt-4 grid grid-cols-2 gap-3 mt-4 border-t border-gray-800">
+                    <button onclick="reqClearAll()" id="btn-clear" class="btn-sao border-red-500 text-red-500 hover:bg-red-500 hover:text-white py-2 text-[11px] font-bold">
                         <i class="fas fa-trash"></i> ล้างข้อมูล
                     </button>
-                    <button onclick="processAll()" class="btn-sao py-3 text-[10px] font-bold shadow-[0_0_10px_rgba(0,210,255,0.2)]">
+                    <button onclick="processAll()" id="btn-process" class="btn-sao py-2 text-[11px] font-bold" style="box-shadow: 0 0 10px rgba(0,210,255,0.2);">
                         <i class="fas fa-play"></i> เริ่มทำงาน
                     </button>
                 </div>
             </div>
 
             <!-- LOG PANEL -->
-            <div class="sao-panel p-4 h-32 overflow-hidden relative">
-                <div class="absolute top-0 right-0 p-1 text-[8px] text-gray-600 font-tech">SYSTEM LOG</div>
+            <div class="sao-panel p-3 h-24 overflow-hidden relative">
+                <div class="absolute top-0 right-0 p-1 text-[8px] text-gray-600 font-tech z-10 bg-black/50 backdrop-blur-sm">SYSTEM LOG</div>
                 <div id="system-log" class="system-log h-full overflow-y-auto space-y-1 p-1">
                     <div>> SYSTEM_INIT... OK</div>
-                    <div>> BATCH_MODULE... READY</div>
+                    <div>> ULTIMATE_MODULE... READY</div>
                 </div>
             </div>
         </aside>
 
-        <section class="lg:col-span-8">
-            <div class="sao-panel p-6 h-full min-h-[500px] flex flex-col">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
+        <!-- Right Column: Workspace -->
+        <section class="lg:col-span-8 flex flex-col">
+            <div class="sao-panel p-5 h-full min-h-[500px] flex flex-col">
+                <!-- Header Tools -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-3 gap-3">
                     <h2 class="font-tech text-sm text-blue-300 uppercase tracking-widest flex items-center gap-2">
-                        WORKSPACE <span id="item-count" class="text-gray-500 text-[10px]">[0]</span>
+                        WORKSPACE 
+                        <span id="item-count" class="text-white text-[10px] bg-blue-900 px-2 rounded">[0]</span>
+                        <span id="total-size" class="text-gray-400 text-[10px] bg-gray-800 px-2 rounded font-mono">0.00 MB</span>
                     </h2>
                     
-                    <!-- Sorting Control -->
-                    <div class="flex items-center gap-2 bg-black/60 p-1 rounded border border-gray-800">
-                        <span class="text-[9px] text-gray-400 font-tech px-2">SORT BY:</span>
-                        <select id="sort-order" class="bg-transparent text-[10px] text-blue-400 border-none outline-none cursor-pointer font-thai" onchange="sortFiles(this.value)">
-                            <option value="none">-- Default --</option>
-                            <option value="name_asc">ชื่อ (A-Z)</option>
-                            <option value="name_desc">ชื่อ (Z-A)</option>
-                            <option value="size_asc">ขนาด (เล็ก -> ใหญ่)</option>
-                            <option value="size_desc">ขนาด (ใหญ่ -> เล็ก)</option>
-                        </select>
+                    <div class="flex items-center gap-2">
+                        <!-- Sorting Control -->
+                        <div class="flex items-center gap-1 bg-black/60 p-1 rounded border border-gray-800">
+                            <span class="text-[9px] text-gray-400 font-tech px-2">SORT:</span>
+                            <select id="sort-order" class="bg-transparent text-[10px] text-blue-400 border-none outline-none cursor-pointer font-thai" onchange="sortFiles(this.value)">
+                                <option value="none">-- Default --</option>
+                                <option value="name_asc">ชื่อ (A-Z)</option>
+                                <option value="name_desc">ชื่อ (Z-A)</option>
+                                <option value="size_asc">ขนาด (เล็ก-ใหญ่)</option>
+                                <option value="size_desc">ขนาด (ใหญ่-เล็ก)</option>
+                            </select>
+                        </div>
+
+                        <button onclick="downloadZip()" id="zip-btn" class="hidden btn-sao btn-secondary px-3 py-1.5 text-[10px] flex items-center gap-2">
+                            <i class="fas fa-file-archive"></i> ดาวน์โหลดผลลัพธ์
+                        </button>
                     </div>
-
-                    <button onclick="downloadZip()" id="zip-btn" class="hidden btn-sao btn-secondary px-4 py-1 text-[10px] flex items-center gap-2">
-                        <i class="fas fa-file-archive"></i> ดาวน์โหลด ZIP
-                    </button>
                 </div>
-                <div class="sao-header-line"></div>
+                <div class="sao-header-line mb-4"></div>
                 
-                <div id="empty-state" class="flex-grow flex flex-col items-center justify-center opacity-20 py-20">
-                    <i class="fas fa-folder-open text-6xl mb-4 animate-pulse"></i>
-                    <p class="font-tech text-lg tracking-[0.5em]">NO DATA</p>
-                    <p class="font-thai text-xs mt-2">ลากไฟล์รูปภาพ หรือ ZIP มาวางที่นี่</p>
+                <!-- Empty State -->
+                <div id="empty-state" class="flex-grow flex flex-col items-center justify-center opacity-30 py-20">
+                    <i class="fas fa-layer-group text-6xl mb-4 animate-bounce"></i>
+                    <p class="font-tech text-lg tracking-[0.5em]">AWAITING DATA</p>
+                    <p class="font-thai text-xs mt-2 text-center text-gray-400">ลากไฟล์รูปภาพ, HEIC, PDF, ZIP<br>หรือเอกสาร (Word, Excel, PowerPoint) มาวางที่ใดก็ได้ในหน้านี้</p>
                 </div>
 
-                <div id="file-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4"></div>
+                <!-- File List Grid -->
+                <div id="file-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 pb-4 content-start flex-grow overflow-y-auto pr-1"></div>
             </div>
         </section>
     </main>
@@ -372,10 +434,10 @@
     <div id="process-modal" class="fixed inset-0 bg-black/90 z-[100] hidden items-center justify-center flex-col">
         <div class="text-center mb-6">
             <h2 class="font-tech text-3xl text-white font-bold animate-pulse mb-2">PROCESSING</h2>
-            <p class="font-thai text-blue-400 text-xs tracking-widest">ห้ามปิดหน้าต่างนี้</p>
+            <p class="font-thai text-blue-400 text-xs tracking-widest">ระบบกำลังประมวลผล กรุณารอสักครู่...</p>
         </div>
         <div class="w-64 md:w-96 bg-gray-900 border border-blue-500 p-1 rounded relative overflow-hidden">
-            <div id="modal-bar" class="h-4 bg-blue-500 shadow-[0_0_15px_cyan]" style="width: 0%"></div>
+            <div id="modal-bar" class="h-4 bg-blue-500 shadow-[0_0_15px_cyan]" style="width: 0%; transition: width 0.2s;"></div>
         </div>
         <p id="modal-status" class="mt-4 font-thai text-xs text-gray-400">กำลังเตรียมระบบ...</p>
     </div>
@@ -432,7 +494,7 @@
             const qualityPanel = document.getElementById('quality-control');
             const pdfPanel = document.getElementById('pdf-options');
 
-            if (['png', 'base64', 'favicon'].includes(fmt)) qualityPanel.classList.add('opacity-50', 'pointer-events-none');
+            if (['png', 'base64', 'favicon', 'bmp'].includes(fmt)) qualityPanel.classList.add('opacity-50', 'pointer-events-none');
             else qualityPanel.classList.remove('opacity-50', 'pointer-events-none');
 
             if (fmt === 'pdf') pdfPanel.classList.remove('hidden');
@@ -440,12 +502,12 @@
         }
 
         function toggleResizeInput() {
-            const enabled = document.getElementById('resize-enable').checked;
-            const inputs = document.getElementById('resize-inputs');
-            if(enabled) {
-                inputs.classList.remove('opacity-50', 'pointer-events-none');
+            const mode = document.getElementById('resize-mode').value;
+            const input = document.getElementById('resize-width');
+            if(mode === 'custom') {
+                input.classList.remove('hidden');
             } else {
-                inputs.classList.add('opacity-50', 'pointer-events-none');
+                input.classList.add('hidden');
             }
         }
 
@@ -456,13 +518,13 @@
                 document.getElementById('quality-val').innerText = '90%';
                 document.getElementById('pdf-one-file').checked = true;
                 
-                // Reset Modules
                 document.getElementById('batch-size').value = '';
-                document.getElementById('resize-enable').checked = false;
+                document.getElementById('resize-mode').value = 'none';
                 document.getElementById('resize-width').value = '';
                 toggleResizeInput();
                 document.getElementById('img-filter').value = 'none';
                 document.getElementById('file-prefix').value = '';
+                document.getElementById('watermark-text').value = '';
                 document.getElementById('sort-order').value = 'none';
 
                 updateOptions();
@@ -470,129 +532,161 @@
             }, "ยืนยันการรีเซ็ต");
         }
 
-        // --- Sort Function ---
         function sortFiles(criteria) {
             if (state.files.length === 0) return;
-            
             log(`กำลังเรียงลำดับ: ${criteria}`);
             
             const sorted = [...state.files].sort((a, b) => {
                 switch (criteria) {
-                    case 'name_asc': 
-                        return a.file.name.localeCompare(b.file.name, undefined, {numeric: true, sensitivity: 'base'});
-                    case 'name_desc': 
-                        return b.file.name.localeCompare(a.file.name, undefined, {numeric: true, sensitivity: 'base'});
-                    case 'size_asc': 
-                        return a.file.size - b.file.size;
-                    case 'size_desc': 
-                        return b.file.size - a.file.size;
-                    default:
-                        return 0; // Default order (as uploaded)
+                    case 'name_asc': return a.file.name.localeCompare(b.file.name, undefined, {numeric: true});
+                    case 'name_desc': return b.file.name.localeCompare(a.file.name, undefined, {numeric: true});
+                    case 'size_asc': return a.file.size - b.file.size;
+                    case 'size_desc': return b.file.size - a.file.size;
+                    default: return 0;
                 }
             });
 
-            if (criteria !== 'none') {
-                state.files = sorted;
-            }
+            if (criteria !== 'none') state.files = sorted;
             renderList();
         }
 
-        const dropZone = document.getElementById('drop-zone');
-        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
-        dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); });
-        dropZone.addEventListener('drop', (e) => { 
-            e.preventDefault(); dropZone.classList.remove('dragover');
-            handleFiles(e.dataTransfer.files);
+        // --- Drag & Drop Logistics ---
+        const overlay = document.getElementById('global-drop-overlay');
+        let dragCounter = 0;
+
+        window.addEventListener('dragenter', (e) => {
+            e.preventDefault();
+            dragCounter++;
+            overlay.classList.add('active');
+        });
+        window.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dragCounter--;
+            if(dragCounter === 0) overlay.classList.remove('active');
+        });
+        window.addEventListener('dragover', (e) => e.preventDefault());
+        window.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dragCounter = 0;
+            overlay.classList.remove('active');
+            if(e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                handleFiles(e.dataTransfer.files);
+            }
         });
 
         async function handleFiles(fileList) {
             if (fileList.length === 0) return;
-            log(`กำลังโหลด ${fileList.length} ไฟล์/รายการ...`);
+            log(`กำลังโหลด ${fileList.length} รายการ...`);
             
             const files = Array.from(fileList);
 
             for (let file of files) {
-                if (file.name.endsWith('.zip') || file.type === 'application/zip' || file.type === 'application/x-zip-compressed') {
-                    log(`📦 ตรวจพบ ZIP: ${file.name}`);
+                const lowerName = file.name.toLowerCase();
+
+                if (lowerName.endsWith('.zip') || lowerName.endsWith('.docx') || lowerName.endsWith('.xlsx') || lowerName.endsWith('.pptx') || file.type === 'application/zip' || file.type === 'application/x-zip-compressed') {
+                    log(`📦 ตรวจพบ Archive/Office: ${file.name}`);
                     await handleZipFile(file);
                     continue; 
                 }
 
-                if (!file.type.startsWith('image/')) {
-                    log(`ข้าม: ${file.name} (ไม่ใช่รูปภาพ)`);
+                if (lowerName.endsWith('.heic')) {
+                    try {
+                        const blob = await heic2any({ blob: file, toType: "image/jpeg" });
+                        const newFile = new File([blob], file.name.replace(/\.heic$/i, '.jpg'), { type: 'image/jpeg' });
+                        if (!state.files.some(f => f.file.name === newFile.name && f.file.size === newFile.size)) {
+                            await loadImage(newFile, 'IMG');
+                        }
+                    } catch (err) { log(`❌ แปลง HEIC ล้มเหลว: ${err.message}`); }
                     continue;
                 }
-                
-                // Prevent Duplicates
-                if (state.files.some(f => f.file.name === file.name && f.file.size === file.size)) {
-                    log(`ข้าม: ${file.name} (มีในรายการแล้ว)`);
+
+                if (lowerName.endsWith('.pdf')) {
+                    try {
+                        const arrayBuffer = await file.arrayBuffer();
+                        const pdf = await pdfjsLib.getDocument(new Uint8Array(arrayBuffer)).promise;
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const viewport = page.getViewport({scale: 2.0});
+                            const canvas = document.createElement('canvas');
+                            canvas.width = viewport.width; canvas.height = viewport.height;
+                            const ctx = canvas.getContext('2d');
+                            await page.render({canvasContext: ctx, viewport: viewport}).promise;
+
+                            const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.9));
+                            const pageName = `${file.name.replace(/\.pdf$/i, '')}_p${i.toString().padStart(2, '0')}.jpg`;
+                            const newFile = new File([blob], pageName, { type: 'image/jpeg' });
+
+                            if (!state.files.some(f => f.file.name === newFile.name && f.file.size === newFile.size)) {
+                                 await loadImage(newFile, 'PDF');
+                            }
+                        }
+                    } catch (err) { log(`❌ แยก PDF ล้มเหลว: ${err.message}`); }
                     continue;
                 }
+
+                if (!file.type.startsWith('image/')) continue;
+                if (state.files.some(f => f.file.name === file.name && f.file.size === file.size)) continue;
                 
-                await loadImage(file);
+                await loadImage(file, 'IMG');
             }
             document.getElementById('file-input').value = '';
             
-            // Re-apply sort if active
             const currentSort = document.getElementById('sort-order').value;
             if (currentSort !== 'none') sortFiles(currentSort);
+            else renderList();
         }
 
         async function handleZipFile(zipFile) {
             try {
                 const zip = await JSZip.loadAsync(zipFile);
                 let extractedCount = 0;
+                const sourceTag = zipFile.name.toLowerCase().endsWith('.zip') ? 'ZIP' : 'DOC';
+                const baseDocName = zipFile.name.replace(/\.[^/.]+$/, "");
 
                 const promises = [];
                 zip.forEach((relativePath, zipEntry) => {
-                    if (!zipEntry.dir && /\.(jpg|jpeg|png|webp|gif)$/i.test(zipEntry.name)) {
+                    if (!zipEntry.dir && /\.(jpg|jpeg|png|webp|gif|heic|bmp|svg)$/i.test(zipEntry.name)) {
                         const promise = zipEntry.async("blob").then(async (blob) => {
-                            const fileName = zipEntry.name.split('/').pop(); 
+                            const cleanEntryName = zipEntry.name.split('/').pop();
+                            const fileName = `${baseDocName}_${cleanEntryName}`; 
                             const file = new File([blob], fileName, { type: blob.type || 'image/jpeg' });
                             
-                            // Prevent Duplicates
-                            if (state.files.some(f => f.file.name === file.name && f.file.size === file.size)) return;
-
-                            await loadImage(file);
-                            extractedCount++;
+                            if (fileName.toLowerCase().endsWith('.heic')) {
+                                try {
+                                    const heicBlob = await heic2any({ blob: file, toType: "image/jpeg" });
+                                    const heicFile = new File([heicBlob], fileName.replace(/\.heic$/i, '.jpg'), { type: 'image/jpeg' });
+                                    if (!state.files.some(f => f.file.name === heicFile.name && f.file.size === heicFile.size)) {
+                                        await loadImage(heicFile, sourceTag); extractedCount++;
+                                    }
+                                } catch(e) {}
+                            } else {
+                                if (!state.files.some(f => f.file.name === file.name && f.file.size === file.size)) {
+                                    await loadImage(file, sourceTag); extractedCount++;
+                                }
+                            }
                         });
                         promises.push(promise);
                     }
                 });
-
                 await Promise.all(promises);
-                log(`✅ แตกไฟล์ ZIP สำเร็จ (${extractedCount} รูป)`);
-
-            } catch (err) {
-                console.error(err);
-                showAlert(`ไม่สามารถเปิดไฟล์ ZIP ได้: ${err.message}`, "ข้อผิดพลาด");
-                log(`❌ ผิดพลาดในการอ่าน ZIP: ${err.message}`);
-            }
+                if(extractedCount > 0) log(`✅ ได้รูปจาก ${sourceTag} (${extractedCount} รูป)`);
+            } catch (err) { log(`❌ อ่านไฟล์ Archive ผิดพลาด: ${err.message}`); }
         }
 
-        async function loadImage(file) {
+        async function loadImage(file, sourceTag = 'IMG') {
             return new Promise((resolve) => {
                 const url = URL.createObjectURL(file);
                 const img = new Image();
-                
                 img.onload = () => {
-                    const item = {
+                    state.files.push({
                         id: Math.random().toString(36).substr(2, 9),
-                        file: file,
-                        img: img,
-                        src: url,
-                        width: img.width,
-                        height: img.height,
-                        processed: false
-                    };
-                    state.files.push(item);
-                    renderList();
+                        file: file, img: img, src: url,
+                        width: img.width, height: img.height,
+                        processed: false, tag: sourceTag
+                    });
                     resolve();
                 };
-                img.onerror = () => {
-                    log(`❌ โหลดรูปล้มเหลว: ${file.name}`);
-                    resolve(); 
-                };
+                img.onerror = resolve; 
                 img.src = url;
             });
         }
@@ -601,6 +695,10 @@
             const container = document.getElementById('file-list');
             const empty = document.getElementById('empty-state');
             document.getElementById('item-count').innerText = `[${state.files.length}]`;
+
+            // Calculate Total Size
+            let totalBytes = state.files.reduce((acc, curr) => acc + curr.file.size, 0);
+            document.getElementById('total-size').innerText = (totalBytes / 1024 / 1024).toFixed(2) + ' MB';
 
             if (state.files.length === 0) {
                 empty.style.display = 'flex';
@@ -612,25 +710,32 @@
             container.innerHTML = '';
 
             state.files.forEach(item => {
-                const sizeMB = (item.file.size / 1024 / 1024).toFixed(2);
+                const sizeKB = (item.file.size / 1024).toFixed(1);
                 const statusHtml = item.processed 
-                    ? `<span class="status-badge status-done">เสร็จสิ้น</span>` 
-                    : `<span class="status-badge status-ready">รอคิว</span>`;
+                    ? `<span class="status-badge status-done">Done</span>` 
+                    : `<span class="status-badge status-ready">Wait</span>`;
+                    
+                let tagClass = 'tag-img';
+                if(item.tag === 'DOC') tagClass = 'tag-doc';
+                if(item.tag === 'PDF') tagClass = 'tag-pdf';
 
                 const el = document.createElement('div');
-                el.className = 'sao-panel p-3 bg-black/60 flex gap-3 items-center group animate-in fade-in zoom-in duration-300';
+                el.className = 'sao-panel p-2 bg-black/60 flex gap-2 items-center group animate-in fade-in zoom-in duration-200 border border-gray-800 hover:border-blue-500 hover:shadow-[0_0_10px_rgba(0,210,255,0.2)]';
                 el.innerHTML = `
-                    <div class="w-16 h-16 bg-gray-800 border border-gray-600 overflow-hidden relative shrink-0 cursor-zoom-in hover:border-blue-400 transition-colors" onclick="openViewer('${item.src}')" title="คลิกเพื่อดูรูปขยาย">
+                    <div class="w-12 h-12 bg-gray-800 border border-gray-600 overflow-hidden relative shrink-0 cursor-zoom-in" onclick="openViewer('${item.src}')">
                         <img src="${item.src}" class="w-full h-full object-cover">
                     </div>
-                    <div class="flex-grow min-w-0">
-                        <div class="flex justify-between items-center pr-2">
-                            <div class="text-xs font-bold text-white truncate font-tech max-w-[150px]">${item.file.name}</div>
+                    <div class="flex-grow min-w-0 flex flex-col justify-center">
+                        <div class="flex justify-between items-center pr-1 mb-0.5">
+                            <div class="text-[11px] font-bold text-white truncate max-w-[120px]" title="${item.file.name}">${item.file.name}</div>
                             ${statusHtml}
                         </div>
-                        <div class="text-[10px] text-blue-400 font-mono">${item.width}x${item.height} | ${sizeMB} MB</div>
+                        <div class="flex gap-1 items-center">
+                            <span class="file-tag ${tagClass} m-0">${item.tag}</span>
+                            <span class="text-[9px] text-blue-400 font-mono">${item.width}x${item.height} | ${sizeKB} KB</span>
+                        </div>
                     </div>
-                    <button onclick="reqRemoveItem('${item.id}')" class="text-gray-500 hover:text-red-500 transition-colors p-2" title="ลบรายการ">
+                    <button onclick="reqRemoveItem('${item.id}')" class="text-gray-600 hover:text-red-500 transition-colors px-2 py-1" title="ลบรายการ">
                         <i class="fas fa-times"></i>
                     </button>
                 `;
@@ -647,11 +752,9 @@
 
         function reqClearAll() {
             if (state.files.length === 0) return showAlert("ไม่มีข้อมูลให้ล้างครับ", "แจ้งเตือน");
-            
             showConfirm("ยืนยันการล้างรายการและไฟล์ทั้งหมดออกจากระบบ?", () => {
                 state.files.forEach(item => URL.revokeObjectURL(item.src));
-                state.files = [];
-                state.processed = [];
+                state.files = []; state.processed = [];
                 renderList();
                 document.getElementById('zip-btn').classList.add('hidden');
                 document.getElementById('file-input').value = ''; 
@@ -660,86 +763,70 @@
         }
 
         // --- Viewer ---
-        let vScale = 1;
-        let vPanning = false;
-        let vPoint = { x: 0, y: 0 };
-        let vStart = { x: 0, y: 0 };
-
+        let vScale = 1, vPanning = false, vPoint = {x:0,y:0}, vStart = {x:0,y:0};
         function openViewer(src) {
-            const modal = document.getElementById('viewer-modal');
-            const img = document.getElementById('viewer-img');
-            img.src = src;
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            vScale = 1;
-            vPoint = { x: 0, y: 0 };
-            updateTransform();
+            document.getElementById('viewer-img').src = src;
+            document.getElementById('viewer-modal').classList.replace('hidden', 'flex');
+            vScale = 1; vPoint = {x:0,y:0}; updateTransform();
         }
-
-        function closeViewer() {
-            const modal = document.getElementById('viewer-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-
+        function closeViewer() { document.getElementById('viewer-modal').classList.replace('flex', 'hidden'); }
         function updateTransform() {
-            const container = document.getElementById('viewer-container');
-            container.style.transform = `translate(${vPoint.x}px, ${vPoint.y}px) scale(${vScale})`;
+            document.getElementById('viewer-container').style.transform = `translate(${vPoint.x}px, ${vPoint.y}px) scale(${vScale})`;
             document.getElementById('zoom-level').innerText = `${Math.round(vScale * 100)}%`;
         }
-
         const viewerModal = document.getElementById('viewer-modal');
-
         viewerModal.addEventListener('wheel', (e) => {
             e.preventDefault();
-            const delta = e.deltaY > 0 ? -0.1 : 0.1;
-            const newScale = Math.min(Math.max(0.1, vScale + delta), 10); 
-            vScale = newScale;
+            vScale = Math.min(Math.max(0.1, vScale + (e.deltaY > 0 ? -0.1 : 0.1)), 10); 
             updateTransform();
         });
-
         viewerModal.addEventListener('mousedown', (e) => {
             if (e.target.tagName === 'BUTTON') return; 
-            vPanning = true;
-            vStart = { x: e.clientX - vPoint.x, y: e.clientY - vPoint.y };
+            vPanning = true; vStart = { x: e.clientX - vPoint.x, y: e.clientY - vPoint.y };
             viewerModal.style.cursor = 'grabbing';
         });
-
         window.addEventListener('mousemove', (e) => {
             if (!vPanning) return;
-            e.preventDefault();
-            vPoint = { x: e.clientX - vStart.x, y: e.clientY - vStart.y };
+            e.preventDefault(); vPoint = { x: e.clientX - vStart.x, y: e.clientY - vStart.y };
             updateTransform();
         });
-
-        window.addEventListener('mouseup', () => {
-            vPanning = false;
-            viewerModal.style.cursor = 'grab';
-        });
-
+        window.addEventListener('mouseup', () => { vPanning = false; viewerModal.style.cursor = 'grab'; });
         window.addEventListener('keydown', (e) => {
-            if(e.key === "Escape") {
-                if(document.getElementById('viewer-modal').style.display !== 'none') closeViewer();
-                if(document.getElementById('msg-modal').style.display !== 'none') closeMsgModal();
-            }
+            if(e.key === "Escape") { closeViewer(); closeMsgModal(); }
         });
+
+        function calculateDimensions(originalW, originalH, mode, customW) {
+            let w = originalW, h = originalH;
+            if (mode === 'custom' && customW > 0) { w = customW; h = (originalH / originalW) * w; }
+            else if (mode === 'hd') { const ratio = Math.min(1280/w, 720/h); if(ratio<1){w*=ratio; h*=ratio;} }
+            else if (mode === 'fhd') { const ratio = Math.min(1920/w, 1080/h); if(ratio<1){w*=ratio; h*=ratio;} }
+            else if (mode === 'scale50') { w *= 0.5; h *= 0.5; }
+            else if (mode === 'scale75') { w *= 0.75; h *= 0.75; }
+            return { w: Math.round(w), h: Math.round(h) }; // ป้องกันบั๊กทศนิยม
+        }
 
         async function processAll() {
             if (state.files.length === 0) return showAlert('กรุณานำเข้าไฟล์รูปภาพก่อนเริ่มการทำงาน', "ไม่มีข้อมูล");
+            
+            const btnProcess = document.getElementById('btn-process');
+            btnProcess.disabled = true;
+            btnProcess.innerHTML = '<i class="fas fa-spinner fa-spin"></i> WORKING...';
             
             const format = document.getElementById('target-format').value;
             const quality = document.getElementById('quality').value / 100;
             const isOnePdf = document.getElementById('pdf-one-file').checked;
             
-            // Get Modules Config
-            const resizeEnabled = document.getElementById('resize-enable').checked;
-            const resizeWidth = parseInt(document.getElementById('resize-width').value) || 0;
-            const filterType = document.getElementById('img-filter').value;
-            const prefix = document.getElementById('file-prefix').value.trim();
+            const config = {
+                format, quality,
+                resizeMode: document.getElementById('resize-mode').value,
+                resizeWidth: parseInt(document.getElementById('resize-width').value) || 0,
+                filter: document.getElementById('img-filter').value,
+                prefix: document.getElementById('file-prefix').value.trim(),
+                watermarkText: document.getElementById('watermark-text').value.trim(),
+                watermarkPos: document.getElementById('watermark-pos').value
+            };
             
-            // Batch Config
-            const batchInput = document.getElementById('batch-size').value;
-            let batchSize = parseInt(batchInput) || state.files.length; 
+            let batchSize = parseInt(document.getElementById('batch-size').value) || state.files.length; 
 
             const modal = document.getElementById('process-modal');
             const bar = document.getElementById('modal-bar');
@@ -751,151 +838,111 @@
             try {
                 if (format === 'pdf' && isOnePdf) {
                     const { jsPDF } = window.jspdf;
-                    
                     const totalFiles = state.files.length;
                     const totalBatches = Math.ceil(totalFiles / batchSize);
                     
                     for (let b = 0; b < totalBatches; b++) {
                         const start = b * batchSize;
-                        const end = Math.min(start + batchSize, totalFiles);
-                        const chunk = state.files.slice(start, end);
-                        
-                        status.innerText = totalBatches > 1 
-                            ? `กำลังสร้าง PDF ชุดที่ ${b + 1}/${totalBatches}...`
-                            : "กำลังสร้างไฟล์ PDF...";
+                        const chunk = state.files.slice(start, Math.min(start + batchSize, totalFiles));
+                        status.innerText = totalBatches > 1 ? `สร้าง PDF ชุดที่ ${b + 1}/${totalBatches}...` : "สร้างไฟล์ PDF...";
 
-                        // Helper to get processed data (resize/filter) for PDF
                         const getProcessedData = async (item) => {
-                             const config = { format: 'jpeg', quality, resize: resizeEnabled ? resizeWidth : 0, filter: filterType };
                              const canvas = document.createElement('canvas');
                              const ctx = canvas.getContext('2d');
-                             let targetWidth = item.width;
-                             let targetHeight = item.height;
-                             if (config.resize > 0) {
-                                targetWidth = config.resize;
-                                targetHeight = (item.height / item.width) * targetWidth;
-                             }
-                             canvas.width = targetWidth;
-                             canvas.height = targetHeight;
-                             ctx.imageSmoothingEnabled = true;
-                             ctx.imageSmoothingQuality = 'high';
+                             const dims = calculateDimensions(item.width, item.height, config.resizeMode, config.resizeWidth);
+                             canvas.width = dims.w; canvas.height = dims.h;
+                             ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+
                              if (config.filter !== 'none') {
                                 if (config.filter === 'grayscale') ctx.filter = 'grayscale(100%)';
                                 else if (config.filter === 'sepia') ctx.filter = 'sepia(100%)';
                                 else if (config.filter === 'invert') ctx.filter = 'invert(100%)';
                                 else if (config.filter === 'contrast') ctx.filter = 'contrast(150%)';
                              }
-                             ctx.drawImage(item.img, 0, 0, targetWidth, targetHeight);
-                             const imgData = canvas.toDataURL(item.file.type === 'image/png' ? 'image/png' : 'image/jpeg');
-                             return { imgData, w: targetWidth, h: targetHeight };
+                             ctx.drawImage(item.img, 0, 0, dims.w, dims.h);
+                             
+                             // Draw Watermark
+                             if(config.watermarkText) drawWatermark(ctx, config.watermarkText, config.watermarkPos, dims.w, dims.h);
+
+                             return { imgData: canvas.toDataURL('image/jpeg', config.quality), w: dims.w, h: dims.h };
                         };
 
                         const firstData = await getProcessedData(chunk[0]);
-                        
-                        const pdf = new jsPDF({
-                            orientation: firstData.w > firstData.h ? 'l' : 'p',
-                            unit: 'px',
-                            format: [firstData.w, firstData.h]
-                        });
-                        
+                        const pdf = new jsPDF({ orientation: firstData.w > firstData.h ? 'l' : 'p', unit: 'px', format: [firstData.w, firstData.h] });
                         pdf.addImage(firstData.imgData, 'JPEG', 0, 0, firstData.w, firstData.h);
                         chunk[0].processed = true;
 
                         for (let i = 1; i < chunk.length; i++) {
-                            const item = chunk[i];
-                            const data = await getProcessedData(item);
-                            const orient = data.w > data.h ? 'l' : 'p';
-                            
-                            pdf.addPage([data.w, data.h], orient);
+                            const data = await getProcessedData(chunk[i]);
+                            pdf.addPage([data.w, data.h], data.w > data.h ? 'l' : 'p');
                             pdf.addImage(data.imgData, 'JPEG', 0, 0, data.w, data.h);
-                            item.processed = true;
-                            
-                            const globalIdx = start + i;
-                            bar.style.width = `${((globalIdx+1)/totalFiles)*90}%`;
+                            chunk[i].processed = true;
+                            bar.style.width = `${(((start + i)+1)/totalFiles)*90}%`;
                             await new Promise(r => setTimeout(r, 10));
                         }
 
-                        const baseName = prefix ? `${prefix}album` : `Elucidator_Album`;
-                        const fileName = totalBatches > 1 
-                            ? `${baseName}_Part_${b+1}.pdf` 
-                            : `${baseName}.pdf`;
-                            
+                        const fileName = totalBatches > 1 ? `${config.prefix || 'Elucidator'}_Part_${b+1}.pdf` : `${config.prefix || 'Elucidator'}_Doc.pdf`;
                         pdf.save(fileName);
-                        
-                        if (b < totalBatches - 1) {
-                             status.innerText = `พักระบบสักครู่... (${b+1}/${totalBatches})`;
-                             await new Promise(r => setTimeout(r, 1000));
-                        }
+                        if (b < totalBatches - 1) { status.innerText = `พักระบบ...`; await new Promise(r => setTimeout(r, 1000)); }
                     }
-                    
-                    log(`ส่งออก PDF เสร็จสิ้น (${totalBatches} ไฟล์)`);
-                    renderList();
-                } 
-                else {
+                    log(`ส่งออก PDF เสร็จสิ้น`);
+                } else {
                     for (let i = 0; i < state.files.length; i++) {
-                        const item = state.files[i];
-                        status.innerText = `กำลังประมวลผล: ${item.file.name}`;
-                        
-                        const config = {
-                            format, quality,
-                            resize: resizeEnabled ? resizeWidth : 0,
-                            filter: filterType,
-                            prefix: prefix
-                        };
-
-                        const result = await convertItem(item, config);
-                        state.processed.push(result);
-                        item.processed = true;
-                        
+                        status.innerText = `กำลังประมวลผล: ${state.files[i].file.name}`;
+                        state.processed.push(await convertItem(state.files[i], config));
+                        state.files[i].processed = true;
                         bar.style.width = `${((i+1)/state.files.length)*100}%`;
                         await new Promise(r => setTimeout(r, 20)); 
                     }
-                    
                     document.getElementById('zip-btn').classList.remove('hidden');
-                    
-                    // Trigger Download Logic (Will handle batching if needed)
                     await downloadZip();
-                    
-                    renderList();
                 }
+                renderList();
             } catch (error) {
-                console.error(error);
-                showAlert('เกิดข้อผิดพลาด: ' + error.message, "ERROR");
-                log(`ERROR: ${error.message}`);
+                showAlert('เกิดข้อผิดพลาด: ' + error.message, "ERROR"); log(`ERROR: ${error.message}`);
             } finally {
-                setTimeout(() => {
-                    modal.style.display = 'none';
-                    bar.style.width = '0%';
+                setTimeout(() => { 
+                    modal.style.display = 'none'; 
+                    bar.style.width = '0%'; 
+                    btnProcess.disabled = false;
+                    btnProcess.innerHTML = '<i class="fas fa-play"></i> เริ่มทำงาน';
                 }, 500);
             }
+        }
+
+        function drawWatermark(ctx, text, pos, w, h) {
+            const fontSize = Math.max(14, Math.floor(w * 0.05)); // 5% of width
+            ctx.font = `bold ${fontSize}px Sarabun, sans-serif`;
+            ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+            ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+            ctx.shadowBlur = 4;
+            ctx.lineWidth = Math.max(1, fontSize/10);
+            ctx.strokeStyle = "rgba(0,0,0,0.8)";
+            
+            let x, y;
+            if (pos === 'br') { ctx.textAlign = "right"; ctx.textBaseline = "bottom"; x = w - 10; y = h - 10; }
+            else if (pos === 'bl') { ctx.textAlign = "left"; ctx.textBaseline = "bottom"; x = 10; y = h - 10; }
+            else { ctx.textAlign = "center"; ctx.textBaseline = "middle"; x = w/2; y = h/2; }
+
+            ctx.strokeText(text, x, y);
+            ctx.fillText(text, x, y);
+            ctx.shadowBlur = 0; // reset
         }
 
         async function convertItem(item, config) {
             return new Promise((resolve) => {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
-                
-                // 1. Calculate Dimensions
-                let targetWidth = item.width;
-                let targetHeight = item.height;
+                let targetWidth, targetHeight;
 
-                if (config.resize > 0) {
-                    targetWidth = config.resize;
-                    targetHeight = (item.height / item.width) * targetWidth;
+                if (config.format === 'favicon') { targetWidth = 64; targetHeight = 64; } 
+                else {
+                    const dims = calculateDimensions(item.width, item.height, config.resizeMode, config.resizeWidth);
+                    targetWidth = dims.w; targetHeight = dims.h;
                 }
+                canvas.width = targetWidth; canvas.height = targetHeight;
+                ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
 
-                if (config.format === 'favicon') {
-                    targetWidth = 64; targetHeight = 64;
-                }
-                
-                canvas.width = targetWidth;
-                canvas.height = targetHeight;
-                
-                // High Quality Resize
-                ctx.imageSmoothingEnabled = true;
-                ctx.imageSmoothingQuality = 'high';
-
-                // 2. Apply Filters
                 if (config.filter !== 'none') {
                     if (config.filter === 'grayscale') ctx.filter = 'grayscale(100%)';
                     else if (config.filter === 'sepia') ctx.filter = 'sepia(100%)';
@@ -903,116 +950,63 @@
                     else if (config.filter === 'contrast') ctx.filter = 'contrast(150%)';
                 }
                 
-                // 3. Draw Image
+                if(config.format === 'jpeg' || config.format === 'bmp') {
+                    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, targetWidth, targetHeight);
+                }
+
                 ctx.drawImage(item.img, 0, 0, targetWidth, targetHeight);
-                // Reset filter
                 ctx.filter = 'none';
 
-                // 4. Generate Name
-                const originalName = item.file.name.replace(/\.[^/.]+$/, "");
-                const prefixStr = config.prefix || "";
-                let finalName = `${prefixStr}${originalName}`;
+                if(config.watermarkText) drawWatermark(ctx, config.watermarkText, config.watermarkPos, targetWidth, targetHeight);
+
+                let finalName = `${config.prefix || ""}${item.file.name.replace(/\.[^/.]+$/, "")}`;
 
                 if (config.format === 'base64') {
                     const b64 = canvas.toDataURL('image/jpeg', config.quality);
-                    const blob = new Blob([b64], {type: "text/plain;charset=utf-8"});
-                    resolve({ blob: blob, name: `${finalName}_b64.txt` });
-                } 
-                else if (config.format === 'pdf') {
-                     // For single PDF export per file
+                    resolve({ blob: new Blob([b64], {type: "text/plain;charset=utf-8"}), name: `${finalName}_b64.txt` });
+                } else if (config.format === 'pdf') {
                      const { jsPDF } = window.jspdf;
-                     const pdf = new jsPDF({
-                         orientation: targetWidth > targetHeight ? 'l' : 'p',
-                         unit: 'px',
-                         format: [targetWidth, targetHeight]
-                     });
-                     const imgData = canvas.toDataURL(item.file.type === 'image/png' ? 'image/png' : 'image/jpeg');
-                     pdf.addImage(imgData, 'JPEG', 0, 0, targetWidth, targetHeight);
+                     const pdf = new jsPDF({ orientation: targetWidth > targetHeight ? 'l' : 'p', unit: 'px', format: [targetWidth, targetHeight] });
+                     pdf.addImage(canvas.toDataURL('image/jpeg'), 'JPEG', 0, 0, targetWidth, targetHeight);
                      resolve({ blob: pdf.output('blob'), name: `${finalName}.pdf` });
-                }
-                else {
+                } else {
                     let mime = `image/${config.format}`;
                     if (config.format === 'jpeg') mime = 'image/jpeg';
                     if (config.format === 'favicon') mime = 'image/png';
-                    
-                    canvas.toBlob((blob) => {
-                        let ext = config.format;
-                        if (config.format === 'jpeg') ext = 'jpg';
-                        if (config.format === 'favicon') ext = 'ico';
-                        resolve({ blob: blob, name: `${finalName}.${ext}` });
-                    }, mime, config.quality);
+                    canvas.toBlob((blob) => resolve({ blob: blob, name: `${finalName}.${config.format==='jpeg'?'jpg':config.format==='favicon'?'ico':config.format}` }), mime, config.quality);
                 }
             });
         }
 
         async function downloadZip() {
             if (state.processed.length === 0) return;
-
-            // Single file logic (Direct download, no zip needed)
             const format = document.getElementById('target-format').value;
             if (state.processed.length === 1 && format !== 'pdf' && format !== 'base64') {
-                saveAs(state.processed[0].blob, state.processed[0].name);
-                log('บันทึกไฟล์เดี่ยวเสร็จสิ้น');
-                return;
+                saveAs(state.processed[0].blob, state.processed[0].name); log('บันทึกไฟล์เดี่ยวสำเร็จ'); return;
             }
 
-            // Batch Processing Logic
-            const batchInput = document.getElementById('batch-size').value;
-            let batchSize = parseInt(batchInput);
-
-            // If empty or invalid, set to total length (1 batch)
-            if (!batchSize || batchSize <= 0) batchSize = state.processed.length;
-
-            const totalFiles = state.processed.length;
-            const totalBatches = Math.ceil(totalFiles / batchSize);
-
-            log(`กำลังเตรียมดาวน์โหลด: ${totalFiles} ไฟล์ (${totalBatches} ชุด)`);
+            let batchSize = parseInt(document.getElementById('batch-size').value) || state.processed.length;
+            const totalBatches = Math.ceil(state.processed.length / batchSize);
+            log(`เตรียมดาวน์โหลด: ${state.processed.length} ไฟล์ (${totalBatches} ชุด)`);
 
             for (let i = 0; i < totalBatches; i++) {
-                const start = i * batchSize;
-                const end = Math.min(start + batchSize, totalFiles);
-                const chunk = state.processed.slice(start, end);
-
-                await createAndSaveZip(chunk, i + 1, totalBatches);
+                const chunk = state.processed.slice(i * batchSize, Math.min((i+1) * batchSize, state.processed.length));
+                const zip = new JSZip();
+                const folder = zip.folder(totalBatches > 1 ? `Elucidator_Part_${i+1}` : "Elucidator_Output");
+                const nameTracker = {};
                 
-                // Small delay between downloads to prevent browser blocking
-                if (i < totalBatches - 1) {
-                    await new Promise(r => setTimeout(r, 1000));
-                }
+                chunk.forEach(item => {
+                    let name = item.name; const baseName = name.replace(/\.[^/.]+$/, ""); const ext = name.split('.').pop();
+                    if (nameTracker[name]) { nameTracker[name]++; name = `${baseName}_${nameTracker[name]}.${ext}`; } 
+                    else { nameTracker[name] = 0; }
+                    folder.file(name, item.blob);
+                });
+                
+                const content = await zip.generateAsync({type:"blob"});
+                saveAs(content, totalBatches > 1 ? `Elucidator_Batch_${i+1}_of_${totalBatches}.zip` : "Elucidator_Package.zip");
+                if (i < totalBatches - 1) await new Promise(r => setTimeout(r, 1000));
             }
             log('ดาวน์โหลดครบทุกชุดแล้ว');
-        }
-
-        async function createAndSaveZip(items, partNum, totalParts) {
-            const zip = new JSZip();
-            const folderName = totalParts > 1 ? `Elucidator_Part_${partNum}` : "Elucidator_Output";
-            const folder = zip.folder(folderName);
-            
-            const nameTracker = {};
-            
-            items.forEach(item => {
-                let name = item.name;
-                const baseName = name.replace(/\.[^/.]+$/, "");
-                const ext = name.split('.').pop();
-                
-                if (nameTracker[name]) {
-                    nameTracker[name]++;
-                    name = `${baseName}_${nameTracker[name]}.${ext}`;
-                } else {
-                    nameTracker[name] = 0;
-                }
-                
-                folder.file(name, item.blob);
-            });
-            
-            log(`กำลังบีบอัด ZIP ชุดที่ ${partNum}/${totalParts}...`);
-            const content = await zip.generateAsync({type:"blob"});
-            
-            const zipName = totalParts > 1 
-                ? `Elucidator_Batch_${partNum}_of_${totalParts}.zip` 
-                : "Elucidator_Package.zip";
-                
-            saveAs(content, zipName);
         }
     </script>
 </body>
