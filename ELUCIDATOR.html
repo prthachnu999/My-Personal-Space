@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Link Start! - Elucidator System V4.5 [Ultimate Batch]</title>
+    <title>Link Start! - Elucidator System V4.6 [Ultimate Batch]</title>
     
     <meta name="theme-color" content="#000000">
 
@@ -115,7 +115,7 @@
             box-shadow: inset 0 0 20px rgba(0, 210, 255, 0.2);
         }
 
-        /* Global Drop Overlay - CSS FIXED */
+        /* Global Drop Overlay */
         #global-drop-overlay {
             position: fixed; inset: 0; z-index: 9999;
             background: rgba(0, 210, 255, 0.15);
@@ -196,9 +196,9 @@
                 </div>
                 <div>
                     <h1 class="font-tech text-xl md:text-2xl font-bold italic tracking-tighter text-white">
-                        ELUCIDATOR <span class="text-green-400">V4.5</span>
+                        ELUCIDATOR <span class="text-green-400">V4.6</span>
                     </h1>
-                    <p class="text-[9px] text-blue-400 font-tech tracking-[0.1em] uppercase">Ultimate Batch System [Compact Edition]</p>
+                    <p class="text-[9px] text-blue-400 font-tech tracking-[0.1em] uppercase">Ultimate Batch System [Advanced Partition]</p>
                 </div>
             </div>
             <div class="text-right hidden sm:block">
@@ -212,7 +212,7 @@
 
     <main class="flex-grow p-4 md:p-6 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        <!-- Left Column: Controls (Now more compact) -->
+        <!-- Left Column: Controls -->
         <aside class="lg:col-span-4 flex flex-col gap-4">
             
             <!-- INPUT PANEL -->
@@ -235,7 +235,7 @@
                 </div>
             </div>
 
-            <!-- CORE CONFIG & MODULES (Merged & Grid for compactness) -->
+            <!-- CORE CONFIG & MODULES -->
             <div class="sao-panel p-5 border-t-2 border-purple-500">
                 <div class="flex justify-between items-center mb-2">
                     <h3 class="font-tech text-sm text-purple-300 uppercase flex items-center gap-2">
@@ -247,9 +247,7 @@
                 </div>
                 <div class="sao-header-line" style="background: linear-gradient(90deg, var(--neon-purple), transparent);"></div>
                 
-                <!-- Grid Container for compact layout -->
                 <div class="grid grid-cols-2 gap-3">
-                    
                     <!-- Format -->
                     <div>
                         <label class="text-[9px] font-bold text-gray-400 uppercase mb-1 block">Output Format</label>
@@ -308,14 +306,22 @@
 
                     <!-- Batch & PDF -->
                     <div class="col-span-2 grid grid-cols-2 gap-3 p-2 bg-black/40 border border-gray-800 rounded">
-                        <div>
-                            <label class="text-[9px] font-bold text-purple-400 uppercase block mb-1">Batch (แบ่งชุด)</label>
-                            <input type="number" id="batch-size" placeholder="จำนวนรูป/ไฟล์" min="1" class="w-full p-1 text-[10px]">
+                        <div class="col-span-2 md:col-span-2">
+                            <label class="text-[9px] font-bold text-purple-400 uppercase block mb-1">Batch Partition (การแบ่งชุด)</label>
+                            <div class="flex gap-1">
+                                <input type="number" id="batch-size" placeholder="ระบุเลข" min="1" class="w-1/3 p-1.5 text-[10px] text-center" oninput="updateBatchPreview()">
+                                <select id="batch-mode" class="w-2/3 p-1.5 text-[9px] font-thai" onchange="updateBatchPreview()">
+                                    <option value="total-files">แบ่งเป็นกี่ไฟล์ (Part)</option>
+                                    <option value="per-file">ดึงมาไฟล์ละ X รูป/หน้า</option>
+                                </select>
+                            </div>
+                            <!-- เพิ่มกล่องแสดงผลพรีวิวการแบ่งไฟล์ -->
+                            <div id="batch-preview-text" class="hidden mt-1 p-1.5 bg-green-900/20 border border-green-500/30 rounded text-[9.5px] text-[var(--neon-green)] font-thai shadow-[0_0_5px_rgba(0,255,100,0.1)]"></div>
                         </div>
-                        <div id="pdf-options" class="flex items-center hidden mt-3">
+                        <div id="pdf-options" class="col-span-2 flex items-center hidden mt-1 border-t border-gray-800 pt-2">
                             <label class="flex items-center gap-2 text-[9px] text-gray-300 cursor-pointer">
                                 <input type="checkbox" id="pdf-one-file" class="sao-check" checked>
-                                <span class="font-thai">รวมเป็น PDF ไฟล์เดียว</span>
+                                <span class="font-thai">รวมเข้าเป็น PDF ในแต่ละชุด</span>
                             </label>
                         </div>
                         <!-- Watermark Option -->
@@ -519,6 +525,7 @@
                 document.getElementById('pdf-one-file').checked = true;
                 
                 document.getElementById('batch-size').value = '';
+                document.getElementById('batch-mode').value = 'total-files';
                 document.getElementById('resize-mode').value = 'none';
                 document.getElementById('resize-width').value = '';
                 toggleResizeInput();
@@ -528,6 +535,7 @@
                 document.getElementById('sort-order').value = 'none';
 
                 updateOptions();
+                updateBatchPreview(); // สั่งให้อัปเดตกล่องพรีวิวกลับเป็นค่าเริ่มต้น
                 log("รีเซ็ตการตั้งค่าเรียบร้อย");
             }, "ยืนยันการรีเซ็ต");
         }
@@ -613,10 +621,12 @@
                             await page.render({canvasContext: ctx, viewport: viewport}).promise;
 
                             const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.9));
-                            const pageName = `${file.name.replace(/\.pdf$/i, '')}_p${i.toString().padStart(2, '0')}.jpg`;
+                            // แก้บัค: ใช้ padStart(3) รองรับหน้าถึง 999 
+                            const pageName = `${file.name.replace(/\.pdf$/i, '')}_p${i.toString().padStart(3, '0')}.jpg`;
                             const newFile = new File([blob], pageName, { type: 'image/jpeg' });
 
-                            if (!state.files.some(f => f.file.name === newFile.name && f.file.size === newFile.size)) {
+                            // แก้บัค: เช็คแค่ชื่อไฟล์ตอนแยก PDF ป้องกันขนาด Blob คลาดเคลื่อนแล้วเบิ้ลซ้ำ
+                            if (!state.files.some(f => f.file.name === newFile.name)) {
                                  await loadImage(newFile, 'PDF');
                             }
                         }
@@ -696,7 +706,6 @@
             const empty = document.getElementById('empty-state');
             document.getElementById('item-count').innerText = `[${state.files.length}]`;
 
-            // Calculate Total Size
             let totalBytes = state.files.reduce((acc, curr) => acc + curr.file.size, 0);
             document.getElementById('total-size').innerText = (totalBytes / 1024 / 1024).toFixed(2) + ' MB';
 
@@ -741,6 +750,9 @@
                 `;
                 container.appendChild(el);
             });
+            
+            // อัปเดตกล่องพรีวิวเสมอเวลามีการเพิ่ม/ลบไฟล์
+            updateBatchPreview();
         }
 
         function reqRemoveItem(id) {
@@ -762,7 +774,6 @@
             }, "ยืนยันการล้างข้อมูล");
         }
 
-        // --- Viewer ---
         let vScale = 1, vPanning = false, vPoint = {x:0,y:0}, vStart = {x:0,y:0};
         function openViewer(src) {
             document.getElementById('viewer-img').src = src;
@@ -802,7 +813,55 @@
             else if (mode === 'fhd') { const ratio = Math.min(1920/w, 1080/h); if(ratio<1){w*=ratio; h*=ratio;} }
             else if (mode === 'scale50') { w *= 0.5; h *= 0.5; }
             else if (mode === 'scale75') { w *= 0.75; h *= 0.75; }
-            return { w: Math.round(w), h: Math.round(h) }; // ป้องกันบั๊กทศนิยม
+            return { w: Math.round(w), h: Math.round(h) };
+        }
+
+        // --- ระบบคำนวณและโชว์พรีวิวการแบ่งไฟล์ (ใหม่) ---
+        function updateBatchPreview() {
+            const previewEl = document.getElementById('batch-preview-text');
+            const totalItems = state.files.length;
+            const batchInput = parseInt(document.getElementById('batch-size').value);
+            const batchMode = document.getElementById('batch-mode').value;
+
+            // ถ้ายังไม่มีไฟล์เลยให้ซ่อนข้อความไปก่อน
+            if (totalItems === 0) {
+                previewEl.innerHTML = '';
+                previewEl.classList.add('hidden');
+                return;
+            }
+
+            // ถ้าไม่ได้กรอกตัวเลข หรือกรอก 0 ให้เตือนว่าจะรวมเป็นก้อนเดียว
+            if (isNaN(batchInput) || batchInput <= 0) {
+                previewEl.innerHTML = `<i class="fas fa-info-circle"></i> จะได้ผลลัพธ์ <b>1 ชุด</b> (รวม ${totalItems} รายการ)`;
+                previewEl.className = "mt-1 p-1.5 bg-gray-800/50 border border-gray-600/50 rounded text-[9.5px] text-gray-400 font-thai";
+                previewEl.classList.remove('hidden');
+                return;
+            }
+
+            let batchSize = totalItems;
+            if (batchMode === 'total-files') {
+                batchSize = Math.ceil(totalItems / batchInput);
+            } else {
+                batchSize = batchInput;
+            }
+
+            const totalBatches = Math.ceil(totalItems / batchSize);
+            const lastPartItems = totalItems - (batchSize * (totalBatches - 1));
+
+            let text = '';
+            if (totalBatches <= 1) {
+                text = `<i class="fas fa-check-circle"></i> จะได้ผลลัพธ์ <b>1 ชุด</b> (รวม ${totalItems} รายการ)`;
+            } else {
+                if (lastPartItems === batchSize || lastPartItems === 0) {
+                    text = `<i class="fas fa-layer-group"></i> จะได้ <b>${totalBatches} ชุด</b> (ชุดละ ${batchSize} รายการ)`;
+                } else {
+                    text = `<i class="fas fa-layer-group"></i> จะได้ <b>${totalBatches} ชุด</b> (ชุดละ ${batchSize} รายการ, ชุดสุดท้าย ${lastPartItems} รายการ)`;
+                }
+            }
+            
+            previewEl.innerHTML = text;
+            previewEl.className = "mt-1 p-1.5 bg-green-900/20 border border-green-500/30 rounded text-[9.5px] text-[var(--neon-green)] font-thai shadow-[0_0_5px_rgba(0,255,100,0.1)]";
+            previewEl.classList.remove('hidden');
         }
 
         async function processAll() {
@@ -826,7 +885,23 @@
                 watermarkPos: document.getElementById('watermark-pos').value
             };
             
-            let batchSize = parseInt(document.getElementById('batch-size').value) || state.files.length; 
+            // --- ระบบคำนวณ Batch ใหม่ที่แม่นยำ ---
+            let batchInput = parseInt(document.getElementById('batch-size').value);
+            let batchMode = document.getElementById('batch-mode').value;
+            let totalFiles = state.files.length;
+            let batchSize = totalFiles; 
+            
+            if (!isNaN(batchInput) && batchInput > 0) {
+                if (batchMode === 'total-files') {
+                    // โหมดแบ่งเป็นจำนวนไฟล์: เอาหน้าทั้งหมดมาหารจำนวนไฟล์
+                    batchSize = Math.ceil(totalFiles / batchInput);
+                } else {
+                    // โหมดแบ่งหน้าต่อไฟล์: ดึงมาใส่ไฟล์ละ X หน้า
+                    batchSize = batchInput;
+                }
+            }
+            
+            const totalBatches = Math.ceil(totalFiles / batchSize);
 
             const modal = document.getElementById('process-modal');
             const bar = document.getElementById('modal-bar');
@@ -838,13 +913,13 @@
             try {
                 if (format === 'pdf' && isOnePdf) {
                     const { jsPDF } = window.jspdf;
-                    const totalFiles = state.files.length;
-                    const totalBatches = Math.ceil(totalFiles / batchSize);
                     
                     for (let b = 0; b < totalBatches; b++) {
                         const start = b * batchSize;
-                        const chunk = state.files.slice(start, Math.min(start + batchSize, totalFiles));
-                        status.innerText = totalBatches > 1 ? `สร้าง PDF ชุดที่ ${b + 1}/${totalBatches}...` : "สร้างไฟล์ PDF...";
+                        const end = Math.min(start + batchSize, totalFiles);
+                        const chunk = state.files.slice(start, end);
+                        
+                        status.innerText = totalBatches > 1 ? `สร้าง PDF ชุดที่ ${b + 1}/${totalBatches} (หน้า ${start+1}-${end})...` : "กำลังสร้างไฟล์ PDF...";
 
                         const getProcessedData = async (item) => {
                              const canvas = document.createElement('canvas');
@@ -859,33 +934,39 @@
                                 else if (config.filter === 'invert') ctx.filter = 'invert(100%)';
                                 else if (config.filter === 'contrast') ctx.filter = 'contrast(150%)';
                              }
+                             
+                             ctx.fillStyle = '#FFFFFF';
+                             ctx.fillRect(0, 0, dims.w, dims.h);
                              ctx.drawImage(item.img, 0, 0, dims.w, dims.h);
                              
-                             // Draw Watermark
                              if(config.watermarkText) drawWatermark(ctx, config.watermarkText, config.watermarkPos, dims.w, dims.h);
 
                              return { imgData: canvas.toDataURL('image/jpeg', config.quality), w: dims.w, h: dims.h };
                         };
 
-                        const firstData = await getProcessedData(chunk[0]);
-                        const pdf = new jsPDF({ orientation: firstData.w > firstData.h ? 'l' : 'p', unit: 'px', format: [firstData.w, firstData.h] });
-                        pdf.addImage(firstData.imgData, 'JPEG', 0, 0, firstData.w, firstData.h);
-                        chunk[0].processed = true;
-
-                        for (let i = 1; i < chunk.length; i++) {
+                        let pdf = null;
+                        for (let i = 0; i < chunk.length; i++) {
                             const data = await getProcessedData(chunk[i]);
-                            pdf.addPage([data.w, data.h], data.w > data.h ? 'l' : 'p');
-                            pdf.addImage(data.imgData, 'JPEG', 0, 0, data.w, data.h);
+                            if (i === 0) {
+                                pdf = new jsPDF({ orientation: data.w > data.h ? 'l' : 'p', unit: 'px', format: [data.w, data.h] });
+                                pdf.addImage(data.imgData, 'JPEG', 0, 0, data.w, data.h);
+                            } else {
+                                pdf.addPage([data.w, data.h], data.w > data.h ? 'l' : 'p');
+                                pdf.addImage(data.imgData, 'JPEG', 0, 0, data.w, data.h);
+                            }
                             chunk[i].processed = true;
-                            bar.style.width = `${(((start + i)+1)/totalFiles)*90}%`;
-                            await new Promise(r => setTimeout(r, 10));
+                            bar.style.width = `${(((start + i) + 1) / totalFiles) * 90}%`;
+                            await new Promise(r => setTimeout(r, 10)); 
                         }
 
                         const fileName = totalBatches > 1 ? `${config.prefix || 'Elucidator'}_Part_${b+1}.pdf` : `${config.prefix || 'Elucidator'}_Doc.pdf`;
                         pdf.save(fileName);
-                        if (b < totalBatches - 1) { status.innerText = `พักระบบ...`; await new Promise(r => setTimeout(r, 1000)); }
+                        if (b < totalBatches - 1) { 
+                            status.innerText = `พักระบบก่อนชุดถัดไป...`; 
+                            await new Promise(r => setTimeout(r, 1000)); 
+                        }
                     }
-                    log(`ส่งออก PDF เสร็จสิ้น`);
+                    log(`ส่งออก PDF เสร็จสิ้น (${totalBatches} ไฟล์)`);
                 } else {
                     for (let i = 0; i < state.files.length; i++) {
                         status.innerText = `กำลังประมวลผล: ${state.files[i].file.name}`;
@@ -911,7 +992,7 @@
         }
 
         function drawWatermark(ctx, text, pos, w, h) {
-            const fontSize = Math.max(14, Math.floor(w * 0.05)); // 5% of width
+            const fontSize = Math.max(14, Math.floor(w * 0.05)); 
             ctx.font = `bold ${fontSize}px Sarabun, sans-serif`;
             ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
             ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
@@ -926,7 +1007,7 @@
 
             ctx.strokeText(text, x, y);
             ctx.fillText(text, x, y);
-            ctx.shadowBlur = 0; // reset
+            ctx.shadowBlur = 0; 
         }
 
         async function convertItem(item, config) {
@@ -980,25 +1061,48 @@
 
         async function downloadZip() {
             if (state.processed.length === 0) return;
+            
             const format = document.getElementById('target-format').value;
             if (state.processed.length === 1 && format !== 'pdf' && format !== 'base64') {
-                saveAs(state.processed[0].blob, state.processed[0].name); log('บันทึกไฟล์เดี่ยวสำเร็จ'); return;
+                saveAs(state.processed[0].blob, state.processed[0].name); 
+                log('บันทึกไฟล์เดี่ยวสำเร็จ'); 
+                return;
             }
 
-            let batchSize = parseInt(document.getElementById('batch-size').value) || state.processed.length;
-            const totalBatches = Math.ceil(state.processed.length / batchSize);
-            log(`เตรียมดาวน์โหลด: ${state.processed.length} ไฟล์ (${totalBatches} ชุด)`);
+            // ใช้ระบบคำนวณ Batch ใหม่ร่วมกับ ZIP
+            let batchInput = parseInt(document.getElementById('batch-size').value);
+            let batchMode = document.getElementById('batch-mode').value;
+            let totalProcessed = state.processed.length;
+            let batchSize = totalProcessed;
+
+            if (!isNaN(batchInput) && batchInput > 0) {
+                if (batchMode === 'total-files') {
+                    batchSize = Math.ceil(totalProcessed / batchInput);
+                } else {
+                    batchSize = batchInput;
+                }
+            }
+            const totalBatches = Math.ceil(totalProcessed / batchSize);
+            
+            log(`เตรียมดาวน์โหลด: ${totalProcessed} ไฟล์ (${totalBatches} ชุด)`);
 
             for (let i = 0; i < totalBatches; i++) {
-                const chunk = state.processed.slice(i * batchSize, Math.min((i+1) * batchSize, state.processed.length));
+                const chunk = state.processed.slice(i * batchSize, Math.min((i+1) * batchSize, totalProcessed));
                 const zip = new JSZip();
                 const folder = zip.folder(totalBatches > 1 ? `Elucidator_Part_${i+1}` : "Elucidator_Output");
                 const nameTracker = {};
                 
                 chunk.forEach(item => {
-                    let name = item.name; const baseName = name.replace(/\.[^/.]+$/, ""); const ext = name.split('.').pop();
-                    if (nameTracker[name]) { nameTracker[name]++; name = `${baseName}_${nameTracker[name]}.${ext}`; } 
-                    else { nameTracker[name] = 0; }
+                    let name = item.name; 
+                    const baseName = name.replace(/\.[^/.]+$/, ""); 
+                    const ext = name.split('.').pop();
+                    
+                    if (nameTracker.hasOwnProperty(name)) { 
+                        nameTracker[name]++; 
+                        name = `${baseName}_${nameTracker[name]}.${ext}`; 
+                    } else { 
+                        nameTracker[name] = 0; 
+                    }
                     folder.file(name, item.blob);
                 });
                 
