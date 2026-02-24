@@ -59,13 +59,13 @@
         /* --- ปุ่ม Back to Home Style (Updated) --- */
         .portal-back-btn {
             position: fixed;
-            bottom: 20px; /* ย้ายมาด้านล่าง */
-            left: 20px;   /* ชิดมุมซ้าย */
+            bottom: 20px;
+            left: 20px;
             z-index: 100;
             display: flex;
             align-items: center;
-            gap: 6px;     /* ลดระยะห่าง */
-            padding: 5px 12px; /* ลดขนาดปุ่ม */
+            gap: 6px;
+            padding: 5px 12px;
             background: rgba(5, 10, 20, 0.8);
             border: 1px solid var(--neon-blue);
             color: var(--neon-blue);
@@ -73,9 +73,9 @@
             font-family: 'Rajdhani', sans-serif;
             font-weight: 700;
             letter-spacing: 1px;
-            font-size: 0.75rem; /* ลดขนาดตัวอักษร */
+            font-size: 0.75rem;
             backdrop-filter: blur(5px);
-            clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); /* ปรับ Clip path ให้พอดีกับปุ่มเล็ก */
+            clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
             transition: all 0.3s ease;
             box-shadow: 0 0 10px rgba(0, 240, 255, 0.1);
         }
@@ -97,7 +97,6 @@
             transform: translateX(-3px);
         }
 
-        /* Mobile adjustments for back button */
         @media (max-width: 768px) {
             .portal-back-btn {
                 bottom: 15px;
@@ -106,7 +105,6 @@
                 font-size: 0.65rem;
             }
         }
-        /* ---------------------------- */
 
         .sao-card {
             background: var(--panel-bg); border: 1px solid var(--border-color);
@@ -135,16 +133,16 @@
             border: 1px solid var(--neon-blue); color: white; text-transform: uppercase; letter-spacing: 1px;
             position: relative; overflow: hidden; transition: all 0.3s ease; font-family: 'Rajdhani', sans-serif; font-weight: 700;
         }
-        .sao-btn:hover { background: rgba(0, 240, 255, 0.3); box-shadow: 0 0 20px rgba(0, 240, 255, 0.4); transform: translateY(-2px); }
+        .sao-btn:hover:not(:disabled) { background: rgba(0, 240, 255, 0.3); box-shadow: 0 0 20px rgba(0, 240, 255, 0.4); transform: translateY(-2px); }
         .sao-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; filter: grayscale(100%); }
         .sao-btn::after {
             content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); transition: 0.5s;
         }
-        .sao-btn:hover::after { left: 100%; }
+        .sao-btn:hover:not(:disabled)::after { left: 100%; }
 
         .sao-btn-success { background: linear-gradient(90deg, rgba(57, 255, 20, 0.1), rgba(57, 255, 20, 0.2)); border: 1px solid var(--neon-green); color: var(--neon-green); }
-        .sao-btn-success:hover { background: rgba(57, 255, 20, 0.3); box-shadow: 0 0 20px rgba(57, 255, 20, 0.4); }
+        .sao-btn-success:hover:not(:disabled) { background: rgba(57, 255, 20, 0.3); box-shadow: 0 0 20px rgba(57, 255, 20, 0.4); }
 
         .upload-zone { border: 2px dashed var(--border-color); transition: all 0.3s; background: rgba(0, 10, 20, 0.4); }
         .upload-zone:hover, .upload-zone.dragover { border-color: var(--neon-blue); background: rgba(0, 240, 255, 0.05); box-shadow: inset 0 0 20px rgba(0, 240, 255, 0.1); }
@@ -204,7 +202,7 @@
     <main class="w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
         
         <!-- Left Panel: Settings -->
-        <div class="sao-card p-6 md:col-span-1 flex flex-col gap-5 h-fit">
+        <div class="sao-card p-6 md:col-span-1 flex flex-col gap-4 h-fit">
             <h2 class="text-xl font-bold border-b border-[var(--border-color)] pb-2 text-[var(--neon-blue)]">
                 <i class="fa-solid fa-sliders mr-2"></i> ตั้งค่าระบบ
             </h2>
@@ -224,13 +222,25 @@
             <!-- Resize Logic -->
             <div>
                 <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Resolution</label>
-                <select id="resizeMode" class="sao-input w-full p-2 rounded cursor-pointer text-sm mb-2">
+                <select id="resizeMode" class="sao-input w-full p-2 rounded cursor-pointer text-sm">
                     <option value="original">คงขนาดเดิม (Original)</option>
                     <option value="hd">HD (1280x720)</option>
                     <option value="fhd">Full HD (1920x1080)</option>
                     <option value="scale50">ย่อลง 50%</option>
                     <option value="scale75">ย่อลง 75%</option>
                 </select>
+            </div>
+
+            <!-- Batch Logic -->
+            <div class="border-t border-[var(--border-color)]/30 pt-3">
+                <label class="block text-xs text-[var(--neon-blue)] mb-1 uppercase tracking-wider flex items-center justify-between">
+                    <span><i class="fa-solid fa-boxes-stacked mr-1"></i> Batch Save (แบ่งเซฟ)</span>
+                </label>
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-[10px] text-gray-400">จำนวนรูปต่อ 1 ไฟล์ (ZIP)</span>
+                </div>
+                <input type="number" id="batchSize" placeholder="ว่าง = ไม่แบ่ง" min="1" class="sao-input w-full p-2 rounded text-sm mb-1">
+                <p class="text-[9px] text-gray-500 font-thai">*เช่น ใส่ 10 เพื่อแบ่งไฟล์ละ 10 รูป</p>
             </div>
 
             <!-- Info Box -->
@@ -242,7 +252,7 @@
                 <ul class="space-y-1 list-disc list-inside opacity-80 font-thai">
                     <li>รองรับรูปภาพ / HEIC / PDF (แยกหน้า)</li>
                     <li class="text-[var(--neon-orange)]">แยกรูปจาก Office (Word/PPT)</li>
-                    <li>รวมไฟล์ ZIP อัตโนมัติ</li>
+                    <li>รวมไฟล์ ZIP และแบ่งกลุ่มได้</li>
                 </ul>
             </div>
         </div>
@@ -369,7 +379,6 @@
 
         let filesQueue = []; 
         let isProcessing = false;
-        let currentZipBlob = null; 
         let createdObjectUrls = [];
         let currentZoom = 1;
         let isDragging = false;
@@ -406,17 +415,42 @@
 
         convertBtn.addEventListener('click', startBatchConversion);
 
+        // Updated Download ZIP with Batch Logic
         downloadZipBtn.addEventListener('click', async () => {
              if (window.processedBlobs && window.processedBlobs.length > 0) {
                  downloadZipBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Zipping...';
-                 const zip = new JSZip();
-                 window.processedBlobs.forEach(item => {
-                     zip.file(item.name, item.blob);
-                 });
-                 const content = await zip.generateAsync({type:"blob"});
-                 const timestamp = new Date().toISOString().slice(0,19).replace(/:/g,"-");
-                 saveAs(content, `SAO_Images_${timestamp}.zip`);
+                 downloadZipBtn.disabled = true;
+
+                 const batchInput = document.getElementById('batchSize').value;
+                 let batchSize = parseInt(batchInput);
+                 if (!batchSize || batchSize <= 0) batchSize = window.processedBlobs.length;
+
+                 const totalFiles = window.processedBlobs.length;
+                 const totalBatches = Math.ceil(totalFiles / batchSize);
+
+                 for (let i = 0; i < totalBatches; i++) {
+                     const zip = new JSZip();
+                     const start = i * batchSize;
+                     const end = Math.min(start + batchSize, totalFiles);
+                     const chunk = window.processedBlobs.slice(start, end);
+
+                     chunk.forEach(item => {
+                         zip.file(item.name, item.blob);
+                     });
+
+                     const content = await zip.generateAsync({type:"blob"});
+                     const timestamp = new Date().toISOString().slice(0,19).replace(/:/g,"-");
+                     const zipName = totalBatches > 1 ? `SAO_Images_${timestamp}_Part${i+1}.zip` : `SAO_Images_${timestamp}.zip`;
+                     saveAs(content, zipName);
+
+                     if (i < totalBatches - 1) {
+                         await new Promise(r => setTimeout(r, 1000));
+                     }
+                 }
+
                  downloadZipBtn.innerHTML = '<i class="fa-solid fa-file-zipper"></i> DOWNLOAD ZIP';
+                 downloadZipBtn.disabled = false;
+                 showNotification(`ดาวน์โหลดครบ ${totalBatches} ไฟล์แล้ว!`);
              }
         });
 
@@ -515,7 +549,6 @@
             convertBtn.classList.add('hidden'); 
             convertBtn.disabled = false;
             convertBtn.innerHTML = '<i class="fa-solid fa-rocket"></i> CONVERT ALL';
-            currentZipBlob = null;
             progressContainer.classList.add('hidden');
             progressBar.style.width = '0%';
         }
@@ -758,20 +791,6 @@
             const el = document.getElementById('galleryCount');
             if (el) el.innerText = `[${count} รูป]`;
         }
-
-        downloadZipBtn.addEventListener('click', async () => {
-             if (window.processedBlobs && window.processedBlobs.length > 0) {
-                 downloadZipBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Zipping...';
-                 const zip = new JSZip();
-                 window.processedBlobs.forEach(item => {
-                     zip.file(item.name, item.blob);
-                 });
-                 const content = await zip.generateAsync({type:"blob"});
-                 const timestamp = new Date().toISOString().slice(0,19).replace(/:/g,"-");
-                 saveAs(content, `SAO_Images_${timestamp}.zip`);
-                 downloadZipBtn.innerHTML = '<i class="fa-solid fa-file-zipper"></i> DOWNLOAD ZIP';
-             }
-        });
 
         function addPreviewToGallery(blob, name, itemId) {
             const url = URL.createObjectURL(blob);
