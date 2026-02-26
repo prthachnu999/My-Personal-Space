@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KIRITO - Ultimate System Master V7.0 [Alicization]</title>
+    <title>KIRITO - Ultimate System Master V9.0 [Kirito's Awakening]</title>
     <meta name="theme-color" content="#000000">
 
     <!-- Preconnect & Fonts -->
@@ -12,14 +12,22 @@
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Core Libraries -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/heic2any/0.0.4/heic2any.min.js"></script>
+
+    <!-- Core Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/heic2any/0.0.4/heic2any.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+    <script>
+        window.onload = function() {
+            if(window.pdfjsLib) {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            }
+        };
+    </script>
 
     <style>
         :root {
@@ -35,15 +43,17 @@
 
         body {
             background-color: var(--bg-base); color: var(--text-main);
-            font-family: 'Sarabun', sans-serif; margin: 0; padding: 0; height: 100vh; overflow: hidden;
+            font-family: 'Sarabun', sans-serif; margin: 0; padding: 0; 
+            height: 100vh; overflow: hidden; 
         }
 
         #bg-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.25; }
 
         .font-tech { font-family: 'Orbitron', sans-serif; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: rgba(0,0,0,0.5); }
-        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; border: 1px solid var(--neon-blue); }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; border-right: 1px solid var(--neon-blue); border-left: 1px solid var(--neon-blue); }
 
         .sao-panel {
             background: var(--panel-bg); border: 1px solid rgba(0, 242, 255, 0.2);
@@ -65,10 +75,16 @@
             padding: 6px 10px; font-family: 'Sarabun', sans-serif; outline: none; width: 100%; transition: 0.3s;
         }
         .input-sao:focus { border-color: var(--neon-blue); box-shadow: 0 0 8px rgba(0, 242, 255, 0.4); background: rgba(0,242,255,0.05); }
+        .input-sao option { background: #0f172a; color: white; }
 
-        .app-container { display: flex; height: calc(100vh - 60px); }
-        .sidebar { width: 260px; border-right: 1px solid rgba(0,242,255,0.3); background: rgba(0,0,0,0.85); display: flex; flex-direction: column; z-index: 40; transition: transform 0.3s;}
-        .main-content { flex-grow: 1; overflow-y: auto; position: relative; }
+        .app-container { display: flex; height: calc(100vh - 60px); width: 100%; }
+        .sidebar { width: 260px; border-right: 1px solid rgba(0,242,255,0.3); background: rgba(0,0,0,0.85); display: flex; flex-direction: column; z-index: 40; transition: transform 0.3s; flex-shrink: 0; height: 100%; overflow-y: auto;}
+        
+        .main-content { 
+            flex-grow: 1; height: 100%; 
+            overflow-y: auto; overflow-x: hidden; 
+            position: relative; scroll-behavior: smooth;
+        }
         
         .nav-item {
             padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; display: flex; align-items: center; gap: 15px;
@@ -79,13 +95,22 @@
         .nav-item.active { background: rgba(0,242,255,0.15); color: var(--neon-blue); }
         .nav-item.active::before { background: var(--neon-blue); box-shadow: 0 0 12px var(--neon-blue); }
 
-        .view-section { display: none; height: 100%; padding: 20px; animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .view-section { display: none; padding: 20px 20px 100px 20px; animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); min-height: 100%; }
         .view-section.active { display: flex; flex-direction: column; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); filter: blur(5px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
 
         .drop-zone { border: 2px dashed rgba(255,255,255,0.2); transition: all 0.3s; }
         .drop-zone.dragover { border-color: var(--neon-blue); background: rgba(0, 242, 255, 0.15); box-shadow: inset 0 0 20px rgba(0,242,255,0.2); transform: scale(0.98); }
         
+        #global-drop-overlay {
+            position: fixed; inset: 0; z-index: 99999;
+            background: rgba(0, 242, 255, 0.15); backdrop-filter: blur(5px);
+            border: 4px dashed var(--neon-blue);
+            display: none; justify-content: center; align-items: center;
+            flex-direction: column; pointer-events: none;
+        }
+        #global-drop-overlay.active { display: flex; animation: fadeMod 0.2s; }
+
         .loader { border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid var(--neon-blue); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
@@ -105,8 +130,17 @@
         .dl-filter-btn:hover { background: #1e293b; color: white; }
         .dl-filter-btn.active { background: var(--neon-red); color: white; border-color: var(--neon-red); }
 
+        #scrollTopBtn {
+            display: none; position: fixed; bottom: 30px; right: 30px; z-index: 99;
+            font-size: 1.5rem; border: none; outline: none; background-color: var(--neon-blue);
+            color: #000; cursor: pointer; padding: 15px; border-radius: 50%; width: 55px; height: 55px;
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.5);
+            transition: 0.3s;
+        }
+        #scrollTopBtn:hover { background-color: #fff; transform: scale(1.1); }
+
         @media (max-width: 768px) {
-            .sidebar { position: fixed; left: -260px; height: 100%; box-shadow: 5px 0 20px rgba(0,0,0,0.8); }
+            .sidebar { position: fixed; left: -260px; box-shadow: 5px 0 20px rgba(0,0,0,0.8); }
             .sidebar.open { left: 0; }
             .mobile-menu-btn { display: block !important; }
         }
@@ -114,8 +148,13 @@
 </head>
 <body>
     
-    <!-- Holographic BG -->
     <canvas id="bg-canvas"></canvas>
+
+    <div id="global-drop-overlay">
+        <i class="fas fa-satellite-dish text-6xl text-cyan-400 mb-4 animate-ping"></i>
+        <h2 class="font-tech text-3xl text-white tracking-widest drop-shadow-[0_0_15px_cyan]">DROP DATA MODULE</h2>
+        <p class="font-thai text-cyan-300 mt-2 text-lg">ปล่อยเมาส์เพื่อนำเข้าสู่หน้าจอที่เปิดอยู่</p>
+    </div>
 
     <!-- Header -->
     <header class="h-[60px] bg-black/90 border-b border-cyan-800/60 flex justify-between items-center px-4 relative z-50 backdrop-blur-md">
@@ -147,14 +186,14 @@
     <div class="app-container">
         <!-- Sidebar Navigation -->
         <nav class="sidebar" id="sidebar">
-            <div class="p-4 border-b border-gray-800 flex items-center gap-3">
+            <div class="p-4 border-b border-gray-800 flex items-center gap-3 mt-2">
                 <img src="คิรโตะธีมดำ.jpg" alt="Kirito" class="w-10 h-10 rounded-full border border-cyan-500 object-cover shadow-[0_0_10px_rgba(0,242,255,0.3)]" onerror="this.src='https://via.placeholder.com/40'">
                 <div>
                     <div class="text-xs font-tech text-white">MASTER_CONTROL</div>
-                    <div class="text-[9px] text-purple-400 font-tech">ALICIZATION MODE</div>
+                    <div class="text-[9px] text-purple-400 font-tech">V9.0 AWAKENING</div>
                 </div>
             </div>
-            <div class="flex-grow overflow-y-auto py-2">
+            <div class="flex-grow py-2">
                 <div class="nav-item active sound-hover" onclick="SFX.play('click'); switchView('hub')" data-target="hub">
                     <i class="fas fa-home w-5 text-center"></i> <span>SYSTEM HUB</span>
                 </div>
@@ -171,8 +210,9 @@
                     <i class="fas fa-cloud-download-alt w-5 text-center"></i> <span>DOWNLOADER</span>
                 </div>
             </div>
-            <div class="p-4 border-t border-gray-800 text-[10px] text-gray-500 font-tech text-center cursor-help" title="Lenovo LOQ 15IAX9">
-                VERSION 7.0 (ALICIZATION)<br>LENOVO LOQ 15
+            <!-- OS Info Update -->
+            <div class="p-4 border-t border-gray-800 text-[10px] text-gray-500 font-tech text-center cursor-help pb-8" title="Lenovo LOQ 15IAX9 - Windows 11 Build 26100.7171">
+                VERSION 9.0 (STABLE)<br>WINDOWS 11 24H2
             </div>
         </nav>
 
@@ -189,7 +229,6 @@
                     <h2 class="font-tech text-4xl font-bold text-white mb-1 uppercase drop-shadow-[0_0_10px_rgba(0,242,255,0.5)]">SYSTEM <span class="text-cyan-400">HUB</span></h2>
                     <p class="font-tech text-xs text-purple-400 tracking-[0.2em] mb-8">ALICIZATION ENVIRONMENT ACTIVE</p>
 
-                    <!-- UPGRADE: Hardware Gauges incl. Battery -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-left w-full mx-auto px-4">
                         <div class="sao-panel p-4">
                             <div class="flex justify-between items-end mb-2">
@@ -218,29 +257,10 @@
                     </div>
 
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8 px-4">
-                        <div class="sao-panel p-3 text-center bg-black/40"><i class="fas fa-microchip text-purple-400 mb-1 text-lg"></i><div class="text-[9px] font-tech text-gray-300">i5-12450HX</div></div>
-                        <div class="sao-panel p-3 text-center bg-black/40"><i class="fas fa-gamepad text-orange-400 mb-1 text-lg"></i><div class="text-[9px] font-tech text-gray-300">RTX 3050 6GB</div></div>
-                        <div class="sao-panel p-3 text-center bg-black/40"><i class="fas fa-desktop text-blue-400 mb-1 text-lg"></i><div class="text-[9px] font-tech text-gray-300">15.6" 144Hz IPS</div></div>
-                        <div class="sao-panel p-3 text-center bg-black/40"><i class="fas fa-shield-alt text-green-400 mb-1 text-lg"></i><div class="text-[9px] font-tech text-gray-300">LA1 AI Chip</div></div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left px-4">
-                        <div class="sao-panel p-4 cursor-pointer hover:border-cyan-400 group sound-hover" onclick="SFX.play('click'); switchView('dr')">
-                            <h3 class="font-tech text-cyan-400 font-bold mb-1 group-hover:drop-shadow-[0_0_5px_cyan] transition"><i class="fas fa-bolt w-6"></i> DARK REPULSER</h3>
-                            <p class="text-xs text-gray-400 font-thai">ระบบเปลี่ยนชื่อไฟล์จำนวนมาก (Batch Renamer)</p>
-                        </div>
-                        <div class="sao-panel p-4 cursor-pointer hover:border-orange-400 group sound-hover" onclick="SFX.play('click'); switchView('wm')">
-                            <h3 class="font-tech text-orange-400 font-bold mb-1 group-hover:drop-shadow-[0_0_5px_orange] transition"><i class="fas fa-copyright w-6"></i> WATERMARK TITANIUM</h3>
-                            <p class="text-xs text-gray-400 font-thai">ระบบประทับลายน้ำภาพ พร้อม AI ช่วยคิดแคปชั่น</p>
-                        </div>
-                        <div class="sao-panel p-4 cursor-pointer hover:border-purple-400 group sound-hover" onclick="SFX.play('click'); switchView('elu')">
-                            <h3 class="font-tech text-purple-400 font-bold mb-1 group-hover:drop-shadow-[0_0_5px_purple] transition"><i class="fas fa-images w-6"></i> ELUCIDATOR</h3>
-                            <p class="text-xs text-gray-400 font-thai">ระบบแปลงไฟล์รูป/เอกสาร แยก PDF, HEIC สกัดไฟล์ ZIP</p>
-                        </div>
-                        <div class="sao-panel p-4 cursor-pointer hover:border-red-400 group sound-hover" onclick="SFX.play('click'); switchView('dl')">
-                            <h3 class="font-tech text-red-400 font-bold mb-1 group-hover:drop-shadow-[0_0_5px_red] transition"><i class="fas fa-cloud-download-alt w-6"></i> DOWNLOADER</h3>
-                            <p class="text-xs text-gray-400 font-thai">ระบบดูดสื่อ Media ข้ามโดเมน จากโค้ดและลิงก์</p>
-                        </div>
+                        <div class="sao-panel p-3 text-center bg-black/40 border-gray-800"><i class="fas fa-microchip text-purple-400 mb-1 text-lg"></i><div class="text-[9px] font-tech text-gray-300">i5-12450HX</div></div>
+                        <div class="sao-panel p-3 text-center bg-black/40 border-gray-800"><i class="fas fa-gamepad text-orange-400 mb-1 text-lg"></i><div class="text-[9px] font-tech text-gray-300">RTX 3050 6GB</div></div>
+                        <div class="sao-panel p-3 text-center bg-black/40 border-gray-800"><i class="fab fa-windows text-blue-400 mb-1 text-lg"></i><div class="text-[9px] font-tech text-gray-300">Win 11 24H2</div></div>
+                        <div class="sao-panel p-3 text-center bg-black/40 border-gray-800"><i class="fas fa-shield-alt text-green-400 mb-1 text-lg"></i><div class="text-[9px] font-tech text-gray-300">LA1 AI Chip</div></div>
                     </div>
                 </div>
             </section>
@@ -248,10 +268,12 @@
             <!-- 2. DARK REPULSER -->
             <section id="view-dr" class="view-section">
                 <div class="flex justify-between items-center mb-4">
-                    <h2 class="font-tech text-xl font-bold text-cyan-400 tracking-widest drop-shadow-[0_0_5px_cyan]"><i class="fas fa-bolt"></i> DARK REPULSER <span class="text-xs text-gray-500">V1.8 PRO</span></h2>
+                    <h2 class="font-tech text-xl font-bold text-cyan-400 tracking-widest drop-shadow-[0_0_5px_cyan]"><i class="fas fa-bolt"></i> DARK REPULSER <span class="text-xs text-gray-500">V1.9 PRO</span></h2>
                 </div>
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow overflow-hidden">
-                    <div class="sao-panel p-4 flex flex-col gap-4 overflow-y-auto">
+                
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    
+                    <div class="lg:col-span-4 sao-panel p-4 flex flex-col gap-4 lg:sticky lg:top-4 z-10">
                         <div id="dr-drop-zone" class="drop-zone p-6 text-center cursor-pointer bg-black/40 sound-hover" onclick="document.getElementById('dr-file').click()">
                             <input type="file" id="dr-file" multiple class="hidden" onchange="SFX.play('hover'); DR.handleFiles(this.files)">
                             <i class="fas fa-file-signature text-3xl text-cyan-700 mb-2 group-hover:text-cyan-400 transition"></i>
@@ -263,27 +285,28 @@
                             <select id="dr-sort" class="input-sao text-xs sound-hover" onchange="SFX.play('hover'); DR.sortFiles()">
                                 <option value="name_asc">ชื่อ A-Z</option><option value="name_desc">ชื่อ Z-A</option>
                                 <option value="date_old">วันที่ เก่า-ใหม่</option><option value="date_new">วันที่ ใหม่-เก่า</option>
+                                <option value="size_small">ขนาด เล็ก-ใหญ่</option><option value="size_large">ขนาด ใหญ่-เล็ก</option>
                             </select>
                         </div>
 
                         <div class="space-y-3 font-thai text-sm border-t border-gray-800 pt-3">
-                            <div><label class="text-[10px] text-cyan-400 font-bold">ชื่อหลักใหม่ (ถ้าปล่อยว่างจะใช้ชื่อเดิม)</label><input type="text" id="dr-newname" class="input-sao" oninput="DR.preview()"></div>
+                            <div><label class="text-[10px] text-cyan-400 font-bold">ชื่อหลักใหม่ (ปล่อยว่าง = ใช้ชื่อเดิม)</label><input type="text" id="dr-newname" class="input-sao" oninput="DR.preview()" onchange="Prefs.save('dr-newname')"></div>
                             <div class="grid grid-cols-2 gap-2">
                                 <div>
-                                    <div class="flex justify-between items-center"><label class="text-[10px] text-cyan-400 font-bold">ค้นหาคำ</label><label class="text-[8px] text-gray-400 flex items-center gap-1 cursor-pointer hover:text-cyan-400 transition"><input type="checkbox" id="dr-regex" onchange="SFX.play('hover'); DR.preview()"> Regex</label></div>
-                                    <input type="text" id="dr-find" class="input-sao" oninput="DR.preview()">
+                                    <div class="flex justify-between items-center"><label class="text-[10px] text-cyan-400 font-bold">ค้นหาคำ</label><label class="text-[8px] text-gray-400 flex items-center gap-1 cursor-pointer hover:text-cyan-400 transition"><input type="checkbox" id="dr-regex" onchange="SFX.play('hover'); DR.preview(); Prefs.saveCheck('dr-regex')"> Regex</label></div>
+                                    <input type="text" id="dr-find" class="input-sao" oninput="DR.preview()" onchange="Prefs.save('dr-find')">
                                 </div>
-                                <div><label class="text-[10px] text-cyan-400 font-bold">แทนที่ด้วย</label><input type="text" id="dr-replace" class="input-sao" oninput="DR.preview()"></div>
+                                <div><label class="text-[10px] text-cyan-400 font-bold">แทนที่ด้วย</label><input type="text" id="dr-replace" class="input-sao" oninput="DR.preview()" onchange="Prefs.save('dr-replace')"></div>
                             </div>
                             <div class="grid grid-cols-2 gap-2">
-                                <div><label class="text-[10px] text-cyan-400 font-bold">เติมหน้า</label><input type="text" id="dr-prefix" class="input-sao" oninput="DR.preview()"></div>
-                                <div><label class="text-[10px] text-cyan-400 font-bold">เติมหลัง</label><input type="text" id="dr-suffix" class="input-sao" oninput="DR.preview()"></div>
+                                <div><label class="text-[10px] text-cyan-400 font-bold">เติมหน้า</label><input type="text" id="dr-prefix" class="input-sao" oninput="DR.preview()" onchange="Prefs.save('dr-prefix')"></div>
+                                <div><label class="text-[10px] text-cyan-400 font-bold">เติมหลัง</label><input type="text" id="dr-suffix" class="input-sao" oninput="DR.preview()" onchange="Prefs.save('dr-suffix')"></div>
                             </div>
                             
                             <div class="grid grid-cols-2 gap-2 border-t border-gray-800 pt-2">
                                 <div>
                                     <label class="text-[10px] text-cyan-400 font-bold">รูปแบบตัวอักษร</label>
-                                    <select id="dr-case" class="input-sao text-xs" onchange="DR.preview()">
+                                    <select id="dr-case" class="input-sao text-xs" onchange="DR.preview(); Prefs.save('dr-case')">
                                         <option value="none">คงเดิม</option><option value="lower">ตัวเล็ก (abc)</option>
                                         <option value="upper">ตัวใหญ่ (ABC)</option><option value="title">นำหน้าใหญ่ (Title)</option>
                                     </select>
@@ -291,22 +314,22 @@
                                 <div>
                                     <label class="text-[10px] text-cyan-400 font-bold">เปลี่ยนนามสกุล</label>
                                     <div class="flex gap-1">
-                                        <select id="dr-ext-mode" class="input-sao text-[10px] w-full" onchange="DR.preview()">
+                                        <select id="dr-ext-mode" class="input-sao text-[10px] w-full" onchange="DR.preview(); Prefs.save('dr-ext-mode')">
                                             <option value="keep">คงเดิม</option><option value="lower">ตัวเล็ก</option><option value="upper">ตัวใหญ่</option><option value="change">เปลี่ยนใหม่</option>
                                         </select>
-                                        <input type="text" id="dr-ext-new" class="input-sao w-12 hidden" placeholder="jpg" oninput="DR.preview()">
+                                        <input type="text" id="dr-ext-new" class="input-sao w-12 hidden" placeholder="jpg" oninput="DR.preview()" onchange="Prefs.save('dr-ext-new')">
                                     </div>
                                 </div>
                             </div>
 
                             <div>
                                 <label class="flex items-center gap-2 text-[10px] text-cyan-400 font-bold mb-1 mt-2 cursor-pointer hover:text-cyan-300 transition">
-                                    <input type="checkbox" id="dr-num-enable" onchange="SFX.play('hover'); DR.preview()"> รันลำดับตัวเลข
+                                    <input type="checkbox" id="dr-num-enable" onchange="SFX.play('hover'); DR.preview(); Prefs.saveCheck('dr-num-enable')"> รันลำดับตัวเลข
                                 </label>
                                 <div class="flex gap-2">
-                                    <input type="number" id="dr-num-start" placeholder="เริ่มที่" value="1" class="input-sao w-1/3" oninput="DR.preview()">
-                                    <input type="number" id="dr-num-digits" placeholder="จำนวนหลัก" value="3" class="input-sao w-1/3" oninput="DR.preview()">
-                                    <select id="dr-num-pos" class="input-sao text-xs w-1/3" onchange="DR.preview()">
+                                    <input type="number" id="dr-num-start" placeholder="เริ่มที่" value="1" class="input-sao w-1/3" oninput="DR.preview()" onchange="Prefs.save('dr-num-start')">
+                                    <input type="number" id="dr-num-digits" placeholder="จำนวนหลัก" value="3" class="input-sao w-1/3" oninput="DR.preview()" onchange="Prefs.save('dr-num-digits')">
+                                    <select id="dr-num-pos" class="input-sao text-xs w-1/3" onchange="DR.preview(); Prefs.save('dr-num-pos')">
                                         <option value="end">ต่อท้าย</option><option value="start">นำหน้า</option>
                                     </select>
                                 </div>
@@ -315,12 +338,12 @@
                         </div>
                     </div>
 
-                    <div class="lg:col-span-2 sao-panel p-0 flex flex-col bg-black/80">
-                        <div class="p-2 border-b border-gray-800 flex justify-between text-[10px] font-tech text-cyan-500 bg-black">
-                            <span class="w-5/12">Original Name</span> <span class="w-5/12">New Name</span> <button onclick="SFX.play('error'); DR.clear()" class="text-red-500 hover:text-white transition sound-hover"><i class="fas fa-trash"></i> CLEAR</button>
+                    <div class="lg:col-span-8 sao-panel p-0 flex flex-col bg-black/80">
+                        <div class="p-2 border-b border-gray-800 flex justify-between items-center text-[10px] font-tech text-cyan-500 bg-black sticky top-0 z-10">
+                            <span class="w-5/12">Original Name (Size/Date)</span> <span class="w-5/12">New Name</span> <button onclick="SFX.play('error'); DR.clear()" class="text-red-500 hover:text-white transition sound-hover bg-gray-900/50 px-2 py-1 rounded"><i class="fas fa-trash"></i> CLEAR</button>
                         </div>
-                        <div id="dr-list" class="flex-grow overflow-y-auto p-2 space-y-1 font-mono text-[11px]">
-                            <div class="opacity-30 flex flex-col items-center justify-center h-full"><i class="fas fa-dna text-4xl mb-2"></i> SYSTEM STANDBY</div>
+                        <div id="dr-list" class="p-2 space-y-1 font-mono text-[11px] min-h-[400px]">
+                            <div class="opacity-30 flex flex-col items-center justify-center h-full min-h-[300px]"><i class="fas fa-dna text-4xl mb-2"></i> SYSTEM STANDBY</div>
                         </div>
                     </div>
                 </div>
@@ -332,8 +355,10 @@
                     <h2 class="font-tech text-xl font-bold text-orange-400 tracking-widest drop-shadow-[0_0_5px_orange]"><i class="fas fa-copyright"></i> WATERMARK <span class="text-xs text-gray-500">TITANIUM AI</span></h2>
                     <button onclick="SFX.play('click'); WM.openApiSettings()" class="text-xs text-gray-400 border border-gray-700 px-3 py-1 rounded hover:bg-gray-800 hover:text-white transition sound-hover"><i class="fas fa-cog"></i> API KEY</button>
                 </div>
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow overflow-hidden">
-                    <div class="lg:col-span-4 sao-panel p-4 overflow-y-auto flex flex-col gap-4">
+                
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    
+                    <div class="lg:col-span-4 sao-panel p-4 flex flex-col gap-4 lg:sticky lg:top-4 z-10">
                         <div id="wm-drop-zone" class="drop-zone p-4 text-center cursor-pointer bg-black/40 sound-hover" onclick="document.getElementById('wm-file').click()">
                             <input type="file" id="wm-file" multiple accept="image/*" class="hidden" onchange="SFX.play('hover'); WM.handleFiles(this.files)">
                             <i class="fas fa-images text-2xl text-orange-700 mb-2 group-hover:text-orange-400 transition"></i>
@@ -354,7 +379,6 @@
                                     <label class="text-[10px] font-bold text-gray-400 uppercase">หมุนองศา</label>
                                     <div class="flex items-center gap-1"><input type="range" id="wm-rot-slide" min="0" max="360" value="0" oninput="WM.sync('rot','slide')"><input type="number" id="wm-rot-num" value="0" class="input-sao text-[10px] w-10 p-1 rounded text-center" oninput="WM.sync('rot','num')"></div>
                                 </div>
-                                <!-- UPGRADE: Tiled Gap Control -->
                                 <div>
                                     <label class="text-[10px] font-bold text-orange-400 uppercase" title="ความห่างในโหมดตาราง">ความถี่ (Gap)</label>
                                     <div class="flex items-center gap-1"><input type="range" id="wm-gap-slide" min="2" max="20" value="8" oninput="WM.sync('gap','slide')"><input type="number" id="wm-gap-num" value="8" class="input-sao text-[10px] w-10 p-1 rounded text-center border-orange-500/50" oninput="WM.sync('gap','num')"></div>
@@ -367,9 +391,15 @@
                                 </select>
                             </div>
                             <div class="grid grid-cols-2 gap-3">
-                                <div><label class="text-[10px] font-bold text-gray-400 uppercase">สี</label><input type="color" id="wm-color" value="#ffffff" class="w-full h-8 bg-black border border-gray-700 rounded cursor-pointer" oninput="WM.queueUpdate()"></div>
-                                <div><label class="text-[10px] font-bold text-gray-400 uppercase">ฟอนต์</label>
-                                    <select id="wm-font" class="input-sao text-xs sound-hover" onchange="WM.queueUpdate()"><option value="Sarabun">Sarabun</option><option value="Orbitron">Orbitron</option></select>
+                                <div>
+                                    <label class="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1 cursor-pointer">สีตัวอักษร</label>
+                                    <input type="color" id="wm-color" value="#ffffff" class="w-full h-8 bg-black border border-gray-700 rounded cursor-pointer" oninput="WM.queueUpdate()" onchange="Prefs.save('wm-color')">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold text-gray-400 uppercase flex items-center justify-between cursor-pointer">
+                                        ฟอนต์ <span class="flex items-center gap-1 text-[8px] hover:text-white"><input type="checkbox" id="wm-stroke" checked onchange="Prefs.saveCheck('wm-stroke'); WM.queueUpdate()"> ขอบดำ</span>
+                                    </label>
+                                    <select id="wm-font" class="input-sao text-xs sound-hover" onchange="WM.queueUpdate(); Prefs.save('wm-font')"><option value="Sarabun">Sarabun</option><option value="Orbitron">Orbitron</option></select>
                                 </div>
                             </div>
                             
@@ -385,15 +415,15 @@
                         </div>
                     </div>
 
-                    <div class="lg:col-span-8 sao-panel p-4 flex flex-col bg-black/80">
-                        <div class="flex justify-between items-center mb-2">
+                    <div class="lg:col-span-8 sao-panel p-4 flex flex-col bg-black/80 min-h-[400px]">
+                        <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-800 sticky top-0 bg-black/90 z-10 backdrop-blur-sm -mx-4 px-4">
                             <span class="text-[10px] font-tech text-gray-400" id="wm-count">0 ITEMS</span>
                             <div class="flex gap-2">
                                 <button id="wm-ai-btn" onclick="SFX.play('click'); WM.analyzeAllAI()" class="btn-sao px-3 py-1 text-[9px] border-purple-500 text-purple-400 sound-hover" style="--neon-blue: #a855f7;"><i class="fas fa-magic"></i> ให้ AI คิดแคปชั่น</button>
-                                <button onclick="SFX.play('error'); WM.clear()" class="text-red-500 text-[10px] hover:text-white transition sound-hover"><i class="fas fa-trash"></i> CLEAR</button>
+                                <button onclick="SFX.play('error'); WM.clear()" class="text-red-500 text-[10px] hover:text-white transition sound-hover bg-gray-900/50 px-2 py-1 rounded"><i class="fas fa-trash"></i> CLEAR</button>
                             </div>
                         </div>
-                        <div id="wm-grid" class="grid grid-cols-2 md:grid-cols-3 gap-4 overflow-y-auto flex-grow pr-1"></div>
+                        <div id="wm-grid" class="grid grid-cols-2 md:grid-cols-3 gap-4 pb-10"></div>
                     </div>
                 </div>
             </section>
@@ -401,10 +431,12 @@
             <!-- 4. ELUCIDATOR -->
             <section id="view-elu" class="view-section">
                 <div class="flex justify-between items-center mb-4">
-                    <h2 class="font-tech text-xl font-bold text-purple-400 tracking-widest drop-shadow-[0_0_5px_purple]"><i class="fas fa-images"></i> ELUCIDATOR <span class="text-xs text-gray-500">V4.8 EXIF-SAFE</span></h2>
+                    <h2 class="font-tech text-xl font-bold text-purple-400 tracking-widest drop-shadow-[0_0_5px_purple]"><i class="fas fa-images"></i> ELUCIDATOR <span class="text-xs text-gray-500">V4.9 EXIF-SAFE</span></h2>
                 </div>
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow overflow-hidden">
-                    <div class="lg:col-span-4 sao-panel p-4 overflow-y-auto flex flex-col gap-4">
+                
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    
+                    <div class="lg:col-span-4 sao-panel p-4 flex flex-col gap-4 lg:sticky lg:top-4 z-10">
                         <div id="elu-drop-zone" class="drop-zone p-4 text-center cursor-pointer bg-black/40 sound-hover" onclick="document.getElementById('elu-file').click()">
                             <input type="file" id="elu-file" multiple accept="image/*,.zip,.heic,.pdf,.docx,.xlsx,.pptx" class="hidden" onchange="SFX.play('hover'); ELU.handleFiles(this.files)">
                             <i class="fas fa-cubes text-2xl text-purple-700 mb-1 group-hover:text-purple-400 transition"></i>
@@ -426,7 +458,6 @@
                                         <option value="favicon">Favicon (.ico)</option><option value="pdf">PDF Document</option><option value="base64">Base64 Text</option>
                                     </select>
                                 </div>
-                                <!-- UPGRADE: BG Color for transparent conversion -->
                                 <div class="w-1/3">
                                     <label class="text-[10px] font-bold text-gray-400 uppercase" title="สำหรับภาพโปร่งใส">BG Color</label>
                                     <input type="color" id="elu-bg-color" value="#ffffff" class="w-full h-8 bg-black border border-gray-700 rounded cursor-pointer" title="สีพื้นหลังเมื่อแปลงเป็น JPG/PDF" onchange="Prefs.save('elu-bg-color')">
@@ -456,7 +487,7 @@
                                 <label class="text-[9px] font-bold text-orange-400 uppercase mb-1 block">Quick Watermark</label>
                                 <div class="flex gap-2">
                                     <input type="text" id="elu-wm-text" placeholder="ข้อความลายน้ำ..." class="input-sao text-[10px] w-2/3" onchange="Prefs.save('elu-wm-text')">
-                                    <select id="elu-wm-pos" class="input-sao text-[9px] w-1/3">
+                                    <select id="elu-wm-pos" class="input-sao text-[9px] w-1/3" onchange="Prefs.save('elu-wm-pos')">
                                         <option value="br">ขวาล่าง</option><option value="center">ตรงกลาง</option>
                                     </select>
                                 </div>
@@ -465,14 +496,14 @@
                             <div class="bg-black/50 p-2 border border-purple-900/50 rounded">
                                 <label class="text-[10px] font-bold text-purple-400 uppercase mb-1 block">Batch Partition (แบ่งชุด)</label>
                                 <div class="flex gap-2 mb-2">
-                                    <input type="number" id="elu-batch-size" placeholder="จำนวน" class="input-sao text-xs w-1/3 rounded">
-                                    <select id="elu-batch-mode" class="input-sao text-[10px] w-2/3 sound-hover">
+                                    <input type="number" id="elu-batch-size" placeholder="จำนวน" class="input-sao text-xs w-1/3 rounded" onchange="Prefs.save('elu-batch-size')">
+                                    <select id="elu-batch-mode" class="input-sao text-[10px] w-2/3 sound-hover" onchange="Prefs.save('elu-batch-mode')">
                                         <option value="total">แบ่งเป็นกี่ส่วน (Part)</option><option value="perfile">กี่รูปต่อ 1 ไฟล์</option>
                                     </select>
                                 </div>
                                 <div id="elu-pdf-options" class="hidden border-t border-gray-800 pt-1 mt-1">
                                     <label class="flex items-center gap-2 text-[10px] text-gray-300 cursor-pointer hover:text-purple-300 transition sound-hover">
-                                        <input type="checkbox" id="elu-pdf-one" checked> รวมเข้าเป็น PDF ชุดละไฟล์
+                                        <input type="checkbox" id="elu-pdf-one" checked onchange="Prefs.saveCheck('elu-pdf-one')"> รวมเข้าเป็น PDF ชุดละไฟล์
                                     </label>
                                 </div>
                             </div>
@@ -482,17 +513,16 @@
                         </div>
                     </div>
 
-                    <div class="lg:col-span-8 sao-panel p-4 flex flex-col bg-black/80">
-                        <div class="flex justify-between items-center mb-2 pb-2 border-b border-gray-800">
+                    <div class="lg:col-span-8 sao-panel p-4 flex flex-col bg-black/80 min-h-[400px]">
+                        <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-800 sticky top-0 bg-black/90 z-10 backdrop-blur-sm -mx-4 px-4">
                             <div class="flex items-center gap-2">
                                 <span class="text-[10px] font-tech text-gray-400" id="elu-count">WORKSPACE: 0 ITEMS</span>
-                                <!-- UPGRADE: Privacy Badge -->
                                 <span class="bg-green-900/40 text-green-400 border border-green-500 px-2 py-0.5 rounded text-[8px] font-tech flex items-center gap-1" title="ลบข้อมูล Location/Camera ออกจากภาพแล้ว"><i class="fas fa-shield-alt"></i> EXIF STRIPPED</span>
                             </div>
-                            <button onclick="SFX.play('error'); ELU.clear()" class="text-red-500 text-[10px] hover:text-white transition sound-hover"><i class="fas fa-trash"></i> CLEAR</button>
+                            <button onclick="SFX.play('error'); ELU.clear()" class="text-red-500 text-[10px] hover:text-white transition sound-hover bg-gray-900/50 px-2 py-1 rounded"><i class="fas fa-trash"></i> CLEAR</button>
                         </div>
-                        <div id="elu-list" class="flex-grow overflow-y-auto space-y-2 pr-1">
-                            <div class="opacity-30 flex flex-col items-center justify-center h-full"><i class="fas fa-layer-group text-4xl mb-2"></i></div>
+                        <div id="elu-list" class="space-y-2 pb-10">
+                            <div class="opacity-30 flex flex-col items-center justify-center h-full min-h-[300px]"><i class="fas fa-layer-group text-4xl mb-2"></i></div>
                         </div>
                     </div>
                 </div>
@@ -504,7 +534,7 @@
                     <h2 class="font-tech text-xl font-bold text-red-500 tracking-widest drop-shadow-[0_0_5px_red]"><i class="fas fa-cloud-download-alt"></i> KIRITO <span class="text-xs text-gray-500">DOWNLOADER</span></h2>
                 </div>
                 
-                <div class="sao-panel p-5 flex flex-col gap-4 mb-4">
+                <div class="sao-panel p-5 flex flex-col gap-4 mb-6">
                     <div class="flex gap-2 border-b border-gray-800 pb-2">
                         <button class="tab-btn active sound-hover" onclick="SFX.play('hover'); DL.switchTab('auto')" id="dl-tab-auto"><i class="fas fa-satellite-dish"></i> Auto Scan</button>
                         <button class="tab-btn sound-hover" onclick="SFX.play('hover'); DL.switchTab('manual')" id="dl-tab-manual"><i class="fas fa-code"></i> Manual Code</button>
@@ -512,12 +542,12 @@
                     </div>
                     
                     <div id="dl-sec-auto" class="flex gap-2">
-                        <input type="text" id="dl-url" placeholder="วางลิงก์เว็บไซต์ที่ต้องการดึง Media (เช่น https://example.com)" class="input-sao rounded">
+                        <input type="text" id="dl-url" placeholder="วางลิงก์เว็บไซต์ที่ต้องการดึง Media (เช่น https://example.com)" class="input-sao rounded" onchange="Prefs.save('dl-url')">
                         <button onclick="SFX.play('click'); DL.scanAuto()" class="btn-sao border-red-500 text-red-400 px-6 rounded sound-hover" style="--neon-blue: #ef4444;"><i class="fas fa-radar"></i> SCAN</button>
                     </div>
 
                     <div id="dl-sec-manual" class="hidden flex-col gap-2">
-                        <input type="text" id="dl-manual-url" placeholder="โดเมนต้นทาง (เพื่อเติมเต็ม Path ที่แหว่งไป)" class="input-sao text-xs rounded">
+                        <input type="text" id="dl-manual-url" placeholder="โดเมนต้นทาง (เพื่อเติมเต็ม Path ที่แหว่งไป)" class="input-sao text-xs rounded" onchange="Prefs.save('dl-manual-url')">
                         <textarea id="dl-manual-code" placeholder="วางโค้ด HTML หรือข้อความรกๆ ที่นี่..." class="input-sao h-24 text-[10px] font-mono rounded"></textarea>
                         <button onclick="SFX.play('click'); DL.scanManual()" class="btn-sao border-red-500 text-red-400 py-2 rounded sound-hover" style="--neon-blue: #ef4444;"><i class="fas fa-microchip"></i> DECODE & EXTRACT</button>
                     </div>
@@ -541,34 +571,36 @@
                     </div>
                 </div>
 
-                <div class="sao-panel p-4 flex-grow flex flex-col bg-black/80 overflow-hidden">
-                    <div class="flex justify-between items-center mb-3">
+                <div class="sao-panel p-4 flex-col bg-black/80 min-h-[400px]">
+                    <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-800 sticky top-0 bg-black/90 z-10 backdrop-blur-sm -mx-4 px-4">
                         <div class="flex gap-3 items-center">
                             <span class="text-[10px] font-tech text-gray-400" id="dl-count">FOUND: 0</span>
                             <label class="text-[10px] text-cyan-500 flex items-center gap-1 cursor-pointer hover:text-cyan-300 transition sound-hover"><input type="checkbox" id="dl-select-all" checked onchange="SFX.play('hover'); DL.toggleSelectAll()"> เลือกทั้งหมด</label>
                         </div>
                         <div class="flex gap-2">
-                            <!-- UPGRADE: Copy All Button -->
                             <button onclick="SFX.play('click'); DL.copyLinks()" class="btn-sao border-purple-500 text-purple-400 px-3 py-1 text-[9px] rounded sound-hover" style="--neon-blue: #a855f7;" title="คัดลอกลิงก์ที่เลือกทั้งหมด"><i class="fas fa-copy"></i> Copy</button>
                             <button onclick="SFX.play('click'); DL.exportTxt()" class="btn-sao border-blue-500 text-blue-400 px-3 py-1 text-[9px] rounded sound-hover" style="--neon-blue: #3b82f6;"><i class="fas fa-file-alt"></i> TXT</button>
                             <button onclick="SFX.play('click'); DL.downloadAll()" class="btn-sao border-green-500 text-green-400 px-3 py-1 text-[9px] rounded sound-hover" style="--neon-blue: #22c55e;"><i class="fas fa-file-archive"></i> ZIP</button>
-                            <button onclick="SFX.play('error'); DL.clear()" class="text-red-500 text-[10px] hover:text-white transition sound-hover"><i class="fas fa-trash"></i> CLEAR</button>
+                            <button onclick="SFX.play('error'); DL.clear()" class="text-red-500 text-[10px] hover:text-white transition sound-hover bg-gray-900/50 px-2 py-1 rounded"><i class="fas fa-trash"></i> CLEAR</button>
                         </div>
                     </div>
-                    <div id="dl-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 overflow-y-auto flex-grow pr-1"></div>
+                    <div id="dl-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 pb-10"></div>
                 </div>
             </section>
 
         </main>
     </div>
 
+    <!-- Scroll to Top Button -->
+    <button id="scrollTopBtn" onclick="SFX.play('click'); document.getElementById('main-content').scrollTo({top: 0, behavior: 'smooth'})" class="sound-hover flex items-center justify-center"><i class="fas fa-arrow-up"></i></button>
+
     <!-- Toast Notification Container -->
     <div id="toast-container" class="fixed top-20 right-4 z-[10000] flex flex-col gap-2 pointer-events-none"></div>
 
     <!-- Global Modals -->
     <div id="global-viewer" class="modal-overlay select-none" onwheel="Viewer.zoom(event)" onmousedown="Viewer.startPan(event)" onmousemove="Viewer.pan(event)" onmouseup="Viewer.endPan()">
-        <div id="viewer-container" class="transition-transform duration-75 origin-center pointer-events-none flex justify-center items-center w-full h-full">
-            <img id="viewer-img" src="" class="max-w-[90vw] max-h-[90vh] shadow-[0_0_50px_rgba(0,242,255,0.2)] hidden rounded">
+        <div id="viewer-container" class="transition-transform duration-75 origin-center pointer-events-none flex justify-center items-center w-full h-full" onclick="if(event.target === this) Viewer.close()">
+            <img id="viewer-img" src="" class="max-w-[90vw] max-h-[90vh] shadow-[0_0_50px_rgba(0,242,255,0.2)] hidden rounded pointer-events-auto">
             <video id="viewer-vid" controls class="max-w-[80vw] max-h-[80vh] pointer-events-auto hidden rounded shadow-[0_0_30px_rgba(255,0,0,0.3)]"></video>
             <audio id="viewer-aud" controls class="w-[300px] pointer-events-auto hidden shadow-[0_0_20px_rgba(255,0,0,0.3)] rounded-full"></audio>
             <iframe id="viewer-iframe" allowfullscreen class="w-[80vw] h-[70vh] pointer-events-auto hidden border-2 border-red-500 rounded shadow-[0_0_30px_rgba(255,0,0,0.3)]"></iframe>
@@ -605,10 +637,26 @@
 
     <script>
         // ==========================================
-        // SYSTEM CORE & V7.0 UPGRADES
+        // SYSTEM CORE & V9.0 AWAKENING FIX
         // ==========================================
         
-        // UPGRADE: Web Audio API Sound Effects (SAO Style)
+        // Helper: Format Bytes to KB/MB
+        const formatBytes = (bytes) => {
+            if(bytes === 0) return '0 Bytes';
+            const k = 1024; const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        };
+
+        const mainContentEl = document.getElementById('main-content');
+        mainContentEl.onscroll = function() {
+            if (mainContentEl.scrollTop > 300) {
+                document.getElementById("scrollTopBtn").style.display = "flex";
+            } else {
+                document.getElementById("scrollTopBtn").style.display = "none";
+            }
+        };
+
         const SFX = {
             ctx: null,
             init: () => { if(!SFX.ctx) SFX.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
@@ -635,10 +683,8 @@
             }
         };
 
-        // Attach Hover SFX to UI globally
         document.addEventListener('mouseover', (e) => { if(e.target.closest('.sound-hover')) SFX.play('hover'); });
 
-        // UPGRADE: Matrix/SAO Hologram Background
         const initBackground = () => {
             const canvas = document.getElementById('bg-canvas'); const ctx = canvas.getContext('2d');
             let w, h, particles = [];
@@ -655,49 +701,61 @@
             }; draw();
         }; initBackground();
 
-        // System Hooks (Clock, Battery, Network)
         setInterval(() => { document.getElementById('live-clock').innerText = new Date().toLocaleTimeString('th-TH', {hour12:false}); }, 1000);
 
-        if(navigator.getBattery) {
-            navigator.getBattery().then(b => {
-                const updateBat = () => { 
-                    const lvl = (b.level*100).toFixed(0);
-                    document.getElementById('hub-battery').style.width = lvl+'%'; 
-                    document.getElementById('hub-battery-text').innerText = lvl+'%'; 
-                    if(b.charging) document.getElementById('hub-battery-status').innerHTML = '<i class="fas fa-bolt text-yellow-400"></i> AC Power (Charging)';
-                    else document.getElementById('hub-battery-status').innerText = '60 Wh (Discharging)';
-                };
-                updateBat(); b.onlevelchange = updateBat; b.onchargingchange = updateBat;
-            });
-        }
+        const globalOverlay = document.getElementById('global-drop-overlay');
+        let dragTimer;
+        let currentActiveView = 'hub';
 
-        const updateNet = () => {
-            const elTxt = document.getElementById('hub-network-text'); const elDot = document.getElementById('hub-network-status');
-            if(navigator.onLine) { elTxt.innerText = "ONLINE"; elTxt.className = "text-cyan-400"; elDot.className = "w-2 h-2 rounded-full bg-green-500 animate-pulse"; }
-            else { elTxt.innerText = "OFFLINE"; elTxt.className = "text-red-500"; elDot.className = "w-2 h-2 rounded-full bg-red-500"; Toast.show("Network Offline", "error"); }
-        };
-        window.addEventListener('online', updateNet); window.addEventListener('offline', updateNet);
+        window.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            globalOverlay.classList.add('active');
+            clearTimeout(dragTimer);
+            dragTimer = setTimeout(() => globalOverlay.classList.remove('active'), 200);
+        });
+        
+        window.addEventListener('drop', (e) => {
+            e.preventDefault(); 
+            clearTimeout(dragTimer);
+            globalOverlay.classList.remove('active');
+            
+            if(e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                SFX.play('hover');
+                if(currentActiveView === 'dr') DR.handleFiles(e.dataTransfer.files);
+                else if(currentActiveView === 'wm') WM.handleFiles(e.dataTransfer.files);
+                else if(currentActiveView === 'elu') ELU.handleFiles(e.dataTransfer.files);
+                else {
+                    const file = e.dataTransfer.files[0];
+                    if(file.type.startsWith('image/')) { switchView('wm'); WM.handleFiles(e.dataTransfer.files); }
+                    else { switchView('elu'); ELU.handleFiles(e.dataTransfer.files); }
+                }
+            }
+        });
 
-        // View Manager
         function switchView(viewId) {
+            currentActiveView = viewId;
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             document.getElementById(`view-${viewId}`).classList.add('active');
             document.querySelector(`.nav-item[data-target="${viewId}"]`).classList.add('active');
             if(window.innerWidth <= 768) toggleSidebar();
-
-            if(viewId === 'hub') { setTimeout(() => { document.getElementById('hub-ram').style.width = '85%'; document.getElementById('hub-ssd').style.width = '45%'; }, 100); } 
-            else { document.getElementById('hub-ram').style.width = '0%'; document.getElementById('hub-ssd').style.width = '0%'; }
+            mainContentEl.scrollTo({top: 0, behavior: 'smooth'});
         }
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
 
-        // LocalStorage Prefs
         const Prefs = {
             save: (id) => { const el = document.getElementById(id); if(el) localStorage.setItem('kirito_pref_'+id, el.value); },
-            load: (id, def) => { const v = localStorage.getItem('kirito_pref_'+id); if(v && document.getElementById(id)) document.getElementById(id).value = v; else if(def && document.getElementById(id)) document.getElementById(id).value = def; },
+            saveCheck: (id) => { const el = document.getElementById(id); if(el) localStorage.setItem('kirito_pref_'+id, el.checked); },
+            load: (id, def) => { const v = localStorage.getItem('kirito_pref_'+id); if(v !== null && document.getElementById(id)) document.getElementById(id).value = v; else if(def && document.getElementById(id)) document.getElementById(id).value = def; },
+            loadCheck: (id) => { const v = localStorage.getItem('kirito_pref_'+id); if(v !== null && document.getElementById(id)) document.getElementById(id).checked = (v === 'true'); },
             initAll: () => {
-                ['wm-text', 'wm-pos', 'elu-prefix', 'elu-format', 'elu-quality', 'elu-resize', 'elu-filter', 'elu-wm-text', 'elu-bg-color'].forEach(id => Prefs.load(id));
+                const textInputs = ['wm-text', 'wm-pos', 'wm-font', 'wm-color', 'wm-gap-slide', 'wm-gap-num', 'elu-prefix', 'elu-format', 'elu-quality', 'elu-resize', 'elu-filter', 'elu-wm-text', 'elu-wm-pos', 'elu-bg-color', 'elu-batch-size', 'elu-batch-mode', 'dl-url', 'dl-manual-url', 'dr-newname', 'dr-find', 'dr-replace', 'dr-prefix', 'dr-suffix', 'dr-case', 'dr-ext-mode', 'dr-ext-new', 'dr-num-start', 'dr-num-digits', 'dr-num-pos'];
+                textInputs.forEach(id => Prefs.load(id));
+                const checkInputs = ['wm-stroke', 'elu-pdf-one', 'dr-regex', 'dr-num-enable'];
+                checkInputs.forEach(id => Prefs.loadCheck(id));
+                
                 if(document.getElementById('elu-format')) ELU.updateUI();
+                if(document.getElementById('dr-newname')) DR.preview();
             }
         };
 
@@ -749,6 +807,8 @@
             hide: () => document.getElementById('global-loader').classList.remove('active')
         };
 
+        const sanitizeFileName = (name) => name.replace(/[\\/:*?"<>|]/g, '_');
+
         const Viewer = {
             scale: 1, panning: false, pt: {x:0, y:0}, start: {x:0, y:0}, activeEl: null,
             open: (src, type='image') => {
@@ -759,15 +819,24 @@
                 if(type==='youtube') { iframe.src = src; iframe.classList.remove('hidden'); Viewer.activeEl = iframe; }
                 else if(type==='video') { vid.src = src; vid.classList.remove('hidden'); vid.play(); Viewer.activeEl = vid; }
                 else if(type==='audio') { aud.src = src; aud.classList.remove('hidden'); aud.play(); Viewer.activeEl = aud; }
-                else { img.src = src; img.classList.remove('hidden'); Viewer.activeEl = img; }
+                else { 
+                    img.src = src; 
+                    img.onerror = function() {
+                        if (!this.src.includes('allorigins') && !this.src.startsWith('data:')) {
+                            this.src = `https://api.allorigins.win/raw?url=${encodeURIComponent(src)}`;
+                        }
+                    };
+                    img.classList.remove('hidden'); 
+                    Viewer.activeEl = img; 
+                }
 
                 document.getElementById('global-viewer').classList.add('active');
                 Viewer.scale = 1; Viewer.pt = {x:0,y:0}; Viewer.apply();
             },
             close: () => { 
                 document.getElementById('global-viewer').classList.remove('active');
-                const v = document.getElementById('viewer-vid'); if(v) v.pause();
-                const a = document.getElementById('viewer-aud'); if(a) a.pause();
+                const v = document.getElementById('viewer-vid'); if(v) { v.pause(); v.removeAttribute('src'); v.load(); }
+                const a = document.getElementById('viewer-aud'); if(a) { a.pause(); a.removeAttribute('src'); a.load(); }
                 const i = document.getElementById('viewer-iframe'); if(i) i.src='';
             },
             apply: () => { if(Viewer.activeEl === document.getElementById('viewer-img')) document.getElementById('viewer-container').style.transform = `translate(${Viewer.pt.x}px, ${Viewer.pt.y}px) scale(${Viewer.scale})`; },
@@ -792,7 +861,7 @@
                 Array.from(files).forEach(f => {
                     if(!DR.files.some(existing => existing.file.name === f.name && existing.file.size === f.size)) {
                         const parts = f.name.split('.'); const ext = parts.length > 1 ? parts.pop() : '';
-                        DR.files.push({ file: f, orig: f.name, base: parts.join('.'), ext: ext, date: f.lastModified, newName: f.name });
+                        DR.files.push({ file: f, orig: f.name, base: parts.join('.'), ext: ext, date: f.lastModified, size: f.size, newName: f.name });
                         added++;
                     }
                 });
@@ -806,6 +875,8 @@
                 if(mode==='name_desc') DR.files.sort((a,b)=>b.orig.localeCompare(a.orig));
                 if(mode==='date_old') DR.files.sort((a,b)=>a.date - b.date);
                 if(mode==='date_new') DR.files.sort((a,b)=>b.date - a.date);
+                if(mode==='size_small') DR.files.sort((a,b)=>a.size - b.size);
+                if(mode==='size_large') DR.files.sort((a,b)=>b.size - a.size);
                 DR.preview();
             },
             preview: () => {
@@ -818,13 +889,23 @@
                 
                 document.getElementById('dr-ext-new').classList.toggle('hidden', r.extMode !== 'change');
                 const list = document.getElementById('dr-list'); list.innerHTML = '';
-                if(DR.files.length===0) { list.innerHTML = '<div class="opacity-30 flex flex-col items-center justify-center h-full"><i class="fas fa-dna text-4xl mb-2"></i> SYSTEM STANDBY</div>'; return; }
+                if(DR.files.length===0) { list.innerHTML = '<div class="opacity-30 flex flex-col items-center justify-center h-full min-h-[400px]"><i class="fas fa-dna text-4xl mb-2"></i> SYSTEM STANDBY</div>'; return; }
+
+                let regexErrorShown = false;
 
                 DR.files.forEach((item, idx) => {
                     let n = r.nn ? r.nn : item.base;
                     
                     if(!r.nn && r.fnd) {
-                        if(r.useRegex) { try { const re = new RegExp(r.fnd, 'g'); n = n.replace(re, r.rep); } catch(e) {} } 
+                        if(r.useRegex) { 
+                            try { 
+                                if(r.fnd !== '') {
+                                    const re = new RegExp(r.fnd, 'g'); n = n.replace(re, r.rep); 
+                                }
+                            } catch(e) {
+                                if(!regexErrorShown) { Toast.show("รูปแบบ Regex ไม่ถูกต้อง", "error"); regexErrorShown = true; }
+                            } 
+                        } 
                         else { n = n.split(r.fnd).join(r.rep); }
                     }
                     
@@ -834,12 +915,24 @@
                     if(r.numE) { const num = (idx+r.numS).toString().padStart(r.numD, '0'); n = r.numP==='end' ? `${n}_${num}` : `${num}_${n}`; }
                     
                     let e = item.ext;
-                    if(r.extMode==='lower') e = e.toLowerCase(); else if(r.extMode==='upper') e = e.toUpperCase(); else if(r.extMode==='change' && r.extNew) e = r.extNew.replace(/^\./, '');
+                    if(r.extMode==='lower') e = e.toLowerCase(); 
+                    else if(r.extMode==='upper') e = e.toUpperCase(); 
+                    else if(r.extMode==='change' && r.extNew) e = r.extNew.replace(/^\./, ''); 
                     
-                    item.newName = e ? `${n}.${e}` : n;
+                    item.newName = (e && e !== '') ? `${n}.${e}` : n;
                     
-                    const row = document.createElement('div'); row.className = 'flex items-center p-1 border-b border-gray-800 hover:bg-gray-900 transition';
-                    row.innerHTML = `<div class="w-5/12 truncate text-gray-500">${item.orig}</div><div class="w-2/12 text-center text-cyan-800">></div><div class="w-5/12 truncate text-cyan-400">${item.newName}</div>`;
+                    // UPGRADE: Show File Size & Date
+                    const fileDate = new Date(item.date).toLocaleString('th-TH');
+                    
+                    const row = document.createElement('div'); row.className = 'flex items-center p-2 border-b border-gray-800 hover:bg-gray-900 transition gap-2';
+                    row.innerHTML = `
+                        <div class="w-5/12 flex flex-col justify-center min-w-0">
+                            <div class="truncate text-gray-400" title="${item.orig}">${item.orig}</div>
+                            <div class="text-[8px] text-gray-600 font-sans tracking-wide">${formatBytes(item.size)} | ${fileDate}</div>
+                        </div>
+                        <div class="w-1/12 text-center text-cyan-800">></div>
+                        <div class="w-6/12 truncate text-cyan-400" title="${item.newName}">${item.newName}</div>
+                    `;
                     list.appendChild(row);
                 });
             },
@@ -851,7 +944,7 @@
                     const total = DR.files.length;
 
                     for(let i=0; i<total; i++) {
-                        let fn = DR.files[i].newName;
+                        let fn = sanitizeFileName(DR.files[i].newName); 
                         if(tracker[fn]!==undefined) { tracker[fn]++; const dot = fn.lastIndexOf('.'); fn = dot!==-1 ? `${fn.substring(0,dot)}_(${tracker[fn]})${fn.substring(dot)}` : `${fn}_(${tracker[fn]})`; }
                         else tracker[fn]=0;
                         folder.file(fn, DR.files[i].file);
@@ -864,7 +957,7 @@
                 } catch(e) { SysAlert.show("Error: "+e.message); }
                 Loader.hide();
             },
-            clear: () => { SysAlert.confirm("Wipe workspace?", ()=>{DR.files=[]; DR.preview(); Toast.show("Workspace cleared");}); }
+            clear: () => { SysAlert.confirm("Wipe workspace?", ()=>{DR.files=[]; DR.preview(); document.getElementById('dr-newname').value=''; Toast.show("Workspace cleared");}); }
         };
 
         // ==========================================
@@ -891,7 +984,7 @@
             insertTag: (t) => { document.getElementById('wm-text').value += t; WM.queueUpdate(); Prefs.save('wm-text'); },
             sync: (id, type) => {
                 const s = document.getElementById(`wm-${id}-slide`), n = document.getElementById(`wm-${id}-num`);
-                if(s && n) { if(type==='slide') n.value=s.value; else s.value=n.value; WM.queueUpdate(); }
+                if(s && n) { if(type==='slide') n.value=s.value; else s.value=n.value; WM.queueUpdate(); Prefs.save(`wm-${id}-slide`); Prefs.save(`wm-${id}-num`); }
             },
             queueUpdate: () => { clearTimeout(WM._timer); WM._timer = setTimeout(WM.render, 150); },
             apply: (item, canvas) => {
@@ -917,16 +1010,28 @@
                 const pos = document.getElementById('wm-pos').value;
                 const rot = document.getElementById('wm-rot-num').value * Math.PI / 180;
                 const gapMultiplier = document.getElementById('wm-gap-num') ? document.getElementById('wm-gap-num').value : 8;
+                const useStroke = document.getElementById('wm-stroke').checked; // UPGRADE: Stroke
 
                 ctx.save();
+                
+                // Helper to draw text with optional stroke
+                const drawText = (t, dx, dy) => {
+                    if(useStroke) {
+                        ctx.lineWidth = Math.max(2, fsz * 0.1);
+                        ctx.strokeStyle = 'rgba(0,0,0,0.85)';
+                        ctx.strokeText(t, dx, dy);
+                    }
+                    ctx.fillText(t, dx, dy);
+                };
+
                 if(pos==='tiled') {
                     ctx.translate(canvas.width/2, canvas.height/2); ctx.rotate(-30*Math.PI/180); ctx.textAlign="center";
-                    for(let x=-canvas.width*1.5; x<canvas.width*1.5; x+=fsz*gapMultiplier) for(let y=-canvas.height*1.5; y<canvas.height*1.5; y+=fsz*gapMultiplier) ctx.fillText(txt, x, y);
+                    for(let x=-canvas.width*1.5; x<canvas.width*1.5; x+=fsz*gapMultiplier) for(let y=-canvas.height*1.5; y<canvas.height*1.5; y+=fsz*gapMultiplier) drawText(txt, x, y);
                 } else {
                     ctx.textAlign="center"; ctx.textBaseline="middle"; let x=canvas.width/2, y=canvas.height/2, pad=fsz*1.8;
                     if(pos==='tl'){x=pad;y=pad;ctx.textAlign="left";}else if(pos==='tr'){x=canvas.width-pad;y=pad;ctx.textAlign="right";}
                     else if(pos==='bl'){x=pad;y=canvas.height-pad;ctx.textAlign="left";}else if(pos==='br'){x=canvas.width-pad;y=canvas.height-pad;ctx.textAlign="right";}
-                    ctx.translate(x, y); ctx.rotate(rot); ctx.fillText(txt, 0, 0);
+                    ctx.translate(x, y); ctx.rotate(rot); drawText(txt, 0, 0);
                 }
                 ctx.restore();
             },
@@ -937,11 +1042,18 @@
                     const c = document.createElement('canvas'); WM.apply(item, c);
                     const d = document.createElement('div'); d.className = 'sao-panel p-2 bg-black/60 transition hover:border-orange-500/50';
                     d.innerHTML = `
-                        <div class="text-[9px] text-gray-500 truncate mb-1 flex justify-between"><span>${item.file.name}</span>${item.caption ? '<span class="text-purple-400">AI</span>' : ''}</div>
+                        <div class="text-[9px] text-gray-500 truncate mb-1 flex justify-between">
+                            <span title="${item.file.name}">${item.file.name}</span>
+                            <span class="text-gray-600">${formatBytes(item.file.size)}</span>
+                        </div>
+                        ${item.caption ? '<div class="text-[8px] text-purple-400 mb-1 truncate"><i class="fas fa-magic"></i> '+item.caption+'</div>' : ''}
                         <img src="${c.toDataURL('image/jpeg', 0.5)}" class="w-full h-24 object-cover cursor-pointer hover:opacity-80 border border-gray-800 rounded" onclick="SFX.play('click'); Viewer.open('${c.toDataURL()}')">
                         <button onclick="SFX.play('hover'); WM.remove('${item.id}')" class="w-full mt-1 bg-red-900/40 text-red-500 text-[9px] py-1 transition hover:bg-red-900/80 rounded sound-hover">REMOVE</button>
                     `;
                     grid.appendChild(d);
+                    
+                    // UPGRADE: Clear Memory
+                    c.width = 0; c.height = 0;
                 });
             },
             analyzeAllAI: async () => {
@@ -953,15 +1065,24 @@
                 for(let item of WM.items) {
                     if(item.caption) continue;
                     try {
-                        const b64 = item.img.src.split(',')[1];
+                        // Rescale image for API to save bandwidth
+                        const c = document.createElement('canvas'); const ctx = c.getContext('2d');
+                        let w = item.img.width; let h = item.img.height;
+                        const maxDim = 512;
+                        if(w > maxDim || h > maxDim) { const r = Math.min(maxDim/w, maxDim/h); w *= r; h *= r; }
+                        c.width = w; c.height = h; ctx.drawImage(item.img, 0, 0, w, h);
+                        const b64 = c.toDataURL('image/jpeg', 0.7).split(',')[1];
+                        c.width = 0; c.height = 0; // GC
+                        
                         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`, {
                             method:'POST', headers:{'Content-Type':'application/json'},
                             body: JSON.stringify({ contents: [{ parts: [{text: "วิเคราะห์ภาพนี้และเขียนข้อความลายน้ำสั้นๆ (1-3 คำ) ที่สอดคล้องกับรูป ตอบเฉพาะข้อความภาษาไทยหรืออังกฤษ"}, {inlineData: {mimeType: "image/jpeg", data: b64}}] }] })
                         });
+                        if(!res.ok) throw new Error("API Limit หรือมีข้อผิดพลาด");
                         const data = await res.json();
                         item.caption = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "Watermark";
                         WM.render();
-                    } catch(e) { console.error(e); }
+                    } catch(e) { Toast.show("AI Error: " + e.message, "error"); break; }
                 }
                 document.getElementById('wm-ai-btn').innerHTML = `<i class="fas fa-magic"></i> ให้ AI คิดแคปชั่น`;
                 Toast.show("AI Analysis Complete", "success");
@@ -972,7 +1093,9 @@
                 const zip = new JSZip(); const total = WM.items.length;
                 for(let i=0; i<total; i++) {
                     const c = document.createElement('canvas'); WM.apply(WM.items[i], c);
-                    zip.file(`WM_${WM.items[i].file.name.split('.')[0]}_${i}.jpg`, c.toDataURL('image/jpeg', 0.9).split(',')[1], {base64:true});
+                    let safeName = sanitizeFileName(WM.items[i].file.name.split('.')[0]); 
+                    zip.file(`WM_${safeName}_${i}.jpg`, c.toDataURL('image/jpeg', 0.9).split(',')[1], {base64:true});
+                    c.width = 0; c.height = 0; // Memory Optimization
                     if(i%5===0) Loader.update((i/total)*100);
                 }
                 Loader.update(100);
@@ -1004,7 +1127,8 @@
                                 for(let path in zip.files) {
                                     if(!zip.files[path].dir && /\.(jpg|jpeg|png|webp|heic|bmp)$/i.test(path)) {
                                         const b = await zip.files[path].async('blob');
-                                        await ELU.addImg(new File([b], `${f.name.split('.')[0]}_${path.split('/').pop()}`, {type: b.type||'image/jpeg'}), 'ARCHIVE');
+                                        let cleanPath = sanitizeFileName(path.split('/').pop()); 
+                                        await ELU.addImg(new File([b], `${f.name.split('.')[0]}_${cleanPath}`, {type: b.type||'image/jpeg'}), 'ARCHIVE');
                                         added++;
                                     }
                                 }
@@ -1020,6 +1144,7 @@
                                     await page.render({canvasContext: c.getContext('2d'), viewport: vp}).promise;
                                     await ELU.addImg(new File([await new Promise(r=>c.toBlob(r,'image/jpeg',0.9))], `${f.name.split('.')[0]}_p${i.toString().padStart(3,'0')}.jpg`), 'PDF');
                                     added++;
+                                    c.width=0; c.height=0; // Mem Opt
                                 }
                             } catch(e){}
                         } else if(f.type.startsWith('image/')) { await ELU.addImg(f, 'IMG'); added++; }
@@ -1039,11 +1164,14 @@
                 const list = document.getElementById('elu-list'); list.innerHTML='';
                 document.getElementById('elu-count').innerText = `WORKSPACE: ${ELU.files.length} ITEMS`;
                 ELU.files.forEach(item => {
-                    const d = document.createElement('div'); d.className = 'flex items-center gap-2 bg-gray-900 p-1 border border-gray-800 rounded transition hover:border-purple-500/50';
+                    const d = document.createElement('div'); d.className = 'flex items-center gap-3 bg-gray-900 p-2 border border-gray-800 rounded transition hover:border-purple-500/50';
                     d.innerHTML = `
                         <img src="${item.src}" class="w-10 h-10 object-cover cursor-pointer hover:border border-purple-500 rounded" onclick="SFX.play('click'); Viewer.open('${item.src}')">
-                        <div class="flex-grow min-w-0"><div class="text-[10px] text-white truncate">${item.file.name}</div><div class="text-[8px] text-purple-400 font-tech">${item.tag} | ${item.img.width}x${item.img.height}</div></div>
-                        <button onclick="SFX.play('hover'); ELU.remove('${item.id}')" class="text-red-500 px-2 hover:text-white transition sound-hover"><i class="fas fa-times"></i></button>
+                        <div class="flex-grow min-w-0 flex flex-col justify-center">
+                            <div class="text-[10px] text-white truncate" title="${item.file.name}">${item.file.name}</div>
+                            <div class="text-[8px] text-gray-500 font-sans tracking-wide">${formatBytes(item.file.size)} | <span class="text-purple-400 font-tech">${item.tag}</span> | ${item.img.width}x${item.img.height}</div>
+                        </div>
+                        <button onclick="SFX.play('hover'); ELU.remove('${item.id}')" class="text-red-500 px-3 hover:text-white transition sound-hover"><i class="fas fa-times"></i></button>
                     `;
                     list.appendChild(d);
                 });
@@ -1053,7 +1181,7 @@
             drawWatermark: (ctx, text, pos, w, h) => {
                 const fsz = Math.max(14, Math.floor(w * 0.05)); 
                 ctx.font = `bold ${fsz}px Sarabun`; ctx.fillStyle = "rgba(255, 255, 255, 0.85)"; ctx.shadowColor = "rgba(0, 0, 0, 0.8)"; ctx.shadowBlur = 4;
-                ctx.lineWidth = Math.max(1, fsz/10); ctx.strokeStyle = "rgba(0,0,0,0.8)";
+                ctx.lineWidth = Math.max(1, fsz/10); ctx.strokeStyle = "rgba(0,0,0,0.85)";
                 let x, y;
                 if(pos==='br'){ctx.textAlign="right"; ctx.textBaseline="bottom"; x=w-10; y=h-10;}
                 else {ctx.textAlign="center"; ctx.textBaseline="middle"; x=w/2; y=h/2;}
@@ -1075,24 +1203,38 @@
                     const isOnePdf = document.getElementById('elu-pdf-one').checked;
                     const bgColor = document.getElementById('elu-bg-color').value;
                     
-                    let bSize = parseInt(document.getElementById('elu-batch-size').value);
-                    if(isNaN(bSize) || bSize<=0) bSize = ELU.files.length;
-                    else if(document.getElementById('elu-batch-mode').value==='total') bSize = Math.ceil(ELU.files.length/bSize);
-                    const totalBatches = Math.ceil(ELU.files.length / bSize);
-                    const totalFiles = ELU.files.length;
-
+                    let batchInput = parseInt(document.getElementById('elu-batch-size').value);
+                    let batchMode = document.getElementById('elu-batch-mode').value;
+                    let totalFiles = ELU.files.length;
+                    let batchSize = totalFiles; 
+                    
+                    if (!isNaN(batchInput) && batchInput > 0) {
+                        if (batchMode === 'total') {
+                            batchSize = Math.ceil(totalFiles / batchInput);
+                        } else {
+                            batchSize = batchInput;
+                        }
+                    }
+                    if(batchSize <= 0) batchSize = 1; 
+                    
+                    const totalBatches = Math.ceil(totalFiles / batchSize);
                     let currentFile = 0;
 
                     if(fmt==='pdf' && isOnePdf) {
                         const {jsPDF} = window.jspdf;
                         for(let b=0; b<totalBatches; b++) {
-                            const chunk = ELU.files.slice(b*bSize, (b+1)*bSize);
+                            const start = b * batchSize;
+                            const end = Math.min(start + batchSize, totalFiles);
+                            const chunk = ELU.files.slice(start, end);
                             let pdf = null;
+                            
                             for(let i=0; i<chunk.length; i++) {
                                 const c = document.createElement('canvas'); const ctx = c.getContext('2d');
                                 let w=chunk[i].img.width, h=chunk[i].img.height;
                                 if(rz==='hd'){ const r=Math.min(1280/w,720/h); w*=r; h*=r;} else if(rz==='scale50'){w*=0.5; h*=0.5;} else if(rz==='fhd'){ const r=Math.min(1920/w,1080/h); w*=r; h*=r;}
-                                c.width=w; c.height=h; ctx.fillStyle=bgColor; ctx.fillRect(0,0,w,h); 
+                                c.width=w; c.height=h; 
+                                
+                                ctx.fillStyle=bgColor || '#FFFFFF'; ctx.fillRect(0,0,w,h); 
                                 
                                 if(fx!=='none') { if(fx==='grayscale') ctx.filter='grayscale(100%)'; else if(fx==='sepia') ctx.filter='sepia(100%)'; else if(fx==='invert') ctx.filter='invert(100%)'; else if(fx==='contrast') ctx.filter='contrast(150%)'; }
                                 ctx.drawImage(chunk[i].img,0,0,w,h); ctx.filter='none';
@@ -1102,6 +1244,7 @@
                                 else { pdf.addPage([w,h], w>h?'l':'p'); pdf.addImage(c.toDataURL('image/jpeg',q),'JPEG',0,0,w,h); }
                                 
                                 currentFile++; Loader.update((currentFile/totalFiles)*100);
+                                c.width = 0; c.height = 0; // Mem Opt
                             }
                             ELU.processed.push({blob: pdf.output('blob'), name: totalBatches>1 ? `${pre}Elucidator_Part_${b+1}.pdf` : `${pre}Elucidator_Doc.pdf`});
                         }
@@ -1111,7 +1254,8 @@
                             let w=f.img.width, h=f.img.height;
                             if(rz==='hd'){ const r=Math.min(1280/w,720/h); w*=r; h*=r;} else if(rz==='scale50'){w*=0.5; h*=0.5;} else if(rz==='fhd'){ const r=Math.min(1920/w,1080/h); w*=r; h*=r;}
                             c.width=w; c.height=h; 
-                            if(fmt==='jpeg' || fmt==='pdf'){ ctx.fillStyle=bgColor; ctx.fillRect(0,0,w,h); }
+                            
+                            if(fmt==='jpeg' || fmt==='pdf'){ ctx.fillStyle=bgColor || '#FFFFFF'; ctx.fillRect(0,0,w,h); }
                             
                             if(fx!=='none') { if(fx==='grayscale') ctx.filter='grayscale(100%)'; else if(fx==='sepia') ctx.filter='sepia(100%)'; else if(fx==='invert') ctx.filter='invert(100%)'; else if(fx==='contrast') ctx.filter='contrast(150%)'; }
                             ctx.drawImage(f.img,0,0,w,h); ctx.filter='none';
@@ -1127,6 +1271,7 @@
                                 ELU.processed.push({blob: await new Promise(r=>c.toBlob(r, mime, q)), name:`${n}.${fmt==='jpeg'?'jpg':fmt==='favicon'?'ico':fmt}`});
                             }
                             currentFile++; Loader.update((currentFile/totalFiles)*100);
+                            c.width = 0; c.height = 0; // Mem Opt
                         }
                     }
                     Loader.update(100);
@@ -1139,21 +1284,29 @@
                 if(ELU.processed.length===1) { saveAs(ELU.processed[0].blob, ELU.processed[0].name); Toast.show("Saved"); return; }
                 Loader.show("PACKING ZIP...", true);
                 setTimeout(async () => {
-                    let bSize = parseInt(document.getElementById('elu-batch-size').value);
-                    if(isNaN(bSize) || bSize<=0) bSize = ELU.processed.length;
-                    else if(document.getElementById('elu-batch-mode').value==='total') bSize = Math.ceil(ELU.processed.length/bSize);
-                    const totalBatches = Math.ceil(ELU.processed.length / bSize);
+                    let batchInput = parseInt(document.getElementById('elu-batch-size').value);
+                    let batchMode = document.getElementById('elu-batch-mode').value;
+                    let totalProcessed = ELU.processed.length;
+                    let batchSize = totalProcessed;
+
+                    if (!isNaN(batchInput) && batchInput > 0) {
+                        if (batchMode === 'total') { batchSize = Math.ceil(totalProcessed / batchInput); } 
+                        else { batchSize = batchInput; }
+                    }
+                    if(batchSize <= 0) batchSize = 1;
+                    const totalBatches = Math.ceil(totalProcessed / batchSize);
 
                     for (let i = 0; i < totalBatches; i++) {
-                        const chunk = ELU.processed.slice(i * bSize, Math.min((i+1) * bSize, ELU.processed.length));
+                        const chunk = ELU.processed.slice(i * batchSize, Math.min((i+1) * batchSize, totalProcessed));
                         const zip = new JSZip(); const folder = zip.folder(totalBatches > 1 ? `Elucidator_Part_${i+1}` : "Elucidator_Output");
                         const tracker = {};
                         
                         chunk.forEach((item, idx) => {
-                            let n = item.name; const b = n.replace(/\.[^/.]+$/, ""); const e = n.split('.').pop();
+                            let n = sanitizeFileName(item.name); 
+                            const b = n.replace(/\.[^/.]+$/, ""); const e = n.split('.').pop();
                             if(tracker[n]!==undefined) { tracker[n]++; n = `${b}_${tracker[n]}.${e}`; } else tracker[n]=0;
                             folder.file(n, item.blob);
-                            if(idx%10===0) Loader.update(((i*bSize + idx)/ELU.processed.length)*100);
+                            if(idx%10===0) Loader.update(((i*batchSize + idx)/totalProcessed)*100);
                         });
                         saveAs(await zip.generateAsync({type:"blob"}), totalBatches > 1 ? `Elucidator_Batch_${i+1}_of_${totalBatches}.zip` : "Elucidator_Package.zip");
                     }
@@ -1177,11 +1330,15 @@
             fetchProxy: async (url, isBlob=false) => {
                 const proxies = [
                     `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-                    `https://corsproxy.io/?${encodeURIComponent(url)}`
+                    `https://corsproxy.io/?${encodeURIComponent(url)}`,
+                    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
                 ];
                 for(let p of proxies) {
                     try { 
-                        const res = await fetch(p); 
+                        const controller = new AbortController();
+                        const id = setTimeout(() => controller.abort(), 8000); 
+                        const res = await fetch(p, { signal: controller.signal }); 
+                        clearTimeout(id);
                         if(res.ok) return isBlob ? await res.blob() : await res.text(); 
                     } catch(e) { console.warn(`Proxy failed: ${p}`); }
                 }
@@ -1199,7 +1356,16 @@
                     const parser = new DOMParser(); const doc = parser.parseFromString(html, 'text/html');
                     doc.querySelectorAll('*').forEach(el => {
                         ['src', 'data-src', 'data-original', 'data-lazy-src', 'data-srcset', 'href', 'content', 'poster'].forEach(attr => {
-                            let val = el.getAttribute(attr); if(val) { if(val.includes(',') && !val.startsWith('data:')) val.split(',').forEach(p=>foundRaw.add(p.trim().split(/\s+/)[0])); else foundRaw.add(val); }
+                            let val = el.getAttribute(attr); if(val) { 
+                                if(val.includes(',') && !val.startsWith('data:')) {
+                                    val.split(',').forEach(p => {
+                                        let cleanUrl = p.trim().split(/\s+/)[0];
+                                        if(cleanUrl) foundRaw.add(cleanUrl);
+                                    });
+                                } else {
+                                    foundRaw.add(val); 
+                                }
+                            }
                         });
                         if(el.tagName.toLowerCase() === 'a') { let h = el.getAttribute('href'); if(h && (h.includes('youtube.com') || h.includes('youtu.be') || h.includes('facebook.com') || h.includes('tiktok.com') || h.includes('instagram.com'))) foundRaw.add(h); }
                         let style = el.getAttribute('style'); if (style && style.includes('url(')) { let mt = style.match(/url\(['"]?([^'"()]+)['"]?\)/); if(mt) foundRaw.add(mt[1]); }
@@ -1272,7 +1438,7 @@
                         else if(DL.currentMain === 'audio' && item.type !== 'audio') show = false;
                     }
                     if(show && DL.currentSize !== 'all' && item.type === 'image') {
-                        let isLarge = item.url.includes('1080') || item.url.includes('large') || item.url.includes('high');
+                        let isLarge = item.url.includes('1080') || item.url.includes('large') || item.url.includes('high') || item.url.includes('max');
                         let isSmall = item.url.includes('thumb') || item.url.includes('icon') || item.url.includes('150x');
                         if(DL.currentSize === 'large' && !isLarge && isSmall) show=false;
                         if(DL.currentSize === 'small' && !isSmall && isLarge) show=false;
@@ -1295,17 +1461,18 @@
                         d.innerHTML = `
                             ${mediaHtml}
                             <div class="h-6 w-full bg-black flex justify-between items-center px-1 border-t border-gray-800">
-                                <input type="checkbox" ${item.checked?'checked':''} onchange="SFX.play('hover'); DL.updateCheck('${item.id}', this.checked)" class="w-3 h-3 cursor-pointer">
+                                <input type="checkbox" id="chk-${item.id}" ${item.checked?'checked':''} onchange="SFX.play('hover'); DL.updateCheck('${item.id}', this.checked)" class="w-3 h-3 cursor-pointer">
                                 <span class="text-[8px] text-red-400 font-mono truncate ml-1">${item.type==='image'?item.ext.toUpperCase():item.type.toUpperCase()}</span>
                                 <button onclick="SFX.play('click'); window.open('${item.url}')" class="text-[8px] text-gray-500 hover:text-white transition sound-hover"><i class="fas fa-external-link-alt"></i></button>
                             </div>
                         `;
                         grid.appendChild(d);
                     } else if (!rebuild && show) {
-                        const boxes = grid.querySelectorAll('input[type="checkbox"]');
+                        const box = document.getElementById(`chk-${item.id}`);
+                        if(box) box.checked = item.checked;
                     }
                 });
-                if(!rebuild) { DL.render(true); return; } 
+                if(!rebuild) { document.getElementById('dl-count').innerText = `FOUND: ${visibleCount}`; return; } 
                 document.getElementById('dl-count').innerText = `FOUND: ${visibleCount}`;
             },
             updateCheck: (id, val) => { const item = DL.media.find(m=>m.id===id); if(item) item.checked = val; },
@@ -1345,9 +1512,9 @@
                             } else {
                                 b = await DL.fetchProxy(list[i].url, true);
                             }
-                            if(b) { zip.file(`DL_${i}.${list[i].ext}`, b); count++; }
+                            if(b) { zip.file(`DL_${i}.${sanitizeFileName(list[i].ext)}`, b); count++; }
                         } catch(e){}
-                        if(i%5===0) Loader.update((i/list.length)*100);
+                        if(i%3===0) Loader.update((i/list.length)*100);
                     }
                     Loader.update(100);
                     if(count>0) {
@@ -1361,23 +1528,12 @@
             clear: () => { SysAlert.confirm("Clear all scanned media?", ()=>{DL.media=[]; DL.render(); Toast.show("Cleared", "info");}); }
         };
 
-        // Init Setup & Auto-Load Prefs
+        // Init Setup
         window.onload = () => {
             Prefs.initAll();
             switchView('hub');
         };
 
-        document.querySelectorAll('.drop-zone').forEach(z => {
-            z.ondragover = e => { e.preventDefault(); z.classList.add('dragover'); };
-            z.ondragleave = e => { e.preventDefault(); z.classList.remove('dragover'); };
-            z.ondrop = e => { 
-                e.preventDefault(); z.classList.remove('dragover'); SFX.play('hover');
-                if(!e.dataTransfer.files.length) return;
-                if(z.id === 'dr-drop-zone') DR.handleFiles(e.dataTransfer.files);
-                if(z.id === 'wm-drop-zone') WM.handleFiles(e.dataTransfer.files);
-                if(z.id === 'elu-drop-zone') ELU.handleFiles(e.dataTransfer.files);
-            };
-        });
     </script>
 </body>
 </html>
