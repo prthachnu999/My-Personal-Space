@@ -1,12 +1,11 @@
-// เปลี่ยนชื่อเวอร์ชัน Cache เป็น v28 (LinkStart-Hub-Consolidated) เพื่อให้ระบบรู้ว่าเปลี่ยนโครงสร้างไฟล์ใหม่แล้ว
-const CACHE_NAME = 'personal-space-hub-v28';
+// เปลี่ยนชื่อเวอร์ชัน Cache เป็น v29 (LinkStart-Hub-Consolidated) เพื่อให้ระบบรู้ว่าเปลี่ยนโครงสร้างไฟล์ใหม่แล้ว
+const CACHE_NAME = 'personal-space-hub-v29';
 
 // รายชื่อไฟล์ที่ต้องการให้โหลดเก็บไว้ในเครื่อง
 const ASSETS = [
     './',
     './index.html',              // หน้าหลัก
     './System_Master.html',      // ระบบรวมศูนย์เวอร์ชันใหม่
-    './downloader.html',         // เครื่องมือสแกนดึงรูป
     './kiritopull.js',           // ไฟล์โหลด Bookmarklet
     './manifest.json',
     './คิรโตะธีมดำ.jpg',          // รูปไอคอน 1
