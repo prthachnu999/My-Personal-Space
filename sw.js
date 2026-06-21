@@ -6,6 +6,7 @@ const ASSETS = [
     './',
     './index.html',              // หน้าหลัก
     './System_Master.html',      // ระบบรวมศูนย์เวอร์ชันใหม่
+    './downloader.html',         // เครื่องมือสแกนดึงรูป
     './kiritopull.js',           // ไฟล์โหลด Bookmarklet
     './manifest.json',
     './คิรโตะธีมดำ.jpg',          // รูปไอคอน 1
