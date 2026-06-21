@@ -1,5 +1,5 @@
-// เปลี่ยนชื่อเวอร์ชัน Cache เป็น v30 (LinkStart-Hub-Consolidated) เพื่อให้ระบบรู้ว่าเปลี่ยนโครงสร้างไฟล์ใหม่แล้ว
-const CACHE_NAME = 'personal-space-hub-v30';
+// เปลี่ยนชื่อเวอร์ชัน Cache เป็น v31 (LinkStart-Hub-Consolidated) เพื่อให้ระบบรู้ว่าเปลี่ยนโครงสร้างไฟล์ใหม่แล้ว
+const CACHE_NAME = 'personal-space-hub-v31';
 
 // รายชื่อไฟล์ที่ต้องการให้โหลดเก็บไว้ในเครื่อง
 const ASSETS = [
