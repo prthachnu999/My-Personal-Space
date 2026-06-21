@@ -21,13 +21,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/heic2any/0.0.4/heic2any.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script>
-        window.onload = function() {
-            if(window.pdfjsLib) {
-                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-            }
-        };
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js" defer></script>
+    <script src="https://unpkg.com/docx@7.1.0/build/index.js" defer></script>
 
     <style>
         :root {
@@ -456,6 +451,7 @@
                                     <select id="elu-format" class="input-sao text-xs sound-hover" onchange="SFX.play('hover'); ELU.updateUI(); Prefs.save('elu-format')">
                                         <option value="jpeg">JPG Image</option><option value="png">PNG Image</option><option value="webp">WEBP Image</option>
                                         <option value="favicon">Favicon (.ico)</option><option value="pdf">PDF Document</option><option value="base64">Base64 Text</option>
+                                        <option value="docx">Word Document (.docx)</option><option value="pptx">PowerPoint (.pptx)</option>
                                     </select>
                                 </div>
                                 <div class="w-1/3">
@@ -736,10 +732,21 @@
             currentActiveView = viewId;
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            document.getElementById(`view-${viewId}`).classList.add('active');
-            document.querySelector(`.nav-item[data-target="${viewId}"]`).classList.add('active');
-            if(window.innerWidth <= 768) toggleSidebar();
+            
+            const viewEl = document.getElementById(`view-${viewId}`);
+            if(viewEl) viewEl.classList.add('active');
+            
+            const navEl = document.querySelector(`.nav-item[data-target="${viewId}"]`);
+            if(navEl) navEl.classList.add('active');
+            
+            if(window.innerWidth <= 768 && document.getElementById('sidebar').classList.contains('open')) {
+                toggleSidebar();
+            }
             mainContentEl.scrollTo({top: 0, behavior: 'smooth'});
+            
+            if(window.location.hash !== `#${viewId}`) {
+                history.replaceState(null, null, `#${viewId}`);
+            }
         }
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
 
@@ -1248,6 +1255,79 @@
                             }
                             ELU.processed.push({blob: pdf.output('blob'), name: totalBatches>1 ? `${pre}Elucidator_Part_${b+1}.pdf` : `${pre}Elucidator_Doc.pdf`});
                         }
+                    } else if(fmt==='pptx') {
+                        for(let b=0; b<totalBatches; b++) {
+                            const start = b * batchSize;
+                            const end = Math.min(start + batchSize, totalFiles);
+                            const chunk = ELU.files.slice(start, end);
+                            const pres = new PptxGenJS();
+                            
+                            for(let i=0; i<chunk.length; i++) {
+                                const c = document.createElement('canvas'); const ctx = c.getContext('2d');
+                                let w=chunk[i].img.width, h=chunk[i].img.height;
+                                if(rz==='hd'){ const r=Math.min(1280/w,720/h); w*=r; h*=r;} else if(rz==='scale50'){w*=0.5; h*=0.5;} else if(rz==='fhd'){ const r=Math.min(1920/w,1080/h); w*=r; h*=r;}
+                                c.width=w; c.height=h;
+                                
+                                ctx.fillStyle=bgColor || '#FFFFFF'; ctx.fillRect(0,0,w,h);
+                                if(fx!=='none') { if(fx==='grayscale') ctx.filter='grayscale(100%)'; else if(fx==='sepia') ctx.filter='sepia(100%)'; else if(fx==='invert') ctx.filter='invert(100%)'; else if(fx==='contrast') ctx.filter='contrast(150%)'; }
+                                ctx.drawImage(chunk[i].img,0,0,w,h); ctx.filter='none';
+                                if(wm) ELU.drawWatermark(ctx, wm, wmPos, w, h);
+                                
+                                const slide = pres.addSlide();
+                                slide.addImage({ 
+                                    data: c.toDataURL('image/jpeg', q), 
+                                    x: "10%", y: "10%", w: "80%", h: "80%", 
+                                    sizing: { type: "contain", w: "80%", h: "80%" } 
+                                });
+                                
+                                currentFile++; Loader.update((currentFile/totalFiles)*100);
+                                c.width = 0; c.height = 0; // Mem Opt
+                            }
+                            const pptxBlob = await pres.write({ outputType: 'blob' });
+                            ELU.processed.push({blob: pptxBlob, name: totalBatches>1 ? `${pre}Elucidator_Part_${b+1}.pptx` : `${pre}Elucidator_Slide.pptx`});
+                        }
+                    } else if(fmt==='docx') {
+                        for(let b=0; b<totalBatches; b++) {
+                            const start = b * batchSize;
+                            const end = Math.min(start + batchSize, totalFiles);
+                            const chunk = ELU.files.slice(start, end);
+                            const docChildren = [];
+                            
+                            for(let i=0; i<chunk.length; i++) {
+                                const c = document.createElement('canvas'); const ctx = c.getContext('2d');
+                                let w=chunk[i].img.width, h=chunk[i].img.height;
+                                if(rz==='hd'){ const r=Math.min(1280/w,720/h); w*=r; h*=r;} else if(rz==='scale50'){w*=0.5; h*=0.5;} else if(rz==='fhd'){ const r=Math.min(1920/w,1080/h); w*=r; h*=r;}
+                                c.width=w; c.height=h;
+                                
+                                ctx.fillStyle=bgColor || '#FFFFFF'; ctx.fillRect(0,0,w,h);
+                                if(fx!=='none') { if(fx==='grayscale') ctx.filter='grayscale(100%)'; else if(fx==='sepia') ctx.filter='sepia(100%)'; else if(fx==='invert') ctx.filter='invert(100%)'; else if(fx==='contrast') ctx.filter='contrast(150%)'; }
+                                ctx.drawImage(chunk[i].img,0,0,w,h); ctx.filter='none';
+                                if(wm) ELU.drawWatermark(ctx, wm, wmPos, w, h);
+                                
+                                const imgBlob = await new Promise(r => c.toBlob(r, 'image/jpeg', q));
+                                const buffer = await imgBlob.arrayBuffer();
+                                
+                                docChildren.push(
+                                    new docx.Paragraph({
+                                        children: [
+                                            new docx.ImageRun({
+                                                data: buffer,
+                                                transformation: { width: 500, height: 500 * (h / w) }
+                                            })
+                                        ]
+                                    })
+                                );
+                                if (i !== chunk.length - 1) {
+                                    docChildren.push(new docx.Paragraph({ children: [new docx.PageBreak()] }));
+                                }
+                                
+                                currentFile++; Loader.update((currentFile/totalFiles)*100);
+                                c.width = 0; c.height = 0; // Mem Opt
+                            }
+                            const doc = new docx.Document({ sections: [{ children: docChildren }] });
+                            const docBlob = await docx.Packer.toBlob(doc);
+                            ELU.processed.push({blob: docBlob, name: totalBatches>1 ? `${pre}Elucidator_Part_${b+1}.docx` : `${pre}Elucidator_Doc.docx`});
+                        }
                     } else {
                         for(let f of ELU.files) {
                             const c = document.createElement('canvas'); const ctx = c.getContext('2d');
@@ -1530,9 +1610,29 @@
 
         // Init Setup
         window.onload = () => {
+            if(window.pdfjsLib) {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            }
             Prefs.initAll();
-            switchView('hub');
+            
+            // Hash Routing on Load
+            let initialView = 'hub';
+            if (window.location.hash) {
+                const hashView = window.location.hash.substring(1);
+                if (['hub', 'dr', 'wm', 'elu', 'dl'].includes(hashView)) {
+                    initialView = hashView;
+                }
+            }
+            switchView(initialView);
         };
+
+        // Listen for Hash Changes
+        window.addEventListener('hashchange', () => {
+            const hashView = window.location.hash.substring(1);
+            if (['hub', 'dr', 'wm', 'elu', 'dl'].includes(hashView)) {
+                switchView(hashView);
+            }
+        });
 
     </script>
 </body>
