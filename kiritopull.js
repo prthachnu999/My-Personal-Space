@@ -356,7 +356,12 @@
     };
 
     const fetchMedia = async (url) => {
-        const proxies = ['', 'https://api.codetabs.com/v1/proxy?quest=', 'https://corsproxy.io/?', 'https://api.allorigins.win/raw?url='];
+        const proxies = [''];
+        const isImg = url.match(/\.(jpg|jpeg|png|webp|gif|svg|ico|bmp|tiff)/i) || url.includes('image');
+        if (isImg) {
+            proxies.push('https://images.weserv.nl/?url=' + encodeURIComponent(url));
+        }
+        proxies.push('https://corsproxy.io/?' + encodeURIComponent(url), 'https://api.codetabs.com/v1/proxy?quest?' + encodeURIComponent(url), 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url));
         for(let p of proxies) {
             try {
                 let target = p ? p + encodeURIComponent(url) : url;
@@ -636,7 +641,7 @@
                 img.onerror = function() {
                     if(isDataUrl) return;
                     let rts = parseInt(this.getAttribute('data-rts'));
-                    let pxs = ['https://api.codetabs.com/v1/proxy?quest=', 'https://corsproxy.io/?'];
+                    let pxs = ['https://images.weserv.nl/?url=', 'https://corsproxy.io/?', 'https://api.codetabs.com/v1/proxy?quest='];
                     if (rts < pxs.length) {
                         this.setAttribute('data-rts', rts + 1);
                         this.src = pxs[rts] + encodeURIComponent(s);

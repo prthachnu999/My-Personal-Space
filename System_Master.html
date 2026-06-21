@@ -549,11 +549,32 @@
                     </div>
 
                     <div id="dl-sec-tool" class="hidden flex-col gap-4 text-center">
-                        <div class="p-4 bg-red-950/20 border border-red-500/30 rounded flex flex-col md:flex-row items-center justify-center gap-4">
-                            <a href="javascript:(function(){var s=document.createElement('script');s.src='https://prthachnu999.github.io/My-Personal-Space/kiritopull.js?v='+Date.now();document.body.appendChild(s);})();" class="btn-sao border-red-500 text-red-400 px-6 py-2 rounded font-bold hover:bg-red-500 hover:text-black transition sound-hover" title="ลากลิงก์นี้ไปวางที่แถบบุ๊กมาร์ก (Bookmark Bar) ของเบราว์เซอร์"><i class="fas fa-bookmark"></i> KIRITO PULL (ลากใส่บุ๊กมาร์ก)</a>
-                            <button onclick="SFX.play('click'); DL.copyMobileCode()" class="btn-sao border-cyan-500 text-cyan-400 px-6 py-2 rounded font-bold hover:bg-cyan-500 hover:text-black transition sound-hover"><i class="fas fa-mobile-alt"></i> คัดลอก Loader Code มือถือ</button>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- LITE (Bypass CSP) -->
+                            <div class="p-4 bg-cyan-950/20 border border-cyan-500/30 rounded flex flex-col items-center justify-between gap-3">
+                                <div>
+                                    <h4 class="font-tech text-cyan-400 font-bold text-sm mb-1 uppercase"><i class="fas fa-bolt"></i> Kirito Pull (LITE)</h4>
+                                    <p class="text-[10px] text-gray-400">รันโค้ดตรงข้ามระบบป้องกัน CSP คัดลอกทุกลิงก์เข้าคลิปบอร์ดทันที ปลอดภัย 100% (แนะนำสำหรับ Pinterest/FB)</p>
+                                </div>
+                                <div class="flex flex-col gap-2 w-full mt-2">
+                                    <a href="javascript:(function(){var f=new Set();function a(u){if(!u||typeof u!=='string')return;if(u.startsWith('data:')&&!u.startsWith('data:image/'))return;if(u.startsWith('//'))u='https:'+u;else if(u.startsWith('/'))u=location.origin+u;else if(!u.startsWith('http')&&!u.startsWith('blob:'))u=new URL(u,location.href).href;var e=u.split(/[?#]/)[0].split('.').pop().toLowerCase();if(['jpg','jpeg','png','webp','gif','svg','mp4','webm','mov','mp3','wav','m4a'].includes(e)||u.startsWith('data:image/')||u.match(/(youtube\\.com|youtu\\.be|facebook\\.com|tiktok\\.com|instagram\\.com)/i))f.add(u);}document.querySelectorAll('img,video,audio,source').forEach(el=>a(el.src||el.getAttribute('data-src')||el.getAttribute('data-original')||el.getAttribute('data-lazy-src')||el.poster));document.querySelectorAll('a').forEach(el=>a(el.href));document.querySelectorAll('*').forEach(el=>{var bg=window.getComputedStyle(el).backgroundImage;if(bg&&bg.startsWith('url(')){var m=bg.match(/url\\(['\"]?([^'\"]+)['\"]?\\)/);if(m)a(m[1]);}});var r=/(https?:)?\\/\\/[^\\s\"'<>;&\\\\]+\\.(jpg|jpeg|png|gif|webp|svg|ico|mp4|webm|mp3|wav|m4a)/gi,m,h=document.documentElement.innerHTML;while((m=r.exec(h))!==null)a(m[0]);if(f.size===0){alert('ไม่พบมีเดียบนหน้านี้ครับ');return;}var l=Array.from(f).join('\\n'),t=document.createElement('textarea');t.value=l;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);var o=document.createElement('div');o.style.cssText='position:fixed;top:20px;right:20px;z-index:999999;background:rgba(10,25,50,0.9);color:#00f2ff;border:2px solid #00f2ff;padding:15px 25px;border-radius:8px;font-weight:bold;box-shadow:0 0 20px rgba(0,242,255,0.4);font-family:sans-serif;font-size:12px;pointer-events:none;';o.innerText='✓ สแกนสำเร็จ! คัดลอกมีเดีย '+f.size+' รายการลงคลิปบอร์ดแล้ว\\n👉 นำไปวางในแท็บ Manual Code ได้เลย!';document.body.appendChild(o);setTimeout(()=>{o.style.opacity='0';setTimeout(()=>o.remove(),500);},4000);})();" class="btn-sao border-cyan-500 text-cyan-400 px-4 py-2 rounded text-xs hover:bg-cyan-500 hover:text-black transition sound-hover" title="ลากไปที่แถบบุ๊กมาร์ก (Bookmark Bar) ของเบราว์เซอร์"><i class="fas fa-bookmark"></i> ลากใส่บุ๊กมาร์ก (LITE)</a>
+                                    <button onclick="SFX.play('click'); DL.copyMobileCodeLite()" class="btn-sao border-cyan-700 text-cyan-300 px-4 py-1.5 rounded text-[10px] hover:bg-cyan-500 hover:text-black transition sound-hover"><i class="fas fa-copy"></i> คัดลอกโค้ดสำหรับมือถือ</button>
+                                </div>
+                            </div>
+
+                            <!-- FULL (Rich UI Overlay) -->
+                            <div class="p-4 bg-red-950/20 border border-red-500/30 rounded flex flex-col items-center justify-between gap-3">
+                                <div>
+                                    <h4 class="font-tech text-red-500 font-bold text-sm mb-1 uppercase"><i class="fas fa-satellite-dish"></i> Kirito Pull (FULL)</h4>
+                                    <p class="text-[10px] text-gray-400">ดึงสคริปต์เสริมเพื่อสร้างแผงแกลเลอรีครอบบนตัวเว็บดาวน์โหลดรูป/ ZIP ตรงจากเว็บนั้นๆ</p>
+                                </div>
+                                <div class="flex flex-col gap-2 w-full mt-2">
+                                    <a href="javascript:(function(){var s=document.createElement('script');s.src='https://prthachnu999.github.io/My-Personal-Space/kiritopull.js?v='+Date.now();document.body.appendChild(s);})();" class="btn-sao border-red-500 text-red-400 px-4 py-2 rounded text-xs hover:bg-red-500 hover:text-black transition sound-hover" title="ลากไปที่แถบบุ๊กมาร์ก (Bookmark Bar) ของเบราว์เซอร์"><i class="fas fa-bookmark"></i> ลากใส่บุ๊กมาร์ก (FULL)</a>
+                                    <button onclick="SFX.play('click'); DL.copyMobileCodeFull()" class="btn-sao border-red-700 text-red-300 px-4 py-1.5 rounded text-[10px] hover:bg-red-500 hover:text-black transition sound-hover"><i class="fas fa-copy"></i> คัดลอกโค้ดสำหรับมือถือ</button>
+                                </div>
+                            </div>
                         </div>
-                        <p class="text-xs text-gray-400">📌 ใช้ Bookmarklet หรือ Loader Code บนมือถือ/คอมฯ สำหรับข้าม CORS ในการสแกนเว็บที่ป้องกันเข้มงวด (เช่น Facebook, Pinterest)</p>
+                        <p class="text-xs text-gray-500 mt-2">📌 เครื่องมือเหล่านี้ใช้บนคอมฯ หรือมือถือเพื่อข้ามปัญหา CORS / การป้องกันเว็บหนาแน่น เช่น Pinterest, Instagram, Facebook</p>
                     </div>
 
                     <div class="pt-3 border-t border-gray-800 flex flex-wrap gap-4 items-center">
@@ -1475,21 +1496,35 @@
                     document.getElementById('dl-sec-tool').classList.add('flex');
                 }
             },
-            copyMobileCode: () => {
-                const shortCode = `javascript:(function(){var s=document.createElement('script');s.src='https://prthachnu999.github.io/My-Personal-Space/kiritopull.js?v='+Date.now();document.body.appendChild(s);})();`;
+            copyMobileCodeLite: () => {
+                const shortCode = `javascript:(function(){var f=new Set();function a(u){if(!u||typeof u!=='string')return;if(u.startsWith('data:')&&!u.startsWith('data:image/'))return;if(u.startsWith('//'))u='https:'+u;else if(u.startsWith('/'))u=location.origin+u;else if(!u.startsWith('http')&&!u.startsWith('blob:'))u=new URL(u,location.href).href;var e=u.split(/[?#]/)[0].split('.').pop().toLowerCase();if(['jpg','jpeg','png','webp','gif','svg','mp4','webm','mov','mp3','wav','m4a'].includes(e)||u.startsWith('data:image/')||u.match(/(youtube\\.com|youtu\\.be|facebook\\.com|tiktok\\.com|instagram\\.com)/i))f.add(u);}document.querySelectorAll('img,video,audio,source').forEach(el=>a(el.src||el.getAttribute('data-src')||el.getAttribute('data-original')||el.getAttribute('data-lazy-src')||el.poster));document.querySelectorAll('a').forEach(el=>a(el.href));document.querySelectorAll('*').forEach(el=>{var bg=window.getComputedStyle(el).backgroundImage;if(bg&&bg.startsWith('url(')){var m=bg.match(/url\\(['\"\']?([^'\"\']+)['\"\']?\\)/);if(m)a(m[1]);}});var r=/(https?:)?\\/\\/[^\\s\"'<>;&\\\\]+\\.(jpg|jpeg|png|gif|webp|svg|ico|mp4|webm|mp3|wav|m4a)/gi,m,h=document.documentElement.innerHTML;while((m=r.exec(h))!==null)a(m[0]);if(f.size===0){alert('ไม่พบมีเดียบนหน้านี้ครับ');return;}var l=Array.from(f).join('\\n'),t=document.createElement('textarea');t.value=l;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);var o=document.createElement('div');o.style.cssText='position:fixed;top:20px;right:20px;z-index:999999;background:rgba(10,25,50,0.9);color:#00f2ff;border:2px solid #00f2ff;padding:15px 25px;border-radius:8px;font-weight:bold;box-shadow:0 0 20px rgba(0,242,255,0.4);font-family:sans-serif;font-size:12px;pointer-events:none;';o.innerText='✓ สแกนสำเร็จ! คัดลอกมีเดีย '+f.size+' รายการลงคลิปบอร์ดแล้ว\\n👉 นำไปวางในแท็บ Manual Code ได้เลย!';document.body.appendChild(o);setTimeout(()=>{o.style.opacity='0';setTimeout(()=>o.remove(),500);},4000);})();`;
                 navigator.clipboard.writeText(shortCode).then(() => {
-                    Toast.show("คัดลอก Mobile Loader Code แล้ว!", "success");
+                    Toast.show("คัดลอก Mobile Loader LITE แล้ว!", "success");
                 }).catch(err => {
                     const t = document.createElement("textarea"); t.value = shortCode; t.style.position = 'fixed'; t.style.left = '-9999px'; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t);
-                    Toast.show("คัดลอก Mobile Loader Code แล้ว!", "success");
+                    Toast.show("คัดลอก Mobile Loader LITE แล้ว!", "success");
+                });
+            },
+            copyMobileCodeFull: () => {
+                const shortCode = `javascript:(function(){var s=document.createElement('script');s.src='https://prthachnu999.github.io/My-Personal-Space/kiritopull.js?v='+Date.now();document.body.appendChild(s);})();`;
+                navigator.clipboard.writeText(shortCode).then(() => {
+                    Toast.show("คัดลอก Mobile Loader FULL แล้ว!", "success");
+                }).catch(err => {
+                    const t = document.createElement("textarea"); t.value = shortCode; t.style.position = 'fixed'; t.style.left = '-9999px'; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t);
+                    Toast.show("คัดลอก Mobile Loader FULL แล้ว!", "success");
                 });
             },
             fetchProxy: async (url, isBlob=false) => {
-                const proxies = [
+                const proxies = [];
+                const isImage = url.match(/\.(jpg|jpeg|png|webp|gif|svg|ico|bmp|tiff)/i) || url.includes('image');
+                if (isImage) {
+                    proxies.push(`https://images.weserv.nl/?url=${encodeURIComponent(url)}`);
+                }
+                proxies.push(
                     `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
                     `https://corsproxy.io/?${encodeURIComponent(url)}`,
                     `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
-                ];
+                );
                 for(let p of proxies) {
                     try { 
                         const controller = new AbortController();
@@ -1940,7 +1975,7 @@
                             img.onerror = function() {
                                 if (isDataUrl) return;
                                 let rts = parseInt(this.getAttribute('data-rts'));
-                                let pxs = ['https://api.codetabs.com/v1/proxy?quest=', 'https://corsproxy.io/?'];
+                                let pxs = ['https://images.weserv.nl/?url=', 'https://corsproxy.io/?', 'https://api.codetabs.com/v1/proxy?quest='];
                                 if (rts < pxs.length) {
                                     this.setAttribute('data-rts', rts + 1);
                                     this.src = pxs[rts] + encodeURIComponent(src);
