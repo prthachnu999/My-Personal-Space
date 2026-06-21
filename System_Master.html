@@ -1503,7 +1503,7 @@
             },
             extractMediaFromHtml: (html, baseUrl) => {
                 let foundRaw = new Set(); 
-                const urlRegex = /(?:https?:|\\/\\/|\/\/)[^\s"'<>;&\/\\]+\.(?:jpg|jpeg|png|gif|webp|svg|ico|bmp|tiff|mp4|webm|ogg|mov|m4v|mp3|wav|m4a)(?:\?[^\s"'<>\\\/]*)?/gi;
+                                const urlRegex = /(?:https?:|\\\/\\\/|\/\/)[^\s"\'<>;&\\]+\.(?:jpg|jpeg|png|gif|webp|svg|ico|bmp|tiff|mp4|webm|ogg|mov|m4v|mp3|wav|m4a)(?:\?[^\s"\'<>\\]*)?/gi;
                 let m; while ((m = urlRegex.exec(html)) !== null) foundRaw.add(m[0].replace(/\\/g, ''));
                 
                 const b64Regex = /data:image\/(jpeg|png|gif|webp);base64,[a-zA-Z0-9+/=]+/gi;
