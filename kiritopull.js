@@ -2,6 +2,10 @@
 // KIRITO PULL SYSTEM - ULTIMATE MEDIA EDITION v8.1 (Fix Render Loop & Filter Bugs)
 // ==========================================
 (function() {
+    if(window.location.pathname.includes('System_Master.html')) {
+        alert('👉 วิธีใช้งาน Kirito Pull (FULL):\\n\\nอย่าคลิกปุ่มนี้โดยตรงในหน้านี้!\\n\\n1. ให้ใช้เมาส์ "ลาก" (Drag) ปุ่มนี้ไปวางไว้ที่แถบบุ๊กมาร์ก (Bookmark Bar) ของเบราว์เซอร์\\n2. เปิดหน้าเว็บไซต์ที่ต้องการสแกน (เช่น Facebook, Pinterest)\\n3. คลิกบุ๊กมาร์กตัวนั้นเพื่อรันระบบดูดสื่อครับ');
+        return;
+    }
     if(document.getElementById('krt-sys-wrapper')) {
         document.getElementById('krt-sys-wrapper').remove();
     }
@@ -356,15 +360,18 @@
     };
 
     const fetchMedia = async (url) => {
-        const proxies = [''];
+        const proxies = [];
         const isImg = url.match(/\.(jpg|jpeg|png|webp|gif|svg|ico|bmp|tiff)/i) || url.includes('image');
         if (isImg) {
             proxies.push('https://images.weserv.nl/?url=' + encodeURIComponent(url));
         }
-        proxies.push('https://corsproxy.io/?' + encodeURIComponent(url), 'https://api.codetabs.com/v1/proxy?quest?' + encodeURIComponent(url), 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url));
-        for(let p of proxies) {
+        proxies.push(
+            'https://corsproxy.io/?' + encodeURIComponent(url),
+            'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url),
+            'https://api.allorigins.win/raw?url=' + encodeURIComponent(url)
+        );
+        for(let target of proxies) {
             try {
-                let target = p ? p + encodeURIComponent(url) : url;
                 let ctrl = new AbortController();
                 let tid = setTimeout(() => ctrl.abort(), 10000);
                 let r = await fetch(target, {signal: ctrl.signal});
@@ -375,6 +382,16 @@
                 }
             } catch(e) {}
         }
+        try {
+            let ctrl = new AbortController();
+            let tid = setTimeout(() => ctrl.abort(), 10000);
+            let r = await fetch(url, {signal: ctrl.signal});
+            clearTimeout(tid);
+            if(r.ok) {
+                let b = await r.blob();
+                if(b.size > 150 && !b.type.includes('text/html')) return b;
+            }
+        } catch(e) {}
         return null;
     };
 
