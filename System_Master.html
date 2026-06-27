@@ -670,8 +670,8 @@
                             <label class="text-[10px] text-cyan-500 flex items-center gap-1 cursor-pointer hover:text-cyan-300 transition sound-hover">
                                 <input type="checkbox" id="dl-select-all" checked onchange="SFX.play('hover'); DL.toggleSelectAll()"> เลือกทั้งหมด
                             </label>
-                            <label class="text-[10px] text-red-400 flex items-center gap-1 cursor-pointer hover:text-red-300 transition sound-hover" title="ปิดระบบสแกนและกรองไฟล์ที่ซ้ำกัน">
-                                <input type="checkbox" id="dl-allow-duplicates" onchange="SFX.play('hover'); DL.render()"> ปิดระบบลบไฟล์ซ้ำ
+                            <label class="text-[10px] text-red-400 flex items-center gap-1 cursor-pointer hover:text-red-300 transition sound-hover" title="เปิดเพื่อกรองไฟล์ที่ซ้ำกันออก">
+                                <input type="checkbox" id="dl-filter-duplicates" checked onchange="SFX.play('hover'); DL.render()"> กรองไฟล์ซ้ำ
                             </label>
                         </div>
                         <div class="flex gap-2">
@@ -1609,7 +1609,18 @@
                 } catch(e){}
 
                 let finalUrls = [];
-                foundRaw.forEach(url => {
+                
+                let splitRaw = new Set();
+                foundRaw.forEach(u => {
+                    if (!u) return;
+                    if(/(?:%20|\s)(?:https?:|data:|\\\/\\\/|\/\/)/i.test(u)) {
+                        u.split(/(?:%20|\s)+(?=(?:https?:|data:|\\\/\\\/|\/\/))/i).forEach(p => splitRaw.add(p.trim()));
+                    } else {
+                        splitRaw.add(u.trim());
+                    }
+                });
+
+                splitRaw.forEach(url => {
                     if (!url || typeof url !== 'string') return;
                     const isData = url.startsWith('data:image/');
                     if(url.startsWith('data:') && !isData) return; 
@@ -1644,8 +1655,11 @@
                     DL.media = DL.extractMediaFromHtml(html, url);
                     DL.render();
                     Toast.show(`Scan complete: Found ${DL.media.length} items`, "success");
-                } catch(e) { SysAlert.show("Scan failed. Target site blocked proxies. Try Manual mode or Bookmarklet."); }
-                Loader.hide();
+                } catch(e) { 
+                    SysAlert.show("Scan failed. Target site blocked proxies. Try Manual mode or Bookmarklet."); 
+                } finally {
+                    Loader.hide();
+                }
             },
             scanManual: () => {
                 const code = document.getElementById('dl-manual-code').value;
@@ -1653,9 +1667,16 @@
                 if(!code) return Toast.show("Please paste HTML code.", "warn");
                 Loader.show("EXTRACTING MEDIA...");
                 setTimeout(() => {
-                    DL.media = DL.extractMediaFromHtml(code, url);
-                    DL.render(); Loader.hide();
-                    Toast.show(`Extracted ${DL.media.length} items`, "success");
+                    try {
+                        DL.media = DL.extractMediaFromHtml(code, url);
+                        DL.render();
+                        Toast.show(`Extracted ${DL.media.length} items`, "success");
+                    } catch(e) {
+                        console.error(e);
+                        Toast.show("Error extracting media.", "error");
+                    } finally {
+                        Loader.hide();
+                    }
                 }, 100);
             },
             setMainType: (type, btn) => {
@@ -1878,9 +1899,9 @@
                 const grid = document.getElementById('dl-grid'); 
                 grid.innerHTML = '';
                 
-                const allowDupes = document.getElementById('dl-allow-duplicates').checked;
+                const filterDupes = document.getElementById('dl-filter-duplicates').checked;
                 let mediaToShow = [];
-                if (allowDupes) {
+                if (!filterDupes) {
                     const uniqueUrls = new Set();
                     mediaToShow = DL.media.filter(item => {
                         if (uniqueUrls.has(item.url)) return false;
@@ -2207,7 +2228,6 @@
                 switchView(hash);
             }
         });
-
     </script>
 </body>
 </html>

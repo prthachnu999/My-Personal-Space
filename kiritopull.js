@@ -27,7 +27,9 @@
         } catch(e) { return 0; }
     };
 
-    const uMap = new Map();
+    const allMedia = [];
+    const allMediaSet = new Set();
+    const bestUrls = new Map();
     
     const guessType = (u) => {
         const ext = u.split('.').pop().split('?')[0].toLowerCase();
@@ -43,7 +45,14 @@
 
     const addMedia = function(s, forceType = null, altThumb = null, altTitle = null) {
         if(!s || typeof s !== 'string') return;
+        s = s.trim();
         
+        if(/(?:%20|\s)(?:https?:|data:|\\\/\\\/|\/\/)/i.test(s)) {
+            let parts = s.split(/(?:%20|\s)+(?=(?:https?:|data:|\\\/\\\/|\/\/))/i);
+            parts.forEach(p => addMedia(p, forceType, altThumb, altTitle));
+            return;
+        }
+
         const isDataUrl = s.startsWith('data:image/');
         if(s.startsWith('data:') && !isDataUrl) return; 
         
@@ -68,17 +77,23 @@
         if(!type && !uL.match(/\.(jpg|jpeg|png|webp|gif|svg|tiff|heic|ico)$/i)) return;
         if(!type) type = 'image'; 
         
-        let k = isDataUrl ? (s.substring(0, 60) + s.length) : cleanK(s);
-        let ex = uMap.get(k);
-        
-        if(!ex) {
-            uMap.set(k, { url: s, type: type, thumb: altThumb, title: altTitle });
-        } else {
-            if(!isDataUrl && getSc(s) > getSc(ex.url)) {
-                uMap.set(k, { url: s, type: type, thumb: altThumb, title: altTitle });
-            } else if(!isDataUrl && getSc(s) === getSc(ex.url) && !s.includes('?') && ex.url.includes('?')) {
-                uMap.set(k, { url: s, type: type, thumb: altThumb, title: altTitle });
+        if(!allMediaSet.has(s)) {
+            allMediaSet.add(s);
+            let k = isDataUrl ? (s.substring(0, 60) + s.length) : cleanK(s);
+            let sc = getSc(s);
+            
+            let exUrl = bestUrls.get(k);
+            if (!exUrl) {
+                bestUrls.set(k, s);
+            } else {
+                let exSc = getSc(exUrl);
+                if (!isDataUrl && sc > exSc) {
+                    bestUrls.set(k, s);
+                } else if (!isDataUrl && sc === exSc && !s.includes('?') && exUrl.includes('?')) {
+                    bestUrls.set(k, s);
+                }
             }
+            allMedia.push({ url: s, type: type, thumb: altThumb, title: altTitle, cleanK: k });
         }
     };
 
@@ -136,12 +151,12 @@
     let b64Match;
     while ((b64Match = b64Regex.exec(htmlCode)) !== null) { addMedia(b64Match[0], 'image'); }
 
-    if(uMap.size === 0) {
+    if(allMedia.length === 0) {
         alert('ไม่พบไฟล์มีเดียใดๆ (KIRITO SYSTEM)');
         return;
     }
 
-    const mediaArray = Array.from(uMap.values()); 
+    const mediaArray = allMedia; 
     let currentLbIndex = 0;
 
     const wrapper = document.createElement('div');
@@ -322,7 +337,12 @@
 
             <div class="info-text">
                 <span id="status-text">กำลังรวบรวมข้อมูล...</span>
-                <span class="status-badge" id="count-badge">ดึงมาได้ ${mediaArray.length} ไฟล์</span>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <label style="font-size:12px; color:#aaa; cursor:pointer; display:flex; align-items:center; gap:5px;" title="เปิดเพื่อกรองไฟล์ซ้ำ (รูปขนาดต่างๆ) ออก">
+                        <input type="checkbox" id="krt-filter-duplicates" checked> กรองไฟล์ซ้ำ
+                    </label>
+                    <span class="status-badge" id="count-badge">ดึงมาได้ ${mediaArray.length} ไฟล์</span>
+                </div>
             </div>
             <div id="gallery" class="grid"></div>
         </div>
@@ -360,16 +380,28 @@
     };
 
     const fetchMedia = async (url) => {
-        const proxies = [];
+        // Try direct fetch first
+        try {
+            let ctrl = new AbortController();
+            let tid = setTimeout(() => ctrl.abort(), 10000);
+            let r = await fetch(url, {signal: ctrl.signal});
+            clearTimeout(tid);
+            if(r.ok) {
+                let b = await r.blob();
+                if(b.size > 150 && !b.type.includes('text/html')) return b;
+            }
+        } catch(e) {}
+
+        // Fallback to proxies (prioritize faster ones)
+        const proxies = [
+            'https://corsproxy.io/?' + encodeURIComponent(url),
+            'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url)
+        ];
         const isImg = url.match(/\.(jpg|jpeg|png|webp|gif|svg|ico|bmp|tiff)/i) || url.includes('image');
         if (isImg) {
             proxies.push('https://images.weserv.nl/?url=' + encodeURIComponent(url));
         }
-        proxies.push(
-            'https://corsproxy.io/?' + encodeURIComponent(url),
-            'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url),
-            'https://api.allorigins.win/raw?url=' + encodeURIComponent(url)
-        );
+        proxies.push('https://api.allorigins.win/raw?url=' + encodeURIComponent(url));
         for(let target of proxies) {
             try {
                 let ctrl = new AbortController();
@@ -382,16 +414,6 @@
                 }
             } catch(e) {}
         }
-        try {
-            let ctrl = new AbortController();
-            let tid = setTimeout(() => ctrl.abort(), 10000);
-            let r = await fetch(url, {signal: ctrl.signal});
-            clearTimeout(tid);
-            if(r.ok) {
-                let b = await r.blob();
-                if(b.size > 150 && !b.type.includes('text/html')) return b;
-            }
-        } catch(e) {}
         return null;
     };
 
@@ -433,6 +455,7 @@
     let currentDurationFilter = 'all';
 
     const applyVisualFilters = () => {
+        const filterDupes = shadow.getElementById('krt-filter-duplicates').checked;
         const cards = shadow.querySelectorAll('.media-card');
         cards.forEach(card => {
             const width = parseInt(card.getAttribute('data-width') || 0);
@@ -442,26 +465,29 @@
             const ext = url.split('.').pop().split('?')[0];
             
             let show = true;
-            let isVidCategory = ['video', 'youtube', 'social_video'].includes(mediaType);
-
-            if (currentMainType !== 'all') {
-                if (currentMainType === 'video' && !isVidCategory) show = false;
-                else if (currentMainType === 'image' && mediaType !== 'image') show = false;
-                else if (currentMainType === 'audio' && mediaType !== 'audio') show = false;
-            }
-
+            
+            if (currentMainType !== 'all' && mediaType !== currentMainType) show = false;
+            
             if (show && currentSubType !== 'all') {
-                if (currentSubType === 'youtube' && mediaType !== 'youtube') show = false;
-                else if (currentSubType === 'social_video' && mediaType !== 'social_video') show = false;
-                else if (currentSubType === 'jpg' && !['jpg', 'jpeg'].includes(ext)) show = false;
-                else if (['png', 'gif', 'webp', 'svg', 'mp4', 'webm', 'mp3', 'wav'].includes(currentSubType) && ext !== currentSubType) show = false;
-                else if (currentSubType === 'other_img' && ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) show = false;
-                else if (currentSubType === 'other_vid' && ['mp4', 'webm', 'youtube', 'social_video'].includes(mediaType)) show = false;
-                else if (currentSubType === 'other_aud' && ['mp3', 'wav'].includes(ext)) show = false;
+                if (mediaType === 'image') {
+                    if (currentSubType === 'other_img' && ['jpg','jpeg','png','gif','webp','svg'].includes(ext)) show = false;
+                    else if (currentSubType !== 'other_img' && ext !== currentSubType && currentSubType !== 'jpeg') show = false;
+                    else if (currentSubType === 'jpg' && !['jpg','jpeg'].includes(ext)) show = false;
+                } else if (mediaType === 'video' || mediaType === 'youtube' || mediaType === 'social_video') {
+                    if (currentSubType === 'youtube' && mediaType !== 'youtube') show = false;
+                    else if (currentSubType === 'social_video' && mediaType !== 'social_video') show = false;
+                    else if (currentSubType === 'mp4' && ext !== 'mp4') show = false;
+                    else if (currentSubType === 'webm' && ext !== 'webm') show = false;
+                    else if (currentSubType === 'other_vid' && ['mp4','webm'].includes(ext) && !['youtube','social_video'].includes(mediaType)) show = false;
+                } else if (mediaType === 'audio') {
+                    if (currentSubType === 'mp3' && ext !== 'mp3') show = false;
+                    else if (currentSubType === 'wav' && ext !== 'wav') show = false;
+                    else if (currentSubType === 'other_aud' && ['mp3','wav'].includes(ext)) show = false;
+                }
             }
-
+            
             if (show && currentSizeFilter !== 'all') {
-                if (mediaType === 'audio' || mediaType === 'youtube' || mediaType === 'social_video') show = false; 
+                if (mediaType !== 'image' && mediaType !== 'video') show = false;
                 else {
                     if (currentSizeFilter === 'small' && width >= 500) show = false;
                     if (currentSizeFilter === 'medium' && (width < 500 || width > 1200)) show = false;
@@ -476,6 +502,9 @@
                     if (currentDurationFilter === 'medium' && (duration < 30 || duration > 180)) show = false;
                     if (currentDurationFilter === 'long' && duration <= 180) show = false;
                 }
+            }
+            if (show && filterDupes && card.classList.contains('duplicate-card')) {
+                show = false;
             }
             
             if (show) card.classList.remove('hidden-by-filter');
@@ -494,6 +523,10 @@
     };
 
     // Binding Filter Events
+    shadow.getElementById('krt-filter-duplicates').addEventListener('change', () => {
+        applyVisualFilters();
+    });
+
     shadow.querySelectorAll('#mainTypeFilters .filter-btn').forEach(btn => {
         btn.onclick = () => {
             currentMainType = btn.getAttribute('data-type'); currentSubType = 'all';
@@ -562,6 +595,9 @@
             let card = document.createElement('div');
             card.className = 'media-card';
             card.setAttribute('data-type', mediaType);
+            if (s !== bestUrls.get(item.cleanK)) {
+                card.classList.add('duplicate-card');
+            }
             
             let checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
@@ -947,51 +983,69 @@
         const doZip = async () => {
             let zip = new JSZip();
             let total = selectedCheckboxes.length;
+            let processedCount = 0;
             let successCount = 0;
 
-            for(let i=0; i<total; i++) {
-                let s = selectedCheckboxes[i].getAttribute('data-url');
-                let type = selectedCheckboxes[i].getAttribute('data-type');
-                let isDataUrl = s.startsWith('data:image/');
-                let isSocial = type === 'youtube' || type === 'social_video';
-                
-                if(s.startsWith('blob:')) continue; 
+            const processItem = async (index) => {
+                try {
+                    let s = selectedCheckboxes[index].getAttribute('data-url');
+                    let type = selectedCheckboxes[index].getAttribute('data-type');
+                    let isDataUrl = s.startsWith('data:image/');
+                    let isSocial = type === 'youtube' || type === 'social_video';
+                    
+                    if(s.startsWith('blob:')) return;
 
-                let b = null;
-                let ext = 'jpg';
+                    let b = null;
+                    let ext = 'jpg';
 
-                if (isDataUrl) {
-                    b = b64toBlob(s);
-                    ext = s.substring(11, s.indexOf(';')).replace('jpeg', 'jpg');
-                } else if (isSocial) {
-                    let thumbUrl = null;
-                    let targetItem = mediaArray.find(m => m.url === s);
-                    if(targetItem && targetItem.thumb) thumbUrl = targetItem.thumb;
-                    if(type === 'youtube') {
-                        let vidId = s.match(/[?&]v=([^&]+)/) || s.match(/youtu\.be\/([^?]+)/) || s.match(/shorts\/([^?]+)/);
-                        if(vidId && vidId[1]) thumbUrl = `https://img.youtube.com/vi/${vidId[1]}/hqdefault.jpg`;
-                    }
-                    if(thumbUrl && !thumbUrl.startsWith('data:')) b = await fetchMedia(thumbUrl);
-                    else if(thumbUrl && thumbUrl.startsWith('data:')) b = b64toBlob(thumbUrl);
-                    ext = 'jpg';
-                } else {
-                    b = await fetchMedia(s);
-                    if(b) {
-                        ext = s.split('.').pop().split('?')[0].toLowerCase();
-                        if(!['jpg','jpeg','png','gif','webp','svg','mp4','webm','ogg','mov','m4v','mp3','wav','m4a'].includes(ext)) {
-                            ext = type === 'video' ? 'mp4' : (type === 'audio' ? 'mp3' : 'jpg');
+                    if (isDataUrl) {
+                        b = b64toBlob(s);
+                        let extMatch = s.match(/data:image\/([a-zA-Z0-9\+\-]+);/);
+                        ext = extMatch ? extMatch[1].replace('jpeg', 'jpg') : 'jpg';
+                    } else if (isSocial) {
+                        let thumbUrl = null;
+                        let targetItem = mediaArray.find(m => m.url === s);
+                        if(targetItem && targetItem.thumb) thumbUrl = targetItem.thumb;
+                        if(type === 'youtube') {
+                            let vidId = s.match(/[?&]v=([^&]+)/) || s.match(/youtu\.be\/([^?]+)/) || s.match(/shorts\/([^?]+)/);
+                            if(vidId && vidId[1]) thumbUrl = `https://img.youtube.com/vi/${vidId[1]}/hqdefault.jpg`;
+                        }
+                        if(thumbUrl && !thumbUrl.startsWith('data:')) b = await fetchMedia(thumbUrl);
+                        else if(thumbUrl && thumbUrl.startsWith('data:')) b = b64toBlob(thumbUrl);
+                        ext = 'jpg';
+                    } else {
+                        b = await fetchMedia(s);
+                        if(b) {
+                            ext = s.split('.').pop().split('?')[0].toLowerCase();
+                            if(!['jpg','jpeg','png','gif','webp','svg','mp4','webm','ogg','mov','m4v','mp3','wav','m4a'].includes(ext)) {
+                                ext = type === 'video' ? 'mp4' : (type === 'audio' ? 'mp3' : 'jpg');
+                            }
                         }
                     }
-                }
 
-                if(b) {
-                    let base = 'KIRITO_MEDIA';
-                    let padIdx = String(i+1).padStart(3, '0');
-                    zip.file(`${base}_${type.toUpperCase()}_${padIdx}.${ext}`, b);
-                    successCount++;
+                    if(b) {
+                        let base = 'KIRITO_MEDIA';
+                        let padIdx = String(index+1).padStart(3, '0');
+                        zip.file(`${base}_${type.toUpperCase()}_${padIdx}.${ext}`, b);
+                        successCount++;
+                    }
+                } catch(e) {
+                    console.error("Zip processing error: ", e);
+                } finally {
+                    processedCount++;
+                    statusText.innerText = `กำลังแพ็กไฟล์ ${processedCount}/${total} ... (สำเร็จ ${successCount})`;
                 }
-                statusText.innerText = `กำลังแพ็กไฟล์ ${successCount}/${total} ...`;
-            }
+            };
+
+            const concurrency = 10;
+            let currentIndex = 0;
+            const workers = Array(concurrency).fill(null).map(async () => {
+                while (currentIndex < total) {
+                    let idx = currentIndex++;
+                    await processItem(idx);
+                }
+            });
+            await Promise.all(workers);
 
             if(successCount === 0) {
                 statusText.innerText = 'ล้มเหลว: โดนบล็อก หรือเป็นไฟล์ติดลิขสิทธิ์เข้ารหัส (Blob)';
