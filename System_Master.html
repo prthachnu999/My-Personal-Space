@@ -1659,7 +1659,10 @@
                         setTimeout(() => {
                             const mc = document.getElementById('main-content');
                             const el = document.getElementById('dl-count');
-                            if(mc && el) mc.scrollTo({ top: el.offsetTop - 50, behavior: 'smooth' });
+                            if(mc && el) {
+                                const targetTop = el.getBoundingClientRect().top + mc.scrollTop - mc.getBoundingClientRect().top;
+                                mc.scrollTo({ top: targetTop - 60, behavior: 'smooth' });
+                            }
                         }, 100);
                     }
                 } catch(e) { 
@@ -1682,7 +1685,10 @@
                             setTimeout(() => {
                                 const mc = document.getElementById('main-content');
                                 const el = document.getElementById('dl-count');
-                                if(mc && el) mc.scrollTo({ top: el.offsetTop - 50, behavior: 'smooth' });
+                                if(mc && el) {
+                                    const targetTop = el.getBoundingClientRect().top + mc.scrollTop - mc.getBoundingClientRect().top;
+                                    mc.scrollTo({ top: targetTop - 60, behavior: 'smooth' });
+                                }
                             }, 100);
                         }
                     } catch(e) {
