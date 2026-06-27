@@ -1657,8 +1657,9 @@
                     Toast.show(`Scan complete: Found ${DL.media.length} items`, "success");
                     if(DL.media.length > 0) {
                         setTimeout(() => {
+                            const mc = document.getElementById('main-content');
                             const el = document.getElementById('dl-count');
-                            if(el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            if(mc && el) mc.scrollTo({ top: el.offsetTop - 50, behavior: 'smooth' });
                         }, 100);
                     }
                 } catch(e) { 
@@ -1679,8 +1680,9 @@
                         Toast.show(`Extracted ${DL.media.length} items`, "success");
                         if(DL.media.length > 0) {
                             setTimeout(() => {
+                                const mc = document.getElementById('main-content');
                                 const el = document.getElementById('dl-count');
-                                if(el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                if(mc && el) mc.scrollTo({ top: el.offsetTop - 50, behavior: 'smooth' });
                             }, 100);
                         }
                     } catch(e) {
