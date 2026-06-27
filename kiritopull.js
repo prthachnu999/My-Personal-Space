@@ -708,7 +708,7 @@
                 
                 img.onload = function() {
                     if(this.src.startsWith('data:image/svg')) return; // ถ้ารูปพังแล้วเปลี่ยนเป็น svg ไม่ต้องเช็กขนาด
-                    if(this.naturalWidth < 30 && !isDataUrl) { this.onerror(); return; }
+                    if(this.naturalWidth < 10 && !isDataUrl) { this.onerror(); return; }
                     card.setAttribute('data-width', this.naturalWidth);
                     infoContainer.innerHTML = `<span class="filename" title="${fname}">${fname}</span><span class="dimensions">${this.naturalWidth}x${this.naturalHeight}</span>`;
                 };

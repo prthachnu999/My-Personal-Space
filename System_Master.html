@@ -2074,7 +2074,7 @@
 
                             img.onload = function() {
                                 if (this.src.startsWith('data:image/svg')) return;
-                                if (this.naturalWidth < 30 && !isDataUrl) { this.onerror(); return; }
+                                if (this.naturalWidth < 10 && !isDataUrl) { this.onerror(); return; }
                                 card.setAttribute('data-width', this.naturalWidth);
                                 info.innerHTML = `<span class="name truncate mr-2 text-white" title="${fname}">${fname}</span><span class="meta text-red-400 bg-red-950/40 px-1 py-0.5 rounded text-[8px] whitespace-nowrap">${this.naturalWidth}x${this.naturalHeight}</span>`;
                                 DL.applyFilters();
