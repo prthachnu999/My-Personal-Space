@@ -18,6 +18,7 @@
 
     <!-- Core Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/heic2any/0.0.4/heic2any.min.js" defer></script>
@@ -743,6 +744,18 @@
         // SYSTEM CORE & V9.0 AWAKENING FIX
         // ==========================================
         
+        // Helper: Escape HTML to prevent XSS
+        const escapeHTML = (str) => {
+            if (!str) return '';
+            return String(str).replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                "'": '&#39;',
+                '"': '&quot;'
+            }[tag]));
+        };
+
         // Helper: Format Bytes to KB/MB
         const formatBytes = (bytes) => {
             if(bytes === 0) return '0 Bytes';
@@ -1877,9 +1890,6 @@
                     }
                 }
                 if (b) {
-                    const u = URL.createObjectURL(b);
-                    const a = document.createElement('a');
-                    a.href = u;
                     let ext = 'jpg';
                     if (!isDataUrl) {
                         ext = url.split('.').pop().split('?')[0].toLowerCase();
@@ -1887,9 +1897,7 @@
                     } else {
                         ext = url.substring(11, url.indexOf(';')).replace('jpeg', 'jpg');
                     }
-                    a.download = `KIRITO_MEDIA_${Date.now()}.${ext}`;
-                    a.click();
-                    setTimeout(() => URL.revokeObjectURL(u), 1000);
+                    saveAs(b, `KIRITO_MEDIA_${Date.now()}.${ext}`);
                 } else {
                     window.open(url, '_blank');
                 }
@@ -1964,7 +1972,7 @@
                         const src = item.url;
                         const mediaType = item.type;
                         const isDataUrl = src.startsWith('data:image/');
-                        const fname = DL.cleanFilename(src);
+                        const fname = escapeHTML(DL.cleanFilename(src));
 
                         const card = document.createElement('div');
                         card.className = 'media-card relative bg-slate-950/80 border border-gray-800 hover:border-red-500/50 group flex flex-col rounded overflow-hidden transition-all duration-300 shadow-[inset_0_0_10px_rgba(0,0,0,0.8)]';
@@ -2094,11 +2102,27 @@
 
                         const actions = document.createElement('div');
                         actions.className = 'media-actions p-1 bg-black/90 border-t border-gray-900 flex justify-between gap-1';
-                        actions.innerHTML = `
-                            <button class="flex-1 py-1 rounded bg-red-950/20 hover:bg-red-500 hover:text-black border border-red-500/30 text-red-400 text-[10px] flex items-center justify-center transition sound-hover" title="ดาวน์โหลดตรง" onclick="SFX.play('click'); DL.downloadSingle('${src}', '${mediaType}', this)"><i class="fas fa-download"></i></button>
-                            <button class="flex-1 py-1 rounded bg-blue-950/20 hover:bg-blue-500 hover:text-black border border-blue-500/30 text-blue-400 text-[10px] flex items-center justify-center transition sound-hover" title="ก็อปปี้ลิงก์" onclick="SFX.play('click'); DL.copyText('${src}', this)"><i class="fas fa-link"></i></button>
-                            <button class="flex-[2] py-1 rounded bg-green-950/20 hover:bg-green-500 hover:text-black border border-green-500/30 text-green-400 text-[10px] flex items-center justify-center transition sound-hover" title="ก็อปปี้รูปลงเครื่อง" onclick="SFX.play('click'); DL.copyImageToClipboard('${src}', '${mediaType}', this)"><i class="fas fa-copy"></i></button>
-                        `;
+                        const btnDownload = document.createElement('button');
+                        btnDownload.className = 'flex-1 py-1 rounded bg-red-950/20 hover:bg-red-500 hover:text-black border border-red-500/30 text-red-400 text-[10px] flex items-center justify-center transition sound-hover';
+                        btnDownload.title = 'ดาวน์โหลดตรง';
+                        btnDownload.innerHTML = '<i class="fas fa-download"></i>';
+                        btnDownload.onclick = function() { SFX.play('click'); DL.downloadSingle(src, mediaType, this); };
+
+                        const btnCopyLink = document.createElement('button');
+                        btnCopyLink.className = 'flex-1 py-1 rounded bg-blue-950/20 hover:bg-blue-500 hover:text-black border border-blue-500/30 text-blue-400 text-[10px] flex items-center justify-center transition sound-hover';
+                        btnCopyLink.title = 'ก็อปปี้ลิงก์';
+                        btnCopyLink.innerHTML = '<i class="fas fa-link"></i>';
+                        btnCopyLink.onclick = function() { SFX.play('click'); DL.copyText(src, this); };
+
+                        const btnCopyImage = document.createElement('button');
+                        btnCopyImage.className = 'flex-[2] py-1 rounded bg-green-950/20 hover:bg-green-500 hover:text-black border border-green-500/30 text-green-400 text-[10px] flex items-center justify-center transition sound-hover';
+                        btnCopyImage.title = 'ก็อปปี้รูปลงเครื่อง';
+                        btnCopyImage.innerHTML = '<i class="fas fa-copy"></i>';
+                        btnCopyImage.onclick = function() { SFX.play('click'); DL.copyImageToClipboard(src, mediaType, this); };
+
+                        actions.appendChild(btnDownload);
+                        actions.appendChild(btnCopyLink);
+                        actions.appendChild(btnCopyImage);
 
                         card.appendChild(checkbox);
                         card.appendChild(typeBadge);
