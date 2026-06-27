@@ -2210,7 +2210,7 @@
                         if (hash === 'dl-manual-paste') {
                             const ta = document.getElementById('dl-manual-code');
                             if (ta) {
-                                ta.focus();
+                                ta.focus({ preventScroll: true });
                                 ta.classList.add('ring-2', 'ring-cyan-400', 'animate-pulse');
                                 setTimeout(() => ta.classList.remove('ring-2', 'ring-cyan-400', 'animate-pulse'), 5000);
                                 Toast.show("👉 กดปุ่มวาง (Ctrl+V) ลิงก์ที่คัดลอกมาลงในช่องนี้ได้เลยครับ!", "info");
@@ -2232,7 +2232,7 @@
                 if (hash === 'dl-manual-paste') {
                     const ta = document.getElementById('dl-manual-code');
                     if (ta) {
-                        ta.focus();
+                        ta.focus({ preventScroll: true });
                         ta.classList.add('ring-2', 'ring-cyan-400', 'animate-pulse');
                         setTimeout(() => ta.classList.remove('ring-2', 'ring-cyan-400', 'animate-pulse'), 5000);
                         Toast.show("👉 กดปุ่มวาง (Ctrl+V) ลิงก์ที่คัดลอกมาลงในช่องนี้ได้เลยครับ!", "info");
