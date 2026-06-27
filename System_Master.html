@@ -1655,6 +1655,12 @@
                     DL.media = DL.extractMediaFromHtml(html, url);
                     DL.render();
                     Toast.show(`Scan complete: Found ${DL.media.length} items`, "success");
+                    if(DL.media.length > 0) {
+                        setTimeout(() => {
+                            const el = document.getElementById('dl-count');
+                            if(el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 100);
+                    }
                 } catch(e) { 
                     SysAlert.show("Scan failed. Target site blocked proxies. Try Manual mode or Bookmarklet."); 
                 } finally {
@@ -1671,6 +1677,12 @@
                         DL.media = DL.extractMediaFromHtml(code, url);
                         DL.render();
                         Toast.show(`Extracted ${DL.media.length} items`, "success");
+                        if(DL.media.length > 0) {
+                            setTimeout(() => {
+                                const el = document.getElementById('dl-count');
+                                if(el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }, 100);
+                        }
                     } catch(e) {
                         console.error(e);
                         Toast.show("Error extracting media.", "error");
